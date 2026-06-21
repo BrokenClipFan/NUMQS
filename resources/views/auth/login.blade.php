@@ -15,6 +15,7 @@
             --primary-accent: rgb(185, 215, 234);
             --main-dark: rgb(118, 159, 205);
             --text-dark: #2c3e50;
+            --fb-blue: #1877F2;
         }
 
         body {
@@ -64,6 +65,19 @@
             transform: translateY(-1px);
         }
 
+        .btn-facebook {
+            background-color: var(--fb-blue);
+            color: white;
+            border: none;
+            transition: all 0.2s;
+        }
+
+        .btn-facebook:hover, .btn-facebook:active {
+            background-color: #166fe5;
+            color: white;
+            transform: translateY(-1px);
+        }
+
         .text-main-dark { color: var(--main-dark); }
         
         .form-check-input:checked {
@@ -96,6 +110,16 @@
                 {{ session('status') }}
             </div>
         @endif
+
+        <a href="{{ route('facebook.redirect') }}" class="btn btn-facebook w-100 py-3 fw-bold rounded-3 shadow-sm d-flex justify-content-center align-items-center mb-3">
+            <i class="bi bi-facebook fs-5 me-2"></i> Continue with Facebook
+        </a>
+
+        <div class="d-flex align-items-center my-4">
+            <hr class="flex-grow-1 text-muted opacity-25">
+            <span class="mx-3 text-muted small text-uppercase fw-bold">Or log in with email</span>
+            <hr class="flex-grow-1 text-muted opacity-25">
+        </div>
 
         <form method="POST" action="{{ route('login') }}">
             @csrf
@@ -132,22 +156,3 @@
             </div>
 
             <div class="mb-4 form-check">
-                <input id="remember_me" type="checkbox" class="form-check-input" name="remember">
-                <label for="remember_me" class="form-check-label small user-select-none">Keep me logged in</label>
-            </div>
-
-            <button type="submit" class="btn btn-main w-100 py-3 fw-bold rounded-3 shadow-sm d-flex justify-content-center align-items-center">
-                Sign In <i class="bi bi-arrow-right-short fs-5 ms-1"></i>
-            </button>
-        </form>
-
-        <div class="mt-4 text-center">
-            <span class="text-muted small">Don't have an account?</span>
-            <a href="{{ route('register') }}" class="text-decoration-none text-main-dark fw-bold small ms-1">Register Driver Profile</a>
-        </div>
-        
-    </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-</html>
