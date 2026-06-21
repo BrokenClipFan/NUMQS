@@ -132,10 +132,10 @@
             
             <div class="d-flex align-items-center gap-1 gap-md-2">
                 <span class="badge px-2 py-2 rounded-pill d-flex align-items-center bg-custom-dark shadow-sm" style="font-size: 0.8rem;">
-                    <i class="bi bi-stack me-1"></i> <span class="hide-on-mobile-xs">Pos: </span>#3
+                    <i class="bi bi-stack me-1"></i> <span class="hide-on-mobile-xs">Position: </span>#3
                 </span>
                 
-                <a href="/driver/dashboard" class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1 px-2" title="Dashboard">
+                <a href="{{ route('dashboard') }}" class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1 px-2" title="Dashboard">
                     <i class="bi bi-speedometer2"></i> <span class="d-none d-md-inline">Dashboard</span>
                 </a>
             </div>
