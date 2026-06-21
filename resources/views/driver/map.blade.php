@@ -135,7 +135,7 @@
                     <i class="bi bi-stack me-1"></i> <span class="hide-on-mobile-xs">Position: </span>#3
                 </span>
                 
-                <a href="{{ route('dashboard') }}" class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1 px-2" title="Dashboard">
+                <a href="{{ route('profile') }}" class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1 px-2" title="Dashboard">
                     <i class="bi bi-speedometer2"></i> <span class="d-none d-md-inline">Dashboard</span>
                 </a>
             </div>

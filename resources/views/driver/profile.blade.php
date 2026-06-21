@@ -123,11 +123,20 @@
 
     <nav class="navbar navbar-expand-lg nav-sticky-top px-3 py-2">
         <div class="container-fluid d-flex justify-content-between align-items-center p-0">
-            <a href="{{-- route('driver.map') --}}#" class="btn btn-sm btn-light border-custom d-flex align-items-center">
-                <i class="bi bi-chevron-left me-1"></i> Back
-            </a>
-            <span class="fw-bold fs-5 text-custom-dark">Driver Profile</span>
-            <div style="width: 60px;"></div> </div>
+            <div style="width: 80px;">
+                <a href="{{ route('driver.map') }}" class="btn btn-sm btn-light border-custom d-flex align-items-center d-inline-flex">
+                    <i class="bi bi-chevron-left me-1"></i> Back
+                </a>
+            </div>
+            
+            <span class="fw-bold fs-5 text-custom-dark text-center">Driver Profile</span>
+            
+            <div style="width: 80px;" class="d-flex justify-content-end">
+                <a href="{{-- route('home') --}}#" class="btn btn-sm btn-light border-custom d-flex align-items-center justify-content-center" title="Home">
+                    <i class="bi bi-house-door-fill text-custom-dark mb-0"></i>
+                </a>
+            </div> 
+        </div>
     </nav>
 
     <div class="scrollable-content container py-4 max-w-md mx-auto" style="max-width: 800px;">
@@ -164,7 +173,7 @@
                                 <textarea class="form-control bg-light" name="bio" rows="3" placeholder="Tell dispatch something about your daily routine...">Regular route from Naga to Uling. Always on time.</textarea>
                             </div>
                             
-                            <div class="mb-3">
+                            <div class="mb-4">
                                 <label class="form-label fw-bold text-muted small text-uppercase">Contact Number</label>
                                 <input type="tel" class="form-control bg-light" name="phone" value="+63 912 345 6789">
                             </div>
@@ -173,6 +182,28 @@
                                 <i class="bi bi-floppy me-1"></i> Save Profile Details
                             </button>
                         </form>
+
+                        <hr class="border-custom my-4">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold text-muted small text-uppercase">Account Management</label>
+                            
+                            <div class="d-flex flex-column gap-2">
+                                <form method="POST" action="{{ route('logout') }}" class="w-100">
+                                    @csrf
+                                    <button type="submit" class="btn btn-outline-secondary w-100 fw-bold shadow-sm py-2">
+                                        <i class="bi bi-box-arrow-right me-1"></i> Logout
+                                    </button>
+                                </form>
+
+                                <form action="{{-- route('profile.destroy') --}}" method="POST" class="w-100" onsubmit="return confirm('Are you sure you want to delete your account? This action cannot be undone.');">
+                                    {{-- @csrf @method('DELETE') --}}
+                                    <button type="submit" class="btn btn-outline-danger w-100 fw-bold shadow-sm py-2">
+                                        <i class="bi bi-trash3 me-1"></i> Delete Account
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                        
                     </div>
                 </div>
             </div>
