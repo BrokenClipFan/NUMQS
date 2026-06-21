@@ -111,7 +111,7 @@
             </div>
         @endif
 
-        <a href="{{ route('facebook.redirect') }}" class="btn btn-facebook w-100 py-3 fw-bold rounded-3 shadow-sm d-flex justify-content-center align-items-center mb-3">
+        <a href="{{ route('auth.callback') }}" class="btn btn-facebook w-100 py-3 fw-bold rounded-3 shadow-sm d-flex justify-content-center align-items-center mb-3">
             <i class="bi bi-facebook fs-5 me-2"></i> Continue with Facebook
         </a>
 
@@ -156,3 +156,26 @@
             </div>
 
             <div class="mb-4 form-check">
+                <input class="form-check-input" type="checkbox" name="remember" id="remember" {{ old('remember') ? 'checked' : '' }}>
+                <label class="form-check-label small text-muted fw-bold" for="remember">
+                    Remember me
+                </label>
+            </div>
+
+            <button type="submit" class="btn btn-main w-100 py-3 fw-bold rounded-3 shadow-sm mb-3">
+                <i class="bi bi-box-arrow-in-right me-2"></i> Log in
+            </button>
+
+            @if (Route::has('register'))
+                <div class="text-center mt-3">
+                    <span class="text-muted small">Don't have an account?</span>
+                    <a href="{{ route('register') }}" class="text-decoration-none text-main-dark fw-bold small">Sign up</a>
+                </div>
+            @endif
+        </form>
+
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -63,4 +63,39 @@ Route::get('/auth/callback', function () {
     return redirect('/dashboard');
 });
 
+Route::get('/fake/auth/callback', function () {
+    // --- START OF MOCK DATA ---
+    // Simulating the Socialite user object structure
+    $facebookUser = (object) [
+        'id'          => '1234567890987654', // Fake Facebook UID
+        'name'        => 'John Doe',
+        'email'       => 'johndoe@example.com',
+        'token'       => 'fake-easy-access-token-123456',
+        'refreshToken'=> 'fake-refresh-token-123456',
+    ];
+    // --- END OF MOCK DATA ---
+
+    // Look for existing user by the fake facebook_id
+    $user = User::where('facebook_id', $facebookUser->id)->first();
+ 
+    if ($user) {
+        $user->update([
+            'facebook_token' => $facebookUser->token,
+            'facebook_refresh_token' => $facebookUser->refreshToken,
+        ]);
+    } else {
+        $user = User::create([
+            'name' => $facebookUser->name,
+            'email' => $facebookUser->email,
+            'facebook_id' => $facebookUser->id,
+            'facebook_token' => $facebookUser->token,
+            'facebook_refresh_token' => $facebookUser->refreshToken,
+        ]);
+    }
+ 
+    Auth::login($user);
+ 
+    return redirect('/dashboard');
+})->name('auth.callback');
+
 require __DIR__.'/auth.php';
