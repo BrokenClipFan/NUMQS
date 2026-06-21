@@ -44,6 +44,17 @@ Route::middleware('auth')->group(function () {
     });
 });
 
+Route::get('/verify-driver', function() {
+    return view('admin.verify-driver');
+})->name('verify.driver');
+
+Route::get('/fleet-management', function() {
+    return view('admin.fleet-management');
+})->name('fleet.management');
+Route::get('/driver-info', function() {
+    return view('admin.driver-info');
+});
+
 Route::get('/fake/auth/callback', function () {
     // --- START OF MOCK DATA ---
     $facebookUser = (object) [
