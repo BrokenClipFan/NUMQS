@@ -145,7 +145,7 @@
             <a href="#" class="btn btn-sm btn-light border-custom fw-bold text-main-dark shadow-sm">
                 <i class="bi bi-chevron-left"></i> Previous
             </a>
-            <span class="small fw-bold text-muted bg-white px-3 py-1 border border-custom rounded-pill">Driver 2 of 14</span>
+            <span class="small fw-bold text-muted bg-white px-3 py-1 border border-custom rounded-pill">Driver 1 of {{ $driverCount }}</span>
             <a href="#" class="btn btn-sm btn-light border-custom fw-bold text-main-dark shadow-sm">
                 Next <i class="bi bi-chevron-right"></i>
             </a>

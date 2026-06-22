@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ApprovalController;
+use App\Http\Controllers\Admin\DriverVerificationController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 use App\Models\User;
@@ -15,6 +16,18 @@ Route::get('/driver/profile', function () {
 Route::get('/dispatcher/queue', function () {
     return view('dispatcher.queue-board');
 });
+
+// Admin Area
+Route::get('/verify-driver', [DriverVerificationController::class, 'index'])->name('verify.driver');
+
+Route::get('/fleet-management', function() {
+    return view('admin.fleet-management');
+})->name('fleet.management');
+
+Route::get('/driver-info', function() {
+    return view('admin.driver-info');
+});
+
 Route::get('/admin/sandbox', function () {
     return view('admin.sandbox');
 });
@@ -43,54 +56,6 @@ Route::middleware('auth')->group(function () {
         })->name('driver.map');
     });
 });
-
-Route::get('/verify-driver', function() {
-    return view('admin.verify-driver');
-})->name('verify.driver');
-
-Route::get('/fleet-management', function() {
-    return view('admin.fleet-management');
-})->name('fleet.management');
-Route::get('/driver-info', function() {
-    return view('admin.driver-info');
-});
-
-// Route::get('/fake/auth/callback', function () {
-//     // --- START OF MOCK DATA ---
-//     $facebookUser = (object) [
-//         'id'           => '1234567890987654', 
-//         'name'         => 'John Doe',
-//         'email'        => 'johndoe@example.com',
-//         'token'        => 'fake-easy-access-token-123456',
-//         'refreshToken' => 'fake-refresh-token-123456',
-//         'verified' => false
-//     ];
-//     // --- END OF MOCK DATA ---
-
-//     // Fixed: Using object property syntax (->) instead of array syntax
-//     $user = User::where('facebook_id', $facebookUser->id)->first();
- 
-//     if ($user) {
-//         $user->update([
-//             'facebook_token' => $facebookUser->token,
-//             'facebook_refresh_token' => $facebookUser->refreshToken,
-//         ]);
-//     } else {
-//         $user = User::create([
-//             'name' => $facebookUser->name,
-//             'email' => $facebookUser->email,
-//             'facebook_id' => $facebookUser->id,
-//             'facebook_token' => $facebookUser->token,
-//             'facebook_refresh_token' => $facebookUser->refreshToken,
-//             'password' => Hash::make(Str::random(24)),
-//             'verified' => $facebookUser->verified
-//         ]);
-//     }
- 
-//     Auth::login($user);
- 
-//     return redirect('/dashboard');
-// })->name('auth.callback');
 
 Route::get('/auth/redirect', function () {
     return Socialite::driver('facebook')->setScopes(['public_profile'])->redirect();
