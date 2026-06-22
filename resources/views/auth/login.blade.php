@@ -111,7 +111,7 @@
             </div>
         @endif
 
-        <a href="{{ route('auth.callback') }}" class="btn btn-facebook w-100 py-3 fw-bold rounded-3 shadow-sm d-flex justify-content-center align-items-center mb-3">
+        <a href="{{ route('facebook.redirect') }}" class="btn btn-facebook w-100 py-3 fw-bold rounded-3 shadow-sm d-flex justify-content-center align-items-center mb-3">
             <i class="bi bi-facebook fs-5 me-2"></i> Continue with Facebook
         </a>
 

@@ -15,7 +15,7 @@ class CheckVerified
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if(!$request->user()->verified) {
+        if(!$request->user()->is_verified) {
             return redirect()->route('pending.approval');
         }
         return $next($request);
