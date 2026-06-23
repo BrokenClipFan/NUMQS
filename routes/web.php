@@ -4,9 +4,9 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ApprovalController;
 use App\Http\Controllers\Admin\DriverVerificationController;
 use App\Http\Controllers\DriverProfileController;
+use App\Models\User;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
-use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Laravel\Socialite\Facades\Socialite;
@@ -18,25 +18,8 @@ Route::get('/dispatcher/queue', function () {
     return view('dispatcher.queue-board');
 });
 
-// Admin Area
-Route::get('/verify-driver', [DriverVerificationController::class, 'index'])->name('verify.driver');
-
-Route::get('/fleet-management', function() {
-    return view('admin.fleet-management');
-})->name('fleet.management');
-
-Route::get('/driver-info', function() {
-    return view('admin.driver-info');
-});
-
-Route::get('/admin/sandbox', function () {
-    return view('admin.sandbox');
-});
-
-Route::post('/admin/profile/{id}/store', [DriverProfileController::class, 'store'])->name('driver.store');
-
 Route::middleware('auth')->group(function () {
-
+    
     Route::get('/pending-approval', function() {
         return view('auth.pending-approval');
     })->name('pending.approval');
@@ -57,6 +40,24 @@ Route::middleware('auth')->group(function () {
         Route::get('/', function () {
             return view('driver.map');
         })->name('driver.map');
+    });
+
+    Route::middleware('is_admin')->group(function() {
+        Route::get('/verify-driver', [DriverVerificationController::class, 'index'])->name('verify.driver');
+
+        Route::get('/fleet-management', function() {
+            return view('admin.fleet-management');
+        })->name('fleet.management');
+
+        Route::get('/driver-info', function() {
+            return view('admin.driver-info');
+        });
+
+        Route::get('/admin/sandbox', function () {
+            return view('admin.sandbox');
+        });
+
+        Route::post('/admin/profile/{id}/store', [DriverProfileController::class, 'store'])->name('driver.store');
     });
 });
 
