@@ -10,8 +10,7 @@ class DriverVerificationController extends Controller
 {
     public function index() {
         $driver = User::where('is_verified', false)->orderBy('created_at', 'asc')->paginate(1);
-        $driverCount = User::where('is_verified', false)->count();
-
-        return view('admin.verify-driver', compact('driverCount', 'driver'));
+        $currentDriver = $driver->first();
+        return view('admin.verify-driver', compact('driver', 'currentDriver'));
     }
 }

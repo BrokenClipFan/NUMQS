@@ -3,6 +3,7 @@
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ApprovalController;
 use App\Http\Controllers\Admin\DriverVerificationController;
+use App\Http\Controllers\DriverProfileController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 use App\Models\User;
@@ -32,6 +33,8 @@ Route::get('/admin/sandbox', function () {
     return view('admin.sandbox');
 });
 
+Route::post('/admin/profile/{id}/store', [DriverProfileController::class, 'store'])->name('driver.store');
+
 Route::middleware('auth')->group(function () {
 
     Route::get('/pending-approval', function() {
@@ -48,7 +51,7 @@ Route::middleware('auth')->group(function () {
         })->name('profile');
 
         Route::get('/dashboard', function () {
-            return view('dashboard');
+            return view('driver.profile');
         })->name('dashboard');
 
         Route::get('/', function () {
@@ -78,6 +81,7 @@ Route::get('/auth/callback', function () {
             'email' => $facebookUser->email,
             'facebook_id' => $facebookUser->id,
             'facebook_token' => $facebookUser->token,
+            'avatar' => $facebookUser->avatar,
             'password' => Hash::make(Str::random(32))
         ]);
     }
