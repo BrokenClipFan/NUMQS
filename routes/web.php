@@ -4,6 +4,8 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ApprovalController;
 use App\Http\Controllers\Admin\DriverVerificationController;
 use App\Http\Controllers\DriverProfileController;
+use App\Http\Controllers\NagaQueueController;
+use App\Http\Controllers\DriverLocationController;
 use App\Models\User;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
@@ -37,9 +39,13 @@ Route::middleware('auth')->group(function () {
             return view('driver.profile');
         })->name('dashboard');
 
+        Route::post('/add/queue',[NagaQueueController::class, 'store'])->name('add.to.queue');
+        
         Route::get('/', function () {
             return view('driver.map');
         })->name('driver.map');
+
+        Route::post('/driver/location', [DriverLocationController::class, 'update']);
     });
 
     Route::middleware('is_admin')->group(function() {
@@ -57,7 +63,7 @@ Route::middleware('auth')->group(function () {
             return view('admin.sandbox');
         });
 
-        Route::post('/admin/profile/{id}/store', [DriverProfileController::class, 'store'])->name('driver.store');
+        Route::post('/admin/profile/{id}/store', [DriverVerificationController::class, 'store'])->name('driver.store');
     });
 });
 
