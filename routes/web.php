@@ -45,7 +45,7 @@ Route::middleware('auth')->group(function () {
             return view('driver.map');
         })->name('driver.map');
 
-        Route::post('/driver/location', [DriverLocationController::class, 'update']);
+        Route::post('/driver/{$id}/location', [DriverLocationController::class, 'updateLocation'])->name('update.location');
     });
 
     Route::middleware('is_admin')->group(function() {

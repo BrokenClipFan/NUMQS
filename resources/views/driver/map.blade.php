@@ -358,6 +358,8 @@
                 alertText.innerHTML = `<span class="text-muted" style="font-size:0.8rem;">Status: Idle</span>`;
             }
         }
+
+        
     </script>
 </body>
 </html>
