@@ -9,6 +9,8 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
 
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+
     <style>
         :root {
             --bg-light: rgb(247, 251, 252);
@@ -359,6 +361,26 @@
             }
         }
 
+        fetch('/driver/test', {
+            method: 'POST', // We are sending data
+            headers: {
+                'Content-Type': 'application/json',
+                // This is where we grab the token from the meta tag
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content 
+            },
+            body: JSON.stringify({
+                // Using the => operator here to build the data object!
+                'first_name': 'John',
+                'last_name': 'Doe'
+            })
+        })
+        .then(response => response.json()) // Convert response to JSON
+        .then(data => {
+            console.log('Success:', data); // Handle the response from Laravel
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
         
     </script>
 </body>

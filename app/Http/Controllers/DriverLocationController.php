@@ -47,6 +47,19 @@ class DriverLocationController extends Controller
         //
     }
 
+    public function test(Request $request) {
+        // Access the data sent from JS using the -> operator
+        $firstName = $request->input('first_name');
+        
+        // Perform logic...
+        
+        // Return a JSON response back to JavaScript
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Profile updated for ' . $firstName
+        ]);
+    }
+
     /**
      * Update the specified resource in storage.
      */
