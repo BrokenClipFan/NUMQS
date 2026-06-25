@@ -39,10 +39,11 @@ Route::middleware('auth')->group(function () {
             return view('driver.profile');
         })->name('dashboard');
 
-        Route::post('/add/queue',[NagaQueueController::class, 'store'])->name('add.to.queue');
+        // Route::post('/add/queue',[NagaQueueController::class, 'store'])->name('add.to.queue');
         
+        // Map
         Route::get('/', [DriverLocationController::class, 'index'])->name('driver.map');
-
+        Route::get('/drivers', [DriverLocationController::class, 'getDrivers']);
         Route::post('/driver/location/update', [DriverLocationController::class, 'updateLocation'])->name('location.update');
         Route::post('/driver/online/update', [DriverLocationController::class, 'changeOnlineStatus'])->name('online.update');
 

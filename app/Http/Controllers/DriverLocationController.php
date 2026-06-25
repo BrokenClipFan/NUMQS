@@ -17,6 +17,16 @@ class DriverLocationController extends Controller
         return view('driver.map', compact('driver'));
     }
 
+    public function getDrivers() {
+        $drivers = User::whereHas('status', function ($query) {
+        $query->where('is_online', true);
+        })
+        ->with(['profile', 'status'])
+        ->get();
+
+        return $drivers;
+    }
+
     /**
      * Show the form for creating a new resource.
      */
@@ -66,9 +76,7 @@ class DriverLocationController extends Controller
             'last_updated' => now()
         ]);
 
-        $drivers = User::with(['profile', 'status'])->get();
-
-        return $drivers;
+        return back()->with('success', 'Location is Updated');
     }
 
     public function changeOnlineStatus(Request $request) {

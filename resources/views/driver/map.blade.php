@@ -425,6 +425,16 @@
             })
         }
 
+        function getDriversCoord() {
+            fetch('/drivers') 
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            }).then(addPinsToAllDrivers);
+        }
+
         function saveLocationToDatabase(lat, lng) {
         fetch('/driver/location/update', {
             method: 'POST',
@@ -436,16 +446,14 @@
                 'latitude': lat,   // Using the => operator to map keys
                 'longitude': lng   // to the values we got from GPS
             })
-        })
-        .then(response => response.json())
-        .then(data => addPinsToAllDrivers(data));
-        }       
+        })       
+        }
 
         setInterval(() => {
             if(targetLat && targetLng)
                 saveLocationToDatabase(targetLat, targetLng);
 
-            
+            getDriversCoord();
         }, 3000);
         
         // sendLocationToServer();
