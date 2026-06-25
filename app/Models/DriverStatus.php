@@ -13,5 +13,6 @@ class DriverStatus extends Model
         'dispatched_to',
         'state',
         'last_updated',
+        'is_online'
     ];
 }

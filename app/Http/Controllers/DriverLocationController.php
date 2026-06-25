@@ -13,7 +13,8 @@ class DriverLocationController extends Controller
      */
     public function index()
     {
-        //
+        $driver = DriverStatus::where('user_id', auth()->user()->id)->first();
+        return view('driver.map', compact('driver'));
     }
 
     /**
@@ -68,6 +69,22 @@ class DriverLocationController extends Controller
         $drivers = User::with(['profile', 'status'])->get();
 
         return $drivers;
+    }
+
+    public function changeOnlineStatus(Request $request) {
+        $request->validate([
+            'is_online' => 'required|boolean'
+        ]);
+
+        $driver = DriverStatus::where('user_id', auth()->user()->id);
+        $driver->update([
+            'is_online' => $request->is_online
+        ]);
+
+        if($request->is_online)
+            return back()->with('success', "You are now online");
+        else
+            return back()->with('success', "Your are now offline");
     }
 
     /**

@@ -102,6 +102,10 @@
             font-weight: 600;
         }
 
+        .hidden {
+            display: none;
+        }
+
         /* Leaflet Popup Styling Override */
         .leaflet-popup-content-wrapper {
             border-radius: 12px;
@@ -156,20 +160,32 @@
                     <i class="bi bi-sliders me-1"></i> Driver Controls
                 </h6>
                 <div class="row g-2">
-                    <div class="col-6">
-                        <button id="btnStartDrive" class="btn bg-custom-dark w-100 py-2 fw-bold text-white shadow-sm border-0 d-flex flex-column align-items-center justify-content-center" onclick="handleDriveStatus(true)">
+                    <form class="col-6" action="{{ route('online.update') }}" method="POST">
+                        @csrf
+                        <input type="number" class="hidden" name="is_online" value="1">
+                        @if($driver->is_online)
+                            <button type="submit" id="btnStartDrive" class="btn bg-custom-dark w-100 py-2 fw-bold text-white shadow-sm border-0 d-flex flex-column align-items-center justify-content-center" disabled>
+                        @else
+                            <button type="submit" id="btnStartDrive" class="btn bg-custom-dark w-100 py-2 fw-bold text-white shadow-sm border-0 d-flex flex-column align-items-center justify-content-center">
+                        @endif
                             <i class="bi bi-play-circle-fill fs-4 mb-1"></i>
                             <span style="font-size: 0.9rem;">Start Drive</span>
                         </button>
-                    </div>
-                    <div class="col-6">
-                        <button id="btnEndDrive" class="btn btn-light border-custom w-100 py-2 fw-bold text-muted d-flex flex-column align-items-center justify-content-center" onclick="handleDriveStatus(false)" disabled>
+                    </form>
+                    <form class="col-6" action="{{ route('online.update') }}" method="POST">
+                        @csrf
+                        <input type="number" value="0" name="is_online" class="hidden">
+                        @if($driver->is_online)
+                            <button type="submit" id="btnEndDrive" class="btn btn-light border-custom w-100 py-2 fw-bold text-muted d-flex flex-column align-items-center justify-content-center">
+                        @else
+                            <button type="submit" id="btnEndDrive" class="btn btn-light border-custom w-100 py-2 fw-bold text-muted d-flex flex-column align-items-center justify-content-center" disabled>
+                        @endif
                             <i class="bi bi-stop-circle-fill fs-4 mb-1 text-danger"></i>
                             <span style="font-size: 0.9rem;">End Drive</span>
                         </button>
-                    </div>
+                    </form>
                 </div>
-                <div id="driveStatusAlert" class="text-center mt-2 small fw-bold text-muted">Status: Idle</div>
+                <div id="driveStatusAlert" class="text-center mt-2 small fw-bold text-muted">Status: {{ $driver->state }}</div>
             </div>
 
             <ul class="nav nav-pills nav-fill mb-3 p-1 rounded bg-white border-custom border" id="queueTabs" role="tablist">
@@ -428,9 +444,13 @@
         setInterval(() => {
             if(targetLat && targetLng)
                 saveLocationToDatabase(targetLat, targetLng);
+
+            
         }, 3000);
         
         // sendLocationToServer();
+        
     </script>
+    @include('partials.notifications')
 </body>
 </html>

@@ -41,12 +41,10 @@ Route::middleware('auth')->group(function () {
 
         Route::post('/add/queue',[NagaQueueController::class, 'store'])->name('add.to.queue');
         
-        Route::get('/', function () {
-            return view('driver.map');
-        })->name('driver.map');
+        Route::get('/', [DriverLocationController::class, 'index'])->name('driver.map');
 
-        // Route::post('/driver/{$id}/location', [DriverLocationController::class, 'updateLocation'])->name('update.location');
         Route::post('/driver/location/update', [DriverLocationController::class, 'updateLocation'])->name('location.update');
+        Route::post('/driver/online/update', [DriverLocationController::class, 'changeOnlineStatus'])->name('online.update');
 
     });
 
