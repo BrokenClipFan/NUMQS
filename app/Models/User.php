@@ -30,11 +30,11 @@ class User extends Authenticatable
         ];
     }
 
-    public function driverProfile() {
+    public function profile() {
         return $this->hasOne(DriverProfile::class, 'user_id');
     }
 
-    public function driverStatus() {
+    public function status() {
         return $this->hasOne(DriverStatus::class, 'user_id');
     }
 }

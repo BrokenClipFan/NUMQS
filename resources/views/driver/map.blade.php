@@ -8,7 +8,6 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <style>
@@ -299,6 +298,7 @@
     <script>
         let targetLat = null;
         let targetLng = null;
+        let jeepneyMarkers = {}
         const map = L.map('map', {
             zoomControl: false 
         }).setView([10.2350, 123.7200], 13);
@@ -329,26 +329,6 @@
             map.invalidateSize();
         });
 
-        function handleDriveStatus(isStarting) {
-            const startBtn = document.getElementById('btnStartDrive');
-            const endBtn = document.getElementById('btnEndDrive');
-            const alertText = document.getElementById('driveStatusAlert');
-
-            if (isStarting) {
-                startBtn.disabled = true;
-                startBtn.className = "btn btn-light border-custom w-100 py-2 text-muted fw-bold d-flex flex-column align-items-center justify-content-center";
-                endBtn.disabled = false;
-                endBtn.className = "btn btn-danger w-100 py-2 fw-bold text-white shadow-sm border-0 d-flex flex-column align-items-center justify-content-center";
-                alertText.innerHTML = `<span class="text-success" style="font-size:0.8rem;"><i class="bi bi-record-circle-fill me-1"></i> Broadcasting Location...</span>`;
-            } else {
-                startBtn.disabled = false;
-                startBtn.className = "btn bg-custom-dark w-100 py-2 fw-bold text-white shadow-sm border-0 d-flex flex-column align-items-center justify-content-center";
-                endBtn.disabled = true;
-                endBtn.className = "btn btn-light border-custom w-100 py-2 text-muted fw-bold d-flex flex-column align-items-center justify-content-center";
-                alertText.innerHTML = `<span class="text-muted" style="font-size:0.8rem;">Status: Idle</span>`;
-            }
-        }
-
         // function sendLocationToServer() {
         //     console.log("Checkpoint 1");
         //     if(navigator.geolocation) {
@@ -373,55 +353,65 @@
         // }
 
         function addPinsToAllDrivers(drivers) {
-            driversPinLayer.clearLayers();
-
             drivers.forEach((driver) => {
-                const id = driver.id;
-                const firstName = driver.profile.first_name;
-                const lastName = driver.profile.last_name;
-                const fullName = firstName + " " + lastName;
-                const plate = driver.profile.plate_number;
-                const status = driver.status.state;
-                const dispatchedTo = driver.status.dispatched_to;
-                const driverLat = driver.status.latitude;
-                const driverLng = driver.status.longitude;
-                const driverCoords = [driverLat, driverLng];
-                const avatar = driver.avatar;
-                
-                let iconFilePath = '/images/';
-                if(dispatchedTo == "to_naga")
-                    iconFilePath += 'jeepToRight.png'
-                else
-                    iconFilePath += 'jeepToLeft.png'
 
-                const jeepIcon = L.icon({
-                    iconUrl: iconFilePath, 
-                    iconSize: [38, 38],             
-                    iconAnchor: [19, 38],           
-                    popupAnchor: [0, -38]           
-                });
+                if(jeepneyMarkers[driver.id]){
+                    let marker = jeepneyMarkers[driver.id];
+                    const driverLat = driver.status.latitude;
+                    const driverLng = driver.status.longitude;
 
-                const marker = L.marker(driverCoords, {
-                    icon: jeepIcon
-                }).addTo(driversPinLayer);
+                    smoothMove(marker, driverLat, driverLng, 2000);
 
-                const popupContent = `
-                    <div class="p-1" style="min-width: 180px;">
-                        <div class="d-flex align-items-center gap-2 mb-2">
-                            <img src="${avatar}" class="driver-popup-img" alt="${driver.name}">
-                            <div>
-                                <h6 class="m-0 fw-bold" style="color: var(--text-dark); font-size:0.9rem;">${fullName}</h6>
-                                <span class="badge bg-light text-dark font-monospace border" style="font-size:0.7rem;">${plate}</span>
+                } else {
+                    const id = driver.id;
+                    const firstName = driver.profile.first_name;
+                    const lastName = driver.profile.last_name;
+                    const fullName = firstName + " " + lastName;
+                    const plate = driver.profile.plate_number;
+                    const status = driver.status.state;
+                    const dispatchedTo = driver.status.dispatched_to;
+                    const driverLat = driver.status.latitude;
+                    const driverLng = driver.status.longitude;
+                    const driverCoords = [driverLat, driverLng];
+                    const avatar = driver.avatar;
+                    
+                    let iconFilePath = '/images/';
+                    if(dispatchedTo == "to_naga")
+                        iconFilePath += 'jeepToRight.png'
+                    else
+                        iconFilePath += 'jeepToLeft.png'
+
+                    const jeepIcon = L.icon({
+                        iconUrl: iconFilePath, 
+                        iconSize: [38, 38],             
+                        iconAnchor: [19, 38],           
+                        popupAnchor: [0, -38]           
+                    });
+
+                    const marker = L.marker(driverCoords, {
+                        icon: jeepIcon
+                    }).addTo(driversPinLayer);
+
+                    const popupContent = `
+                        <div class="p-1" style="min-width: 180px;">
+                            <div class="d-flex align-items-center gap-2 mb-2">
+                                <img src="${avatar}" class="driver-popup-img" alt="${driver.name}">
+                                <div>
+                                    <h6 class="m-0 fw-bold" style="color: var(--text-dark); font-size:0.9rem;">${fullName}</h6>
+                                    <span class="badge bg-light text-dark font-monospace border" style="font-size:0.7rem;">${plate}</span>
+                                </div>
+                            </div>
+                            <hr class="my-1 opacity-25">
+                            <div class="d-flex align-items-center gap-1 text-muted" style="font-size:0.75rem;">
+                                <i class="bi bi-info-circle-fill text-primary"></i>
+                                <span>Status: <strong>${status}</strong></span>
                             </div>
                         </div>
-                        <hr class="my-1 opacity-25">
-                        <div class="d-flex align-items-center gap-1 text-muted" style="font-size:0.75rem;">
-                            <i class="bi bi-info-circle-fill text-primary"></i>
-                            <span>Status: <strong>${status}</strong></span>
-                        </div>
-                    </div>
-                `;  
-                marker.bindPopup(popupContent);
+                    `;  
+                    marker.bindPopup(popupContent);
+
+                    jeepneyMarkers[driver.id] = marker;
+                }
             })
         }
 
@@ -458,6 +448,26 @@
         
         // sendLocationToServer();
         
+        function smoothMove(marker, targetLat, targetLng, duration) {
+            const startPos = marker.getLatLng();
+            const startTime = performance.now();
+
+            function animate(currentTime) {
+                const elapsed = currentTime - startTime;
+                const progress = Math.min(elapsed / duration, 1); // 0 to 1
+
+                // Calculate current position (Linear Interpolation)
+                const lat = startPos.lat + (targetLat - startPos.lat) * progress;
+                const lng = startPos.lng + (targetLng - startPos.lng) * progress;
+
+                marker.setLatLng([lat, lng]);
+
+                if (progress < 1) {
+                    requestAnimationFrame(animate);
+                }
+            }
+            requestAnimationFrame(animate);
+        }
     </script>
     @include('partials.notifications')
 </body>
