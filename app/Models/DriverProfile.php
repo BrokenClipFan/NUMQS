@@ -3,9 +3,14 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Models\User;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class DriverProfile extends Model
 {
+
+    use HasFactory;
+
     protected $fillable = [
         'user_id',
         'first_name',
@@ -23,4 +28,8 @@ class DriverProfile extends Model
     protected $casts = [
         'birthdate' => 'datetime',
     ];
+
+    public function user() {
+        return $this->belongsTo(User::class);
+    }
 }
