@@ -33,4 +33,8 @@ class User extends Authenticatable
     public function profile() {
         return $this->hasOne(DriverProfile::class);
     }
+
+    public function status() {
+        return $this->hasOne(DriverStatus::class);
+    }
 }

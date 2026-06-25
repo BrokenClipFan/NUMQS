@@ -281,9 +281,23 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
+        let targetLat = null;
+        let targetLng = null;
         const map = L.map('map', {
             zoomControl: false 
         }).setView([10.2350, 123.7200], 13);
+
+        const permanentPinLayer = L.layerGroup().addTo(map);
+        const driversPinLayer = L.layerGroup().addTo(map);
+
+        map.on('contextmenu', (e) => {
+            // 1. Get the coordinates (latlng)
+            const lat = e.latlng.lat.toFixed(6); // .toFixed(6) keeps it clean
+            const lng = e.latlng.lng.toFixed(6);
+            
+            targetLat = lat;
+            targetLng = lng;
+        });
 
         L.control.zoom({ position: 'bottomleft' }).addTo(map);
 
@@ -297,48 +311,6 @@
         setTimeout(() => { map.invalidateSize(); }, 300);
         window.addEventListener('resize', () => {
             map.invalidateSize();
-        });
-
-        const activeDrivers = [
-            {
-                id: 1, name: "Juan Dela Cruz", plate: "GHI-7890", status: "Filling Up",
-                coords: [10.2124, 123.7573]
-            },
-            {
-                id: 3, name: "Alex Santos (You)", plate: "ABC-1234", status: "In Queue",
-                coords: [10.2165, 123.7485]
-            },
-            {
-                id: 4, name: "Maria Clara", plate: "XYZ-5678", status: "Pending Dispatch",
-                coords: [10.2673, 123.6828]
-            }
-        ];
-
-        activeDrivers.forEach(driver => {
-            const marker = L.circleMarker(driver.coords, {
-                radius: 8,
-                fillColor: "rgb(118, 159, 205)",
-                color: "#ffffff",
-                weight: 2, opacity: 1, fillOpacity: 0.9
-            }).addTo(map);
-
-            const popupContent = `
-              <div class="p-1" style="min-width: 180px;">
-                  <div class="d-flex align-items-center gap-2 mb-2">
-                      <img src="https://via.placeholder.com/48" class="driver-popup-img" alt="${driver.name}">
-                      <div>
-                          <h6 class="m-0 fw-bold" style="color: var(--text-dark); font-size:0.9rem;">${driver.name}</h6>
-                          <span class="badge bg-light text-dark font-monospace border" style="font-size:0.7rem;">${driver.plate}</span>
-                      </div>
-                  </div>
-                  <hr class="my-1 opacity-25">
-                  <div class="d-flex align-items-center gap-1 text-muted" style="font-size:0.75rem;">
-                      <i class="bi bi-info-circle-fill text-primary"></i>
-                      <span>Status: <strong>${driver.status}</strong></span>
-                  </div>
-              </div>
-          `;  
-            marker.bindPopup(popupContent);
         });
 
         function handleDriveStatus(isStarting) {
@@ -361,27 +333,104 @@
             }
         }
 
-        fetch('/driver/test', {
-            method: 'POST', // We are sending data
+        // function sendLocationToServer() {
+        //     console.log("Checkpoint 1");
+        //     if(navigator.geolocation) {
+        //         console.log("Checkpoint 2");
+        //         navigator.geolocation.getCurrentPosition(
+        //             (position) => {
+        //                 console.log("Checkpoint 3");
+        //                 // const lat = position.coords.latitude;
+        //                 // const lng = position.coords.longitude;
+        //                 // console.log(lat,lng);
+        //                 // sendLocationToDatabase(lat, lng);
+        //             },
+        //             (error) => {
+        //                 console.error("checkpoint 1: Failed!");
+        //                 console.error("Error Code: " + error.code);
+        //                 console.error("Error Message: " + error.message);
+        //             }
+        //         ) 
+        //     } else {
+        //         console.log("Error Your Browser has no support geolocation")
+        //     }
+        // }
+
+        function addPinsToAllDrivers(drivers) {
+            driversPinLayer.clearLayers();
+
+            drivers.forEach((driver) => {
+                const id = driver.id;
+                const firstName = driver.profile.first_name;
+                const lastName = driver.profile.last_name;
+                const fullName = firstName + " " + lastName;
+                const plate = driver.profile.plate_number;
+                const status = driver.status.state;
+                const dispatchedTo = driver.status.dispatched_to;
+                const driverLat = driver.status.latitude;
+                const driverLng = driver.status.longitude;
+                const driverCoords = [driverLat, driverLng];
+                const avatar = driver.avatar;
+                
+                let iconFilePath = '/images/';
+                if(dispatchedTo == "to_naga")
+                    iconFilePath += 'jeepToRight.png'
+                else
+                    iconFilePath += 'jeepToLeft.png'
+
+                const jeepIcon = L.icon({
+                    iconUrl: iconFilePath, 
+                    iconSize: [38, 38],             
+                    iconAnchor: [19, 38],           
+                    popupAnchor: [0, -38]           
+                });
+
+                const marker = L.marker(driverCoords, {
+                    icon: jeepIcon
+                }).addTo(driversPinLayer);
+
+                const popupContent = `
+                    <div class="p-1" style="min-width: 180px;">
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                            <img src="${avatar}" class="driver-popup-img" alt="${driver.name}">
+                            <div>
+                                <h6 class="m-0 fw-bold" style="color: var(--text-dark); font-size:0.9rem;">${fullName}</h6>
+                                <span class="badge bg-light text-dark font-monospace border" style="font-size:0.7rem;">${plate}</span>
+                            </div>
+                        </div>
+                        <hr class="my-1 opacity-25">
+                        <div class="d-flex align-items-center gap-1 text-muted" style="font-size:0.75rem;">
+                            <i class="bi bi-info-circle-fill text-primary"></i>
+                            <span>Status: <strong>${status}</strong></span>
+                        </div>
+                    </div>
+                `;  
+                marker.bindPopup(popupContent);
+            })
+        }
+
+        function saveLocationToDatabase(lat, lng) {
+        fetch('/driver/location/update', {
+            method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                // This is where we grab the token from the meta tag
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content 
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
             },
             body: JSON.stringify({
-                // Using the => operator here to build the data object!
-                'first_name': 'John',
-                'last_name': 'Doe'
+                'latitude': lat,   // Using the => operator to map keys
+                'longitude': lng   // to the values we got from GPS
             })
         })
-        .then(response => response.json()) // Convert response to JSON
-        .then(data => {
-            console.log('Success:', data); // Handle the response from Laravel
-        })
-        .catch(error => {
-            console.error('Error:', error);
-        });
+        .then(response => response.json())
+        .then(data => addPinsToAllDrivers(data));
+        }       
+
+        setInterval(() => {
+            if(targetLat && targetLng)
+                saveLocationToDatabase(targetLat, targetLng);
+        }, 3000);
         
+        // sendLocationToServer();
     </script>
 </body>
 </html>

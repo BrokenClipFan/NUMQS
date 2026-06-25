@@ -20,8 +20,8 @@ return new class extends Migration
             ->on('users')
             ->cascadeOnDelete();
 
-            $table->decimal('latitude', 10, 7)->nullable();
-            $table->decimal('longitude', 10, 7)->nullable();
+            $table->decimal('latitude', 10, 7)->default(0.00);
+            $table->decimal('longitude', 10, 7)->default(0.00);
             $table->string('dispatched_to')->nullable();
             $table->string('state')->default('idle');
             $table->datetime('last_updated')->nullable();
@@ -35,6 +35,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('driver_status');
+        Schema::dropIfExists('driver_statuses');
     }
 };

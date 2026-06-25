@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\DriverStatus;
+use App\Models\User;
 
 class DriverLocationController extends Controller
 {
@@ -47,36 +48,26 @@ class DriverLocationController extends Controller
         //
     }
 
-    public function test(Request $request) {
-        // Access the data sent from JS using the -> operator
-        $firstName = $request->input('first_name');
-        
-        // Perform logic...
-        
-        // Return a JSON response back to JavaScript
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Profile updated for ' . $firstName
-        ]);
-    }
-
     /**
      * Update the specified resource in storage.
      */
-    public function updateLocation(Request $request, string $id)
+    public function updateLocation(Request $request)
     {
         $request->validate([
-            'latitude' => 'required|decimal',
-            'longitude' => 'required|decimal',
+            'latitude' => 'required|numeric',
+            'longitude' => 'required|numeric',
         ]);
 
-        $user = DriverStatus::where('user_id', $id)->firstOrFail();
+        $user = DriverStatus::where('user_id', auth()->user()->id)->firstOrFail();
         $user->update([
             'latitude' => $request->latitude,
             'longitude' => $request->longitude,
             'last_updated' => now()
         ]);
-        return back()->with('success', 'Location updated!');
+
+        $drivers = User::with(['profile', 'status'])->get();
+
+        return $drivers;
     }
 
     /**

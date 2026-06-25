@@ -46,7 +46,7 @@ Route::middleware('auth')->group(function () {
         })->name('driver.map');
 
         // Route::post('/driver/{$id}/location', [DriverLocationController::class, 'updateLocation'])->name('update.location');
-        Route::post('/driver/test', [DriverLocationController::class, 'test'])->name('update.location');
+        Route::post('/driver/location/update', [DriverLocationController::class, 'updateLocation'])->name('location.update');
 
     });
 
