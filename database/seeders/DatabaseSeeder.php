@@ -19,7 +19,7 @@ class DatabaseSeeder extends Seeder
     {
         // User::factory(10)->create();
         User::factory()
-            ->count(20)
+            ->count(10)
             ->has(DriverProfile::factory(), 'profile')
             ->has(DriverStatus::factory(), 'status')
             ->create();

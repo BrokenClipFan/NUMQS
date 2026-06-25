@@ -305,15 +305,19 @@
 
         const permanentPinLayer = L.layerGroup().addTo(map);
         const driversPinLayer = L.layerGroup().addTo(map);
-
-        map.on('contextmenu', (e) => {
-            // 1. Get the coordinates (latlng)
-            const lat = e.latlng.lat.toFixed(6); // .toFixed(6) keeps it clean
-            const lng = e.latlng.lng.toFixed(6);
+        
+        // let tempRoute = [];
+        // map.on('contextmenu', (e) => {
+        //     tempRoute.push({lat: e.latlng.lat, lng: e.latlng.lng});
+    
+        //     // Add a visual marker so you know where you clicked
+        //     L.marker([e.latlng.lat, e.latlng.lng]).addTo(map);
             
-            targetLat = lat;
-            targetLng = lng;
-        });
+        //     // Draw the line as you go
+        //     L.polyline(tempRoute.map(p => [p.lat, p.lng]), {color: 'blue'}).addTo(map);
+
+        //     console.log("COPY THIS FOR YOUR DB:", JSON.stringify(tempRoute));
+        // });
 
         L.control.zoom({ position: 'bottomleft' }).addTo(map);
 
@@ -444,7 +448,7 @@
                 saveLocationToDatabase(targetLat, targetLng);
 
             getDriversCoord();
-        }, 3000);
+        }, 2000);
         
         // sendLocationToServer();
         

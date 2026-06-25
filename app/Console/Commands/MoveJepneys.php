@@ -6,6 +6,7 @@ use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
 use App\Models\DriverStatus;
+use App\Models\Route;
 
 #[Signature('jeepney:move')]
 #[Description('Simulate real-time jeepney movement')]
@@ -16,20 +17,37 @@ class MoveJepneys extends Command
      */
     public function handle()
     {
-        $this->info('Starting Jeepney simulation... Press Ctrl+C to stop.');
+            $routeRecord = Route::where('route', 'Naga-To-Uling')->first();
         
+        if (!$routeRecord) {
+            $this->error('Route not found!');
+            return;
+        }
+
+        $path = json_decode($routeRecord->path, true);
+        $totalPoints = count($path);
+        $this->info("Loaded path with {$totalPoints} points.");
+
         while (true) {
             $drivers = DriverStatus::where('is_online', 1)->get();
 
             foreach ($drivers as $driver) {
-                // Add a tiny bit of randomness to latitude and longitude
-                // This simulates moving by a few meters every 2 seconds
-                $driver->latitude += rand(-100, 100) / 100000;
-                $driver->longitude += rand(-100, 100) / 100000;
-                
+                // 2. Just access the array index (Extremely fast)
+                if (mt_rand(1, 100) <= 80) {
+                $index = $driver->waypoint_index;
+                $point = $path[$index];
+
+                $driver->latitude = $point['lat'];
+                $driver->longitude = $point['lng'];
                 $driver->save();
+
+                // 3. Move to next point
+                $driver->waypoint_index = ($driver->waypoint_index + 1) % $totalPoints;
+                $driver->save();
+                }
             }
-            sleep(2);
+            
+            sleep(1);
         }
     }
 }
