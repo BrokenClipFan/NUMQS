@@ -5,7 +5,7 @@ use App\Http\Controllers\ApprovalController;
 use App\Http\Controllers\Admin\DriverVerificationController;
 use App\Http\Controllers\DriverProfileController;
 use App\Http\Controllers\NagaQueueController;
-use App\Http\Controllers\DriverLocationController;
+use App\Http\Controllers\DriverController;
 use App\Models\User;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
@@ -42,10 +42,10 @@ Route::middleware('auth')->group(function () {
         // Route::post('/add/queue',[NagaQueueController::class, 'store'])->name('add.to.queue');
         
         // Map
-        Route::get('/', [DriverLocationController::class, 'index'])->name('driver.map');
-        Route::get('/drivers', [DriverLocationController::class, 'getDrivers']);
-        Route::post('/driver/location/update', [DriverLocationController::class, 'updateLocation'])->name('location.update');
-        Route::post('/driver/online/update', [DriverLocationController::class, 'changeOnlineStatus'])->name('online.update');
+        Route::get('/', [DriverController::class, 'index'])->name('driver.map');
+        Route::get('/drivers', [DriverController::class, 'getDrivers']);
+        Route::post('/driver/location/update', [DriverController::class, 'updateLocation'])->name('location.update');
+        Route::post('/driver/online/update', [DriverController::class, 'changeOnlineStatus'])->name('online.update');
 
     });
 

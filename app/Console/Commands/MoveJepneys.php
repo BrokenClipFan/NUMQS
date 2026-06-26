@@ -29,25 +29,43 @@ class MoveJepneys extends Command
         $this->info("Loaded path with {$totalPoints} points.");
 
         while (true) {
+            // 1. Get all online drivers
             $drivers = DriverStatus::where('is_online', 1)->get();
 
             foreach ($drivers as $driver) {
-                // 2. Just access the array index (Extremely fast)
-                if (mt_rand(1, 100) <= 80) {
+                // 2. Add some "jitter" or simulation speed control
+                if (mt_rand(1, 100) > 60) continue; 
+
                 $index = $driver->waypoint_index;
-                $point = $path[$index];
+                
+                // 3. Update index based on destination
+                // If Uling, move backwards (-1), otherwise forward (+1)
+                $index += ($driver->dispatched_to === "Uling") ? -1 : 1;
 
-                $driver->latitude = $point['lat'];
-                $driver->longitude = $point['lng'];
-                $driver->save();
-
-                // 3. Move to next point
-                $driver->waypoint_index = ($driver->waypoint_index + 1) % $totalPoints;
-                $driver->save();
+                // 4. Boundary Logic (Clamp indices so they don't go out of range)
+                $maxIndex = count($path) - 1;
+                
+                if ($index >= $maxIndex) {
+                    $index = $maxIndex;
+                    $driver->dispatched_to = "Uling";
+                } elseif ($index <= 0) {
+                    $index = 0;
+                    $driver->dispatched_to = "Naga";
                 }
+
+                // 5. Update the driver (Single Database Call)
+                $point = $path[$index];
+                $driver->update([
+                    'waypoint_index' => $index,
+                    'latitude'       => $point['lat'],
+                    'longitude'      => $point['lng'],
+                    'dispatched_to'  => $driver->dispatched_to, // Ensure this updates if changed
+                    'last_updated'   => now(),
+                ]);
             }
             
-            sleep(1);
+            // 6. Sleep for a short duration to prevent CPU pinning
+            usleep(200000); // 0.5 seconds
         }
     }
 }

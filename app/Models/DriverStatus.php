@@ -19,10 +19,15 @@ class DriverStatus extends Model
         'dispatched_to',
         'state',
         'last_updated',
-        'is_online'
+        'is_online',
+        'waypoint_index'
     ];
 
     public function user() {
         return $this->belongsTo(User::class);
     }
+
+    protected $casts = [
+        'last_updated' => 'datetime'
+    ];
 }

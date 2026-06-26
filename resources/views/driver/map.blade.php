@@ -319,6 +319,20 @@
         //     console.log("COPY THIS FOR YOUR DB:", JSON.stringify(tempRoute));
         // });
 
+        map.on('contextmenu', function(e) {
+            // 1. Get coordinates
+            let lat = e.latlng.lat;
+            let lng = e.latlng.lng;
+
+            // 2. Add marker
+            L.marker([lat, lng]).addTo(map)
+                .bindPopup("Point: " + lat.toFixed(5) + ", " + lng.toFixed(5))
+                .openPopup();
+
+            // 3. Log to console so you can copy-paste for your route data
+            console.log("Coordinate:", { lat: lat, lng: lng });
+        });
+
         L.control.zoom({ position: 'bottomleft' }).addTo(map);
 
         L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
@@ -410,6 +424,7 @@
                                 <i class="bi bi-info-circle-fill text-primary"></i>
                                 <span>Status: <strong>${status}</strong></span>
                             </div>
+                            
                         </div>
                     `;  
                     marker.bindPopup(popupContent);

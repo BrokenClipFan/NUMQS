@@ -5,8 +5,9 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\DriverStatus;
 use App\Models\User;
+use App\Services\DriverAssignmentService;
 
-class DriverLocationController extends Controller
+class DriverController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -79,20 +80,17 @@ class DriverLocationController extends Controller
         return back()->with('success', 'Location is Updated');
     }
 
-    public function changeOnlineStatus(Request $request) {
+    public function changeOnlineStatus(Request $request, DriverAssignmentService $service) {
         $request->validate([
             'is_online' => 'required|boolean'
         ]);
 
-        $driver = DriverStatus::where('user_id', auth()->user()->id);
-        $driver->update([
-            'is_online' => $request->is_online
-        ]);
-
-        if($request->is_online)
-            return back()->with('success', "You are now online");
-        else
-            return back()->with('success', "Your are now offline");
+        $driver = DriverStatus::where('user_id', auth()->user()->id)->firstOrFail();
+        
+        $service->setDriving($driver, $request->is_online);
+        
+        $message = $request->boolean('is_online') ? "You are now online" : "Your are now offline";
+        return back()->with('success', $message);
     }
 
     /**
