@@ -7,6 +7,7 @@ use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
 use App\Models\DriverStatus;
 use App\Models\Route;
+use App\Services\TerminalService;
 
 #[Signature('jeepney:move')]
 #[Description('Simulate real-time jeepney movement')]
@@ -15,7 +16,7 @@ class MoveJepneys extends Command
     /**
      * Execute the console command.
      */
-    public function handle()
+    public function handle(TerminalService $terminalService)
     {
             $routeRecord = Route::where('route', 'Naga-To-Uling')->first();
         
@@ -40,17 +41,26 @@ class MoveJepneys extends Command
                 
                 // 3. Update index based on destination
                 // If Uling, move backwards (-1), otherwise forward (+1)
-                $index += ($driver->dispatched_to === "Uling") ? -1 : 1;
+                $index += ($driver->dispatched_to === "Uling") ? 1 : -1;
 
                 // 4. Boundary Logic (Clamp indices so they don't go out of range)
                 $maxIndex = count($path) - 1;
                 
                 if ($index >= $maxIndex) {
-                    $index = $maxIndex;
-                    $driver->dispatched_to = "Uling";
+                    $wifi = $terminalService->getTerminalByBssid("00:1A:2B:3C:4D:52");
+                    
+                    if($wifi->name == 'Uling Terminal') {
+                        $index = $maxIndex;
+                        $driver->dispatched_to = "Naga";
+                    }
+
                 } elseif ($index <= 0) {
-                    $index = 0;
-                    $driver->dispatched_to = "Naga";
+                    $wifi = $terminalService->getTerminalByBssid("00:1A:2B:3C:4D:51");
+
+                    if($wifi->name == 'Naga Terminal') {
+                        $index = 0;
+                        $driver->dispatched_to = "Uling";
+                    }
                 }
 
                 // 5. Update the driver (Single Database Call)

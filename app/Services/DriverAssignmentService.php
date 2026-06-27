@@ -2,8 +2,6 @@
 
 namespace App\Services;
 
-// use App\Models\DriverStatus;
-
 class DriverAssignmentService {
 
   public function setDriving($driver, $status) {
