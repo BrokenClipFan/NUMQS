@@ -8,6 +8,8 @@ use Illuminate\Console\Command;
 use App\Models\DriverStatus;
 use App\Models\Route;
 use App\Services\TerminalService;
+use App\Services\DriverAssignmentService;
+use App\Services\QueueService;
 
 #[Signature('jeepney:move')]
 #[Description('Simulate real-time jeepney movement')]
@@ -16,10 +18,13 @@ class MoveJepneys extends Command
     /**
      * Execute the console command.
      */
-    public function handle(TerminalService $terminalService)
+    public function handle(TerminalService $terminalService, DriverAssignmentService $assignmentService, QueueService $queueService)
     {
-            $routeRecord = Route::where('route', 'Naga-To-Uling')->first();
-        
+        $routeRecord = Route::where('route', 'Naga-To-Uling')->first();
+        $nagaWifi = $terminalService->getTerminalByBssid("00:1A:2B:3C:4D:52");
+        $ulingWifi = $terminalService->getTerminalByBssid("00:1A:2B:3C:4D:51");
+
+
         if (!$routeRecord) {
             $this->error('Route not found!');
             return;
@@ -39,31 +44,59 @@ class MoveJepneys extends Command
 
                 $index = $driver->waypoint_index;
                 
-                // 3. Update index based on destination
-                // If Uling, move backwards (-1), otherwise forward (+1)
                 $index += ($driver->dispatched_to === "Uling") ? 1 : -1;
 
-                // 4. Boundary Logic (Clamp indices so they don't go out of range)
                 $maxIndex = count($path) - 1;
                 
                 if ($index >= $maxIndex) {
-                    $wifi = $terminalService->getTerminalByBssid("00:1A:2B:3C:4D:52");
-                    
-                    if($wifi->name == 'Uling Terminal') {
+
+                    if($nagaWifi->name == 'Uling Terminal' && $driver->state != "queued") {
+                        $queueService->addToQueue($driver, $nagaWifi);
+                        $driver->state = "queued";
+                    }
+
+                    $topDriver = $queueService->getTopPosition($nagaWifi);
+
+                    if($topDriver->driver_profile_id == $driver->user_id 
+                       && $topDriver->filling_at == null) {
+                        $queueService->setFillingUp($driver);
+                    }
+
+                    if($queueService->getFillingAtMinutes($driver, $nagaWifi) >= 1) {
                         $index = $maxIndex;
                         $driver->dispatched_to = "Naga";
+                        $driver->state = "in_route";
+                        $queueService->removeFromQueue($driver);
+                    } else {
+                        $index--;
                     }
 
                 } elseif ($index <= 0) {
-                    $wifi = $terminalService->getTerminalByBssid("00:1A:2B:3C:4D:51");
 
-                    if($wifi->name == 'Naga Terminal') {
+                    if($ulingWifi->name == 'Naga Terminal' && $driver->state != "queued") {
+                        $queueService->addToQueue($driver, $ulingWifi);
+                        $driver->state = "queued";
+                    }
+
+                    $topDriver = $queueService->getTopPosition($ulingWifi);
+
+                    if($topDriver->driver_profile_id == $driver->user_id 
+                       && $topDriver->filling_at == null) {
+                        $queueService->setFillingUp($driver);
+                    }
+
+                    if($queueService->getFillingAtMinutes($driver, $ulingWifi) >= 1) {
                         $index = 0;
                         $driver->dispatched_to = "Uling";
+                        $driver->state = "in_route";
+                        $queueService->removeFromQueue($driver);
+                    } else {
+                        $index++;
                     }
                 }
 
                 // 5. Update the driver (Single Database Call)
+
                 $point = $path[$index];
                 $driver->update([
                     'waypoint_index' => $index,
@@ -75,7 +108,7 @@ class MoveJepneys extends Command
             }
             
             // 6. Sleep for a short duration to prevent CPU pinning
-            usleep(200000); // 0.5 seconds
+            usleep(1000000);
         }
     }
 }

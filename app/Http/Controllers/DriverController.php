@@ -6,6 +6,8 @@ use Illuminate\Http\Request;
 use App\Models\DriverStatus;
 use App\Models\User;
 use App\Services\DriverAssignmentService;
+use App\Services\QueueService;
+use App\Models\DriverProfile;
 
 class DriverController extends Controller
 {
@@ -15,7 +17,8 @@ class DriverController extends Controller
     public function index()
     {
         $driver = DriverStatus::where('user_id', auth()->user()->id)->first();
-        return view('driver.map', compact('driver'));
+        $driverProfiles = DriverProfile::all();
+        return view('driver.map', compact('driver', 'driverProfiles'));
     }
 
     public function getDrivers() {
@@ -26,6 +29,10 @@ class DriverController extends Controller
         ->get();
 
         return $drivers;
+    }
+
+    public function getQueues(QueueService $queueService) {
+        return $queueService->getAllQueues();
     }
 
     /**

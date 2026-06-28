@@ -47,6 +47,8 @@ Route::middleware('auth')->group(function () {
         Route::post('/driver/location/update', [DriverController::class, 'updateLocation'])->name('location.update');
         Route::post('/driver/online/update', [DriverController::class, 'changeOnlineStatus'])->name('online.update');
 
+        Route::get('/queue', [DriverController::class, 'getQueues'])->name('get.queues');
+
     });
 
     Route::middleware('is_admin')->group(function() {

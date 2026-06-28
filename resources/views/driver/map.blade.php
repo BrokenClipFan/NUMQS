@@ -207,7 +207,7 @@
                         <span class="badge bg-secondary rounded-pill">3 Active</span>
                     </div>
                     
-                    <div class="d-flex flex-column gap-2">
+                    <div class="d-flex flex-column gap-2" id="NagaToUlingQueue">
                         <div class="card queue-card rounded-3 shadow-sm p-3">
                             <div class="d-flex align-items-center justify-content-between">
                                 <div class="d-flex align-items-center gap-2">
@@ -298,6 +298,8 @@
     <script>
         let targetLat = null;
         let targetLng = null;
+        const nagaToUlingQueue = document.getElementById('NagaToUlingQueue');
+
         let jeepneyMarkers = {}
         const map = L.map('map', {
             zoomControl: false 
@@ -319,19 +321,19 @@
         //     console.log("COPY THIS FOR YOUR DB:", JSON.stringify(tempRoute));
         // });
 
-        map.on('contextmenu', function(e) {
-            // 1. Get coordinates
-            let lat = e.latlng.lat;
-            let lng = e.latlng.lng;
+        // map.on('contextmenu', function(e) {
+        //     // 1. Get coordinates
+        //     let lat = e.latlng.lat;
+        //     let lng = e.latlng.lng;
 
-            // 2. Add marker
-            L.marker([lat, lng]).addTo(map)
-                .bindPopup("Point: " + lat.toFixed(5) + ", " + lng.toFixed(5))
-                .openPopup();
+        //     // 2. Add marker
+        //     L.marker([lat, lng]).addTo(map)
+        //         .bindPopup("Point: " + lat.toFixed(5) + ", " + lng.toFixed(5))
+        //         .openPopup();
 
-            // 3. Log to console so you can copy-paste for your route data
-            console.log("Coordinate:", { lat: lat, lng: lng });
-        });
+        //     // 3. Log to console so you can copy-paste for your route data
+        //     console.log("Coordinate:", { lat: lat, lng: lng });
+        // });
 
         L.control.zoom({ position: 'bottomleft' }).addTo(map);
 
@@ -434,6 +436,16 @@
             })
         }
 
+        function getAllQueues() {
+            fetch('/queue') 
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            }).then(updateQueue);
+        }
+        
         function getDriversCoord() {
             fetch('/drivers') 
             .then(response => {
@@ -463,6 +475,7 @@
                 saveLocationToDatabase(targetLat, targetLng);
 
             getDriversCoord();
+            getAllQueues();
         }, 2000);
         
         // sendLocationToServer();
@@ -486,6 +499,87 @@
                 }
             }
             requestAnimationFrame(animate);
+        }
+
+        function createQueueCard(position, name, plate, statusText) {
+                // CARD
+                const card = document.createElement("div");
+                card.className = "card queue-card rounded-3 shadow-sm p-3";
+
+                // TOP ROW
+                const row = document.createElement("div");
+                row.className = "d-flex align-items-center justify-content-between";
+
+                // LEFT SIDE WRAPPER
+                const left = document.createElement("div");
+                left.className = "d-flex align-items-center gap-2";
+
+                // POSITION
+                const pos = document.createElement("div");
+                pos.className = "fw-bold fs-5 text-muted px-1";
+                pos.textContent = position;
+
+                // INFO WRAPPER
+                const info = document.createElement("div");
+
+                // NAME
+                const nameEl = document.createElement("h6");
+                nameEl.className = "mb-0 fw-bold fs-6";
+                nameEl.textContent = name;
+
+                // PLATE
+                const plateEl = document.createElement("span");
+                plateEl.className = "small text-muted font-monospace";
+                plateEl.style.fontSize = "0.75rem";
+                plateEl.textContent = `PLATE: ${plate}`;
+
+                // APPEND INFO
+                info.appendChild(nameEl);
+                info.appendChild(plateEl);
+
+                // LEFT BUILD
+                left.appendChild(pos);
+                left.appendChild(info);
+
+                // STATUS BADGE
+                const badge = document.createElement("span");
+                badge.className =
+                    "badge bg-success-subtle text-success border border-success-subtle";
+                badge.style.fontSize = "0.7rem";
+                badge.textContent = statusText;
+
+                // ASSEMBLE ROW
+                row.appendChild(left);
+                row.appendChild(badge);
+
+                // CARD FINAL
+                card.appendChild(row);
+
+                return card;
+            }
+
+        function updateQueue(drivers) {
+            nagaToUlingQueue.replaceChildren();
+            const driverProfiles = @json($driverProfiles);
+
+            drivers.forEach((driver, index) => {
+                const driverProfile = driverProfiles.find(profile => profile.user_id === driver.driver_profile_id);
+                const card = createQueueCard(index + 1,
+                                `${driverProfile.first_name} ${driverProfile.middle_name} ${driverProfile.last_name}`,
+                                driverProfile.plate_number,
+                                "In Queue")
+
+                nagaToUlingQueue.appendChild(card);
+            });
+
+
+            // const card = createQueueCard(
+            //     1,
+            //     "Juan Dela Cruz",
+            //     "GHI-7890",
+            //     "Filling Up"
+            // );
+            
         }
     </script>
     @include('partials.notifications')
