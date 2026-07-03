@@ -204,7 +204,7 @@
                 <div class="tab-pane fade show active" id="naga-uling" role="tabpanel" aria-labelledby="naga-uling-tab">
                     <div class="d-flex justify-content-between align-items-center mb-2 px-1">
                         <span class="small fw-bold text-muted">Queue Lineup (FIFO)</span>
-                        <span class="badge bg-secondary rounded-pill">3 Active</span>
+                        <span class="badge bg-secondary rounded-pill" id="nagaToUlingQueueCount">3 Active</span>
                     </div>
                     
                     <div class="d-flex flex-column gap-2" id="NagaToUlingQueue">
@@ -255,7 +255,7 @@
                         <div><strong>Strict Window:</strong> Max 10 mins to clear dispatch.</div>
                     </div>
 
-                    <div class="d-flex flex-column gap-2">
+                    <div class="d-flex flex-column gap-2 ulingToNagaQueue">
                         <div class="card queue-card rounded-3 shadow-sm p-3 border-danger-subtle">
                             <div class="d-flex align-items-center justify-content-between">
                                 <div class="d-flex align-items-center gap-2">
@@ -299,7 +299,8 @@
         let targetLat = null;
         let targetLng = null;
         const nagaToUlingQueue = document.getElementById('NagaToUlingQueue');
-
+        const ulingToNagaQueue = document.querySelector('.ulingToNagaQueue');
+        
         let jeepneyMarkers = {}
         const map = L.map('map', {
             zoomControl: false 
@@ -501,75 +502,166 @@
             requestAnimationFrame(animate);
         }
 
-        function createQueueCard(position, name, plate, statusText) {
-                // CARD
-                const card = document.createElement("div");
+        function createNagaQueueCard(position, name, plate, is_filling) {
+            // CARD
+            const card = document.createElement("div");
+            if(is_filling){
                 card.className = "card queue-card rounded-3 shadow-sm p-3";
-
-                // TOP ROW
-                const row = document.createElement("div");
-                row.className = "d-flex align-items-center justify-content-between";
-
-                // LEFT SIDE WRAPPER
-                const left = document.createElement("div");
-                left.className = "d-flex align-items-center gap-2";
-
-                // POSITION
-                const pos = document.createElement("div");
-                pos.className = "fw-bold fs-5 text-muted px-1";
-                pos.textContent = position;
-
-                // INFO WRAPPER
-                const info = document.createElement("div");
-
-                // NAME
-                const nameEl = document.createElement("h6");
-                nameEl.className = "mb-0 fw-bold fs-6";
-                nameEl.textContent = name;
-
-                // PLATE
-                const plateEl = document.createElement("span");
-                plateEl.className = "small text-muted font-monospace";
-                plateEl.style.fontSize = "0.75rem";
-                plateEl.textContent = `PLATE: ${plate}`;
-
-                // APPEND INFO
-                info.appendChild(nameEl);
-                info.appendChild(plateEl);
-
-                // LEFT BUILD
-                left.appendChild(pos);
-                left.appendChild(info);
-
-                // STATUS BADGE
-                const badge = document.createElement("span");
-                badge.className =
-                    "badge bg-success-subtle text-success border border-success-subtle";
-                badge.style.fontSize = "0.7rem";
-                badge.textContent = statusText;
-
-                // ASSEMBLE ROW
-                row.appendChild(left);
-                row.appendChild(badge);
-
-                // CARD FINAL
-                card.appendChild(row);
-
-                return card;
+            } else{
+                card.className = "card queue-card rounded-3 shadow-sm p-3 border-success-subtle";
             }
 
+            // TOP ROW
+            const row = document.createElement("div");
+            row.className = "d-flex align-items-center justify-content-between";
+
+            // LEFT SIDE WRAPPER
+            const left = document.createElement("div");
+            left.className = "d-flex align-items-center gap-2";
+
+            // POSITION
+            const pos = document.createElement("div");
+            pos.className = "fw-bold fs-5 text-muted px-1";
+            pos.textContent = position;
+
+            // INFO WRAPPER
+            const info = document.createElement("div");
+
+            // NAME
+            const nameEl = document.createElement("h6");
+            nameEl.className = "mb-0 fw-bold fs-6";
+            nameEl.textContent = name;
+
+            // PLATE
+            const plateEl = document.createElement("span");
+            plateEl.className = "small text-muted font-monospace";
+            plateEl.style.fontSize = "0.75rem";
+            plateEl.textContent = `PLATE: ${plate}`;
+
+            // APPEND INFO
+            info.appendChild(nameEl);
+            info.appendChild(plateEl);
+
+            // LEFT BUILD
+            left.appendChild(pos);
+            left.appendChild(info);
+
+            // STATUS BADGE
+            const badge = document.createElement("span");
+            if(is_filling){
+                badge.className =
+                    "badge bg-secondary-subtle text-secondary border";
+                badge.textContent = "Queue";
+            } else {
+                badge.className =
+                    "badge bg-success-subtle text-success border border-success-subtle";
+                badge.textContent = "Filling Up";
+            }
+            badge.style.fontSize = "0.7rem";
+            
+
+            // ASSEMBLE ROW
+            row.appendChild(left);
+            row.appendChild(badge);
+
+            // CARD FINAL
+            card.appendChild(row);
+
+            return card;
+        }
+
+        function createUlingQueueCard(position, name, plate, time, isFilling = false) {
+            // 1. CARD
+            const card = document.createElement("div");
+            card.className = `card queue-card rounded-3 shadow-sm p-3 ${isFilling ? 'border-danger-subtle' : ''}`;
+
+            // 2. TOP ROW
+            const row = document.createElement("div");
+            row.className = "d-flex align-items-center justify-content-between";
+
+            // 3. LEFT SIDE WRAPPER
+            const left = document.createElement("div");
+            left.className = "d-flex align-items-center gap-2";
+
+            // 4. POSITION
+            const pos = document.createElement("div");
+            pos.className = "fw-bold fs-5 text-muted px-1";
+            pos.textContent = position;
+
+            // 5. INFO WRAPPER
+            const info = document.createElement("div");
+
+            const nameEl = document.createElement("h6");
+            nameEl.className = "mb-0 fw-bold fs-6";
+            nameEl.textContent = name;
+
+            const plateEl = document.createElement("span");
+            plateEl.className = "small text-muted font-monospace";
+            plateEl.style.fontSize = "0.75rem";
+            plateEl.textContent = `PLATE: ${plate}`;
+
+            info.appendChild(nameEl);
+            info.appendChild(plateEl);
+
+            // 6. LEFT BUILD
+            left.appendChild(pos);
+            left.appendChild(info);
+
+            // 7. TIMER BADGE
+            const badge = document.createElement("span");
+            badge.className = "badge timer-badge d-flex align-items-center gap-1";
+            badge.style.fontSize = "0.7rem";
+
+            const icon = document.createElement("i");
+            icon.className = `bi ${isFilling ? 'bi-hourglass-split text-danger' : 'bi-hourglass-top'}`;
+            
+            isFilling ? badge.appendChild(icon) : null;
+            isFilling ? badge.appendChild(document.createTextNode(`10 Minutes`)) : badge.appendChild(document.createTextNode(`Queue`));
+
+            // 8. ASSEMBLE ROW
+            row.appendChild(left);
+            row.appendChild(badge);
+
+            // 9. CARD FINAL
+            card.appendChild(row);
+
+            return card;
+        }
+
         function updateQueue(drivers) {
+            const nagaQueueCount = document.getElementById('nagaToUlingQueueCount');
+            nagaQueueCount.textContent = drivers.length + " Active";
+            
             nagaToUlingQueue.replaceChildren();
-            const driverProfiles = @json($driverProfiles);
+            ulingToNagaQueue.replaceChildren();
 
-            drivers.forEach((driver, index) => {
-                const driverProfile = driverProfiles.find(profile => profile.user_id === driver.driver_profile_id);
-                const card = createQueueCard(index + 1,
-                                `${driverProfile.first_name} ${driverProfile.middle_name} ${driverProfile.last_name}`,
-                                driverProfile.plate_number,
-                                "In Queue")
+            drivers
+            .filter(driver => driver.status.dispatched_to === "Naga")
+            .forEach((driver, index) => {
+                if(driver.status.dispatched_to == "Naga"){
+                    let is_filling = driver.filling_at == null;
 
-                nagaToUlingQueue.appendChild(card);
+                    const card = createNagaQueueCard(index + 1,
+                    `${driver.profile.first_name} ${driver.profile.middle_name} ${driver.profile.last_name}`,
+                    driver.profile.plate_number,
+                    is_filling);
+                    nagaToUlingQueue.appendChild(card);
+                };
+            });
+
+            drivers
+            .filter(driver => driver.status.dispatched_to === "Uling")
+            .forEach((driver, index) => {
+                let is_filling = driver.filling_at != null;
+
+                const card = createUlingQueueCard(
+                    index + 1, // Now index is always 0, 1, 2... for the Uling list
+                    `${driver.profile.first_name} ${driver.profile.middle_name} ${driver.profile.last_name}`,
+                    driver.profile.plate_number,
+                    is_filling,
+                    is_filling
+                );
+                ulingToNagaQueue.appendChild(card);
             });
 
 

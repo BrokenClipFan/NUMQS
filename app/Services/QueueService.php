@@ -47,6 +47,22 @@ class QueueService {
     
     return abs($minutes);
   }
+
+  public function getQueueWithProfiles() {
+    $queues = DriverQueue::with('profile')
+    ->orderBy('position', 'asc')
+    ->get();
+    
+    return $queues;
+  }
+
+  public function allWithDetails() {
+    $queues = DriverQueue::with('profile')->with('status')
+    ->orderBy('position', 'asc')
+    ->get();
+    
+    return $queues;
+  }
   
   public function removeFromQueue($driver) {
     DriverQueue::where('driver_profile_id', $driver->user_id)->delete();

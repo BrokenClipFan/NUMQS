@@ -24,7 +24,6 @@ class MoveJepneys extends Command
         $nagaWifi = $terminalService->getTerminalByBssid("00:1A:2B:3C:4D:52");
         $ulingWifi = $terminalService->getTerminalByBssid("00:1A:2B:3C:4D:51");
 
-
         if (!$routeRecord) {
             $this->error('Route not found!');
             return;
@@ -50,10 +49,12 @@ class MoveJepneys extends Command
                 
                 if ($index >= $maxIndex) {
 
-                    if($nagaWifi->name == 'Uling Terminal' && $driver->state != "queued") {
+                    if($nagaWifi->name == 'Naga' && $driver->state != "queued") {
                         $queueService->addToQueue($driver, $nagaWifi);
                         $driver->state = "queued";
                     }
+
+                    // dd($nagaWifi->id);
 
                     $topDriver = $queueService->getTopPosition($nagaWifi);
 
@@ -73,7 +74,7 @@ class MoveJepneys extends Command
 
                 } elseif ($index <= 0) {
 
-                    if($ulingWifi->name == 'Naga Terminal' && $driver->state != "queued") {
+                    if($ulingWifi->name == 'Uling' && $driver->state != "queued") {
                         $queueService->addToQueue($driver, $ulingWifi);
                         $driver->state = "queued";
                     }

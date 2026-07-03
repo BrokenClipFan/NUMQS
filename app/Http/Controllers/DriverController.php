@@ -32,7 +32,13 @@ class DriverController extends Controller
     }
 
     public function getQueues(QueueService $queueService) {
-        return $queueService->getAllQueues();
+        $queues = $queueService->getQueueWithProfiles();
+        return $queues;
+    }
+
+    public function getAllQueues(QueueService $queueService) {
+        $queues = $queueService->allWithDetails();
+        return $queues;
     }
 
     /**
