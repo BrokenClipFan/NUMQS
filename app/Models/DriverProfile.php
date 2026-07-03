@@ -23,6 +23,7 @@ class DriverProfile extends Model
         'birthdate',
         'license_number',
         'plate_number',
+        'image_path'
     ];
 
     protected $casts = [

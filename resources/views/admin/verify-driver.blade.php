@@ -304,7 +304,7 @@
                         @error('vehicleImages')
                             <small class="text-danger">{{ $message }}</small>
                         @enderror
-                        <input class="form-control" type="file" id="vehicleImages" name="vehicle_images[]" multiple accept="image/png, image/jpeg, image/jpg" required>
+                        <input class="form-control" type="file" id="vehicleImages" name="image" multiple accept="image/png, image/jpeg, image/jpg" required>
                         <div class="form-text small mt-1">
                             <i class="bi bi-info-circle me-1"></i>Upload images showing the front, side, and plate number.
                         </div>

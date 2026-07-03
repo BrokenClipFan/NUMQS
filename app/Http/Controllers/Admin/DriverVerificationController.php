@@ -33,13 +33,26 @@ class DriverVerificationController extends Controller
 
             'license_number' => 'required|string|max:255|unique:driver_profiles,license_number',
             'plate_number' => 'required|string|max:255|unique:driver_profiles,license_number',
+            'image' => 'required|image|mimes:jpeg,png,jpg|max:2048', 
         ]);
 
         $user = User::findOrFail($id);
         $validated['user_id'] = $id;
 
         try{
-            DB::transaction(function() use ($validated, $id, $user) {
+            DB::transaction(function() use ($request, $validated, $id, $user) {
+                if ($request->hasFile('image')) {
+                    $extension = $request->file('image')->getClientOriginalExtension();
+                    $fileName = "driver_{$id}.{$extension}";
+                    
+                    // 2. Store the image and get the path
+                    $path = $request->file('image')->storeAs('jeepneys', $fileName, 'public');
+                    
+                    // 3. Add the path to your $validated array
+                    $validated['image_path'] = $path;
+                }
+
+                // 4. Create the record with the full, validated data including the image path
                 DriverProfile::create($validated);
                 DriverStatus::create([
                     'user_id' => $id
