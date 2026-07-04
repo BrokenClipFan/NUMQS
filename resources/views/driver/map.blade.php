@@ -9,6 +9,8 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    
+    @vite('resources/js/app.js', 'resources/sass/app.scss');
 
     <style>
         :root {
@@ -123,6 +125,17 @@
         /* Mobile specific text truncation */
         @media (max-width: 400px) {
             .hide-on-mobile-xs { display: none !important; }
+        }
+
+        /* Add this to your main CSS file */
+        .leaflet-marker-icon {
+            transition: transform 0.3s ease-in-out;
+            transform-origin: center center !important;
+        }
+
+        /* This class will handle the mirroring for "Uling" */
+        .jeepney-flipped {
+            transform: scaleX(-1);
         }
     </style>
 </head>
@@ -302,9 +315,14 @@
         const ulingToNagaQueue = document.querySelector('.ulingToNagaQueue');
         
         let jeepneyMarkers = {}
-        const map = L.map('map', {
-            zoomControl: false 
-        }).setView([10.2350, 123.7200], 13);
+        const map = L.map('map', { zoomControl: false }).setView([10.2350, 123.7350], 13);
+
+        L.tileLayer('https://{s}.tile-cyclosm.openstreetmap.fr/cyclosm/{z}/{x}/{y}.png', {
+            attribution: '<a href="https://github.com/cyclosm/cyclosm-cartocss-style/releases" title="CyclOSM - Open Bicycle render">CyclOSM</a> | Map data: &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+        }).addTo(map);
+
+        setTimeout(() => { map.invalidateSize(); }, 300);
+        window.addEventListener('resize', () => { map.invalidateSize(); });
 
         const permanentPinLayer = L.layerGroup().addTo(map);
         const driversPinLayer = L.layerGroup().addTo(map);
@@ -337,12 +355,6 @@
         // });
 
         L.control.zoom({ position: 'bottomleft' }).addTo(map);
-
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-            attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
-            subdomains: 'abcd',
-            maxZoom: 20
-        }).addTo(map);
 
         // Force map resize when rendering to avoid partial gray tiles on mobile
         setTimeout(() => { map.invalidateSize(); }, 300);
@@ -381,7 +393,7 @@
                     const driverLat = driver.status.latitude;
                     const driverLng = driver.status.longitude;
 
-                    smoothMove(marker, driverLat, driverLng, 2000);
+                    smoothMoveWithRotation(marker, driverLat, driverLng, 2000, driver.status.dispatched_to);
 
                 } else {
                     const id = driver.id;
@@ -395,23 +407,19 @@
                     const driverLng = driver.status.longitude;
                     const driverCoords = [driverLat, driverLng];
                     const avatar = driver.avatar;
-                    
-                    let iconFilePath = '/images/';
-                    if(dispatchedTo == "to_naga")
-                        iconFilePath += 'jeepToRight.png'
-                    else
-                        iconFilePath += 'jeepToLeft.png'
+                    const iconFilePath = '/storage/' + driver.profile.jeep_icon;
 
                     const jeepIcon = L.icon({
                         iconUrl: iconFilePath, 
                         iconSize: [38, 38],             
                         iconAnchor: [19, 38],           
-                        popupAnchor: [0, -38]           
+                        popupAnchor: [0, -38],   
                     });
 
                     const marker = L.marker(driverCoords, {
                         icon: jeepIcon
                     }).addTo(driversPinLayer);
+
 
                     const popupContent = `
                         <div class="p-1" style="min-width: 180px;">
@@ -481,15 +489,51 @@
         
         // sendLocationToServer();
         
-        function smoothMove(marker, targetLat, targetLng, duration) {
+        /**
+         * @param {L.Marker} marker 
+         * @param {number} targetLat 
+         * @param {number} targetLng 
+         * @param {number} duration 
+         * @param {string} dispatchedTo - "Uling" or "Naga"
+         */
+        function smoothMoveWithRotation(marker, targetLat, targetLng, duration, dispatchedTo) {
             const startPos = marker.getLatLng();
+            
+            // 1. Calculate the rotation angle (Using the logic from before)
+            // We get the raw bearing first
+            const lat1 = startPos.lat, lon1 = startPos.lng;
+            const lat2 = targetLat, lon2 = targetLng;
+
+            const dLon = (lon2 - lon1) * Math.PI / 180;
+            const y = Math.sin(dLon) * Math.cos(lat2 * Math.PI / 180);
+            const x = Math.cos(lat1 * Math.PI / 180) * Math.sin(lat2 * Math.PI / 180) -
+                    Math.sin(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.cos(dLon);
+            
+            let angle = (Math.atan2(y, x) * 180 / Math.PI + 360) % 360;
+
+            // 2. Apply Flip Logic
+            const iconElement = marker.getElement();
+            if (dispatchedTo === 'Uling') {
+                iconElement.classList.add('jeepney-flipped');
+                // If flipped, we reverse the rotation offset to compensate
+                angle = (angle - 90 + 360) % 360; 
+            } else {
+                iconElement.classList.remove('jeepney-flipped');
+                // Standard offset
+                angle = (angle - 90 + 360) % 360;
+            }
+
+            // 3. Apply Rotation
+            marker.setRotationAngle(angle);
+            marker.options.rotationAngle = angle;
+
+            // 4. Animation Logic
             const startTime = performance.now();
 
             function animate(currentTime) {
                 const elapsed = currentTime - startTime;
-                const progress = Math.min(elapsed / duration, 1); // 0 to 1
+                const progress = Math.min(elapsed / duration, 1);
 
-                // Calculate current position (Linear Interpolation)
                 const lat = startPos.lat + (targetLat - startPos.lat) * progress;
                 const lng = startPos.lng + (targetLng - startPos.lng) * progress;
 

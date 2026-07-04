@@ -54,7 +54,7 @@ Route::middleware('auth')->group(function () {
     Route::middleware('is_admin')->group(function() {
         Route::get('/verify-driver', [DriverVerificationController::class, 'index'])->name('verify.driver');
 
-        Route::get('/fleet-management', function() {
+        Route::get('admin/drivers', function() {
             return view('admin.fleet-management');
         })->name('fleet.management');
 

@@ -39,7 +39,7 @@ class MoveJepneys extends Command
 
             foreach ($drivers as $driver) {
                 // 2. Add some "jitter" or simulation speed control
-                if (mt_rand(1, 100) > 60) continue; 
+                if (mt_rand(1, 100) > 80) continue; 
 
                 $index = $driver->waypoint_index;
                 
@@ -109,7 +109,7 @@ class MoveJepneys extends Command
             }
             
             // 6. Sleep for a short duration to prevent CPU pinning
-            usleep(1000000);
+            sleep(2);
         }
     }
 }

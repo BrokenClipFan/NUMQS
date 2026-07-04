@@ -255,7 +255,7 @@
 
     <script>
         // Init Map
-        const map = L.map('map', { zoomControl: false }).setView([10.2300, 123.7350], 13);
+        const map = L.map('map', { zoomControl: false }).setView([10.2350, 123.7350], 13);
         L.control.zoom({ position: 'bottomleft' }).addTo(map);
 
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {

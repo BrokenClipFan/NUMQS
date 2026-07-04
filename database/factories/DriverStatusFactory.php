@@ -20,8 +20,8 @@ class DriverStatusFactory extends Factory
         return [
         'latitude'      => $this->faker->latitude(10.10, 10.30),
         'longitude'     => $this->faker->longitude(123.70, 123.80),
-        'dispatched_to' => $this->faker->randomElement(['to_naga', 'to_uling']),
-        'state'         => $this->faker->randomElement(['idle', 'in_route', 'queue']),
+        'dispatched_to' => $this->faker->randomElement(['Naga', 'Uling']),
+        'state'         => $this->faker->randomElement(['in_route']),
         'is_online'     => true,
         ];
     }
