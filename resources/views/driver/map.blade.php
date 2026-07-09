@@ -127,15 +127,16 @@
             .hide-on-mobile-xs { display: none !important; }
         }
 
-        /* Add this to your main CSS file */
-        .leaflet-marker-icon {
-            transition: transform 0.3s ease-in-out;
-            transform-origin: center center !important;
+        .jeepney-marker-container {
+            background: transparent !important;
+            border: none !important;
         }
 
-        /* This class will handle the mirroring for "Uling" */
-        .jeepney-flipped {
-            transform: scaleX(-1);
+        /* Ensure the sprite transitions smoothly when making turns */
+        .jeepney-sprite {
+            display: block;
+            transform-origin: center center;
+            transition: transform 0.25s ease-out; /* Makes your turns look amazingly fluid instead of rigid snap adjustments */
         }
     </style>
 </head>
@@ -317,8 +318,26 @@
         let jeepneyMarkers = {}
         const map = L.map('map', { zoomControl: false }).setView([10.2350, 123.7350], 13);
 
-        L.tileLayer('https://{s}.tile-cyclosm.openstreetmap.fr/cyclosm/{z}/{x}/{y}.png', {
-            attribution: '<a href="https://github.com/cyclosm/cyclosm-cartocss-style/releases" title="CyclOSM - Open Bicycle render">CyclOSM</a> | Map data: &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+        // L.tileLayer('https://{s}.tile-cyclosm.openstreetmap.fr/cyclosm/{z}/{x}/{y}.png', {
+        //     attribution: '<a href="https://github.com/cyclosm/cyclosm-cartocss-style/releases" title="CyclOSM - Open Bicycle render">CyclOSM</a> | Map data: &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+        // }).addTo(map);
+
+        // L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+        //     attribution: '&copy; OpenStreetMap contributors &copy; CARTO'
+        // }).addTo(map);
+        // L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png').addTo(map);
+
+        // 1. Your standard background map layer
+        const baseMapTiles = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(map);
+
+        // 2. The real-time weather layer (Precipitation / Rain Radar)
+        // You can change 'precipitation_new' to 'clouds_new', 'wind_new', or 'temp_new'
+        const weatherRadarTiles = L.tileLayer('https://tile.openweathermap.org/map/precipitation_new/{z}/{x}/{y}.png?appid=YOUR_OPENWEATHERMAP_API_KEY', {
+            maxZoom: 18,
+            opacity: 0.6, // Transparent so you can still see roads underneath
+            attribution: '&copy; OpenWeatherMap'
         }).addTo(map);
 
         setTimeout(() => { map.invalidateSize(); }, 300);
@@ -387,8 +406,7 @@
 
         function addPinsToAllDrivers(drivers) {
             drivers.forEach((driver) => {
-
-                if(jeepneyMarkers[driver.id]){
+                if (jeepneyMarkers[driver.id]) {
                     let marker = jeepneyMarkers[driver.id];
                     const driverLat = driver.status.latitude;
                     const driverLng = driver.status.longitude;
@@ -409,17 +427,19 @@
                     const avatar = driver.avatar;
                     const iconFilePath = '/storage/' + driver.profile.jeep_icon;
 
-                    const jeepIcon = L.icon({
-                        iconUrl: iconFilePath, 
-                        iconSize: [38, 38],             
-                        iconAnchor: [19, 38],           
-                        popupAnchor: [0, -38],   
+                    // FIX: Use L.divIcon to wrap your image in an inner container.
+                    // Leaflet handles the main marker wrapper, we safely rotate & flip the inside img element.
+                    const jeepIcon = L.divIcon({
+                        className: 'jeepney-marker-container',
+                        html: `<img src="${iconFilePath}" class="jeepney-sprite" style="width:50px; height:50px;" alt="jeepney">`,
+                        iconSize: [50, 50],             
+                        iconAnchor: [25, 25], // Center anchor is usually best for rotating vehicles        
+                        popupAnchor: [0, -25],   
                     });
 
                     const marker = L.marker(driverCoords, {
                         icon: jeepIcon
                     }).addTo(driversPinLayer);
-
 
                     const popupContent = `
                         <div class="p-1" style="min-width: 180px;">
@@ -435,15 +455,15 @@
                                 <i class="bi bi-info-circle-fill text-primary"></i>
                                 <span>Status: <strong>${status}</strong></span>
                             </div>
-                            
                         </div>
                     `;  
                     marker.bindPopup(popupContent);
 
                     jeepneyMarkers[driver.id] = marker;
                 }
-            })
+            });
         }
+
 
         function getAllQueues() {
             fetch('/queue') 
@@ -488,20 +508,20 @@
         }, 2000);
         
         // sendLocationToServer();
-        
-        /**
-         * @param {L.Marker} marker 
-         * @param {number} targetLat 
-         * @param {number} targetLng 
-         * @param {number} duration 
-         * @param {string} dispatchedTo - "Uling" or "Naga"
-         */
+
         function smoothMoveWithRotation(marker, targetLat, targetLng, duration, dispatchedTo) {
-            const startPos = marker.getLatLng();
-            
-            // 1. Calculate the rotation angle (Using the logic from before)
-            // We get the raw bearing first
-            const lat1 = startPos.lat, lon1 = startPos.lng;
+        // 1. Clear any active animation frame for this marker
+        if (marker.animationFrameId) {
+            cancelAnimationFrame(marker.animationFrameId);
+        }
+
+        // 2. Check if the actual destination has changed (fixes the straight-up snap bug)
+        // We check against custom properties stored on the marker instead of its live moving position
+        const hasNewDestination = (marker.lastTargetLat !== targetLat || marker.lastTargetLng !== targetLng);
+
+        if (hasNewDestination && marker.lastTargetLat !== undefined) {
+            // Calculate heading from the LAST target to the NEW target
+            const lat1 = marker.lastTargetLat, lon1 = marker.lastTargetLng;
             const lat2 = targetLat, lon2 = targetLng;
 
             const dLon = (lon2 - lon1) * Math.PI / 180;
@@ -511,40 +531,50 @@
             
             let angle = (Math.atan2(y, x) * 180 / Math.PI + 360) % 360;
 
-            // 2. Apply Flip Logic
-            const iconElement = marker.getElement();
-            if (dispatchedTo === 'Uling') {
-                iconElement.classList.add('jeepney-flipped');
-                // If flipped, we reverse the rotation offset to compensate
-                angle = (angle - 90 + 360) % 360; 
-            } else {
-                iconElement.classList.remove('jeepney-flipped');
-                // Standard offset
-                angle = (angle - 90 + 360) % 360;
-            }
+            // ADJUST THIS OFFSET: If your image file naturally faces right, use -90. 
+            // If it naturally faces up, use 0. If it faces left, use +90.
+            angle = (angle - 90 + 360) % 360; 
 
-            // 3. Apply Rotation
-            marker.setRotationAngle(angle);
-            marker.options.rotationAngle = angle;
-
-            // 4. Animation Logic
-            const startTime = performance.now();
-
-            function animate(currentTime) {
-                const elapsed = currentTime - startTime;
-                const progress = Math.min(elapsed / duration, 1);
-
-                const lat = startPos.lat + (targetLat - startPos.lat) * progress;
-                const lng = startPos.lng + (targetLng - startPos.lng) * progress;
-
-                marker.setLatLng([lat, lng]);
-
-                if (progress < 1) {
-                    requestAnimationFrame(animate);
-                }
-            }
-            requestAnimationFrame(animate);
+            marker.lastValidAngle = angle;
         }
+
+        // Save current targets for the next telemetry update comparison
+        marker.lastTargetLat = targetLat;
+        marker.lastTargetLng = targetLng;
+
+        // Fallback to previous angle or 0 if it's the first render
+        const finalAngle = marker.lastValidAngle !== undefined ? marker.lastValidAngle : 0;
+
+        // 3. Apply rotation cleanly to the inner sprite (NO MORE scaleX FLIPPING)
+        const container = marker.getElement();
+        if (container) {
+            const sprite = container.querySelector('.jeepney-sprite');
+            if (sprite) {
+                sprite.style.transform = `rotate(${finalAngle}deg)`;
+            }
+        }
+
+        // 4. Smoothly slide coordinate positions
+        const startPos = marker.getLatLng();
+        const startTime = performance.now();
+
+        function animate(currentTime) {
+            const elapsed = currentTime - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+
+            const lat = startPos.lat + (targetLat - startPos.lat) * progress;
+            const lng = startPos.lng + (targetLng - startPos.lng) * progress;
+
+            marker.setLatLng([lat, lng]);
+
+            if (progress < 1) {
+                marker.animationFrameId = requestAnimationFrame(animate);
+            } else {
+                marker.animationFrameId = null;
+            }
+        }
+        marker.animationFrameId = requestAnimationFrame(animate);
+    }
 
         function createNagaQueueCard(position, name, plate, is_filling) {
             // CARD

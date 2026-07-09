@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\DriverVerificationController;
 use App\Http\Controllers\DriverProfileController;
 use App\Http\Controllers\NagaQueueController;
 use App\Http\Controllers\DriverController;
+use App\Http\Controllers\DriverFleet;
 use App\Models\User;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
@@ -54,9 +55,7 @@ Route::middleware('auth')->group(function () {
     Route::middleware('is_admin')->group(function() {
         Route::get('/verify-driver', [DriverVerificationController::class, 'index'])->name('verify.driver');
 
-        Route::get('admin/drivers', function() {
-            return view('admin.fleet-management');
-        })->name('fleet.management');
+        Route::get('admin/drivers', [DriverFleet::class, 'index'])->name('fleet.management');
 
         Route::get('/driver-info', function() {
             return view('admin.driver-info');

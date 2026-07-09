@@ -138,7 +138,7 @@
                         <i class="bi bi-person-fill-exclamation fs-4"></i>
                     </div>
                     <div>
-                        <h4 class="fw-bold mb-0">3</h4>
+                        <h4 class="fw-bold mb-0 pendingApprovalCount">0</h4>
                         <small class="text-muted small">Pending Approval</small>
                     </div>
                 </div>
@@ -149,7 +149,7 @@
                         <i class="bi bi-person-check-fill fs-4"></i>
                     </div>
                     <div>
-                        <h4 class="fw-bold mb-0">28</h4>
+                        <h4 class="fw-bold mb-0 verifiedCount">0</h4>
                         <small class="text-muted small">Verified Fleet</small>
                     </div>
                 </div>
@@ -161,7 +161,7 @@
                             <i class="bi bi-truck fs-4"></i>
                         </div>
                         <div>
-                            <h4 class="fw-bold mb-0">31</h4>
+                            <h4 class="fw-bold mb-0 totalRegisteredEl">31</h4>
                             <small class="text-muted small">Total Registered</small>
                         </div>
                     </div>
@@ -296,5 +296,74 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const pendingApprovalEl = document.querySelector('.pendingApprovalCount');
+        const verifiedCountEl = document.querySelector('.verifiedCount');
+        const totalRegisteredEl = document.querySelector('.totalRegisteredEl');
+        const unVerifiedUsers = @json($unVerifiedUsers);
+
+        pendingApprovalEl.textContent = @json($unverifiedCount);
+        
+        verifiedCountEl.textContent = @json($verifiedCount);
+        
+        totalRegisteredEl.textContent = @json($verifiedCount);
+        
+        console.log(unVerifiedUsers);
+
+        unVerifiedUsers.forEach(user => {
+            const driver = {
+                name: driver.name,
+                email: driver.email,
+                badgeText:
+            }
+        });
+
+
+        // console.log(@json($verifiedUsers))
+    </script>
+    <script>
+        /**
+         * Builds the Account Item Element
+         * @param {Object} data - Contains: name, email, badgeText, badgeIcon, url
+         */
+        function buildAccountItem(data) {
+            // Main Container
+            const container = createEl("div", "p-3 account-item d-flex align-items-center justify-content-between flex-wrap gap-2");
+
+            // Left Section: Avatar + Details
+            const avatar;
+            avatar = document.createElement("img");
+            avatar.className = "driver-avatar-mini me-3";
+            avatar.alt = data.name;
+            avatar.style.objectFit = "cover"; 
+            if (data.avatar) {
+                avatar.src = data.avatar;
+            } else {
+                avatar.src = '/storage/icons/defaultProfile.png';
+            }
+            const leftSide = createEl("div", "d-flex align-items-center");
+            
+            const infoContainer = createEl("div");
+            infoContainer.appendChild(createEl("h6", "fw-bold mb-0 text-dark", data.name));
+            infoContainer.appendChild(createEl("small", "text-muted d-block", `<i class="bi bi-envelope me-1"></i>${data.email}`));
+            infoContainer.appendChild(createEl("span", "badge bg-light text-muted border small mt-1", `<i class="${data.badgeIcon} me-1"></i>${data.badgeText}`));
+            
+            leftSide.appendChild(avatar);
+            leftSide.appendChild(infoContainer);
+
+            // Right Section: Button
+            const rightSide = createEl("div");
+            const link = createEl("a", "btn btn-verify px-3 py-2 rounded-3 btn-sm shadow-sm", `<i class="bi bi-pencil-square me-1"></i> Verify & Complete Profile`);
+            link.href = data.url;
+            
+            rightSide.appendChild(link);
+
+            // Assemble
+            container.appendChild(leftSide);
+            container.appendChild(rightSide);
+
+            return container;
+        }
+    </script>
 </body>
 </html>
