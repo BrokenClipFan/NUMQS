@@ -10,6 +10,7 @@ use App\Models\Route;
 use App\Services\TerminalService;
 use App\Services\DriverAssignmentService;
 use App\Services\QueueService;
+use App\Services\ViolationService;
 
 #[Signature('jeepney:move')]
 #[Description('Simulate real-time jeepney movement')]
@@ -18,7 +19,8 @@ class MoveJepneys extends Command
     /**
      * Execute the console command.
      */
-    public function handle(TerminalService $terminalService, DriverAssignmentService $assignmentService, QueueService $queueService)
+
+    public function handle(TerminalService $terminalService, DriverAssignmentService $assignmentService, QueueService $queueService, ViolationService $violationService)
     {
         $routeRecord = Route::where('route', 'Naga-To-Uling')->first();
         $nagaWifi = $terminalService->getTerminalByBssid("00:1A:2B:3C:4D:52");
@@ -38,78 +40,107 @@ class MoveJepneys extends Command
             $drivers = DriverStatus::where('is_online', 1)->get();
 
             foreach ($drivers as $driver) {
-                // 2. Add some "jitter" or simulation speed control
-                if (mt_rand(1, 100) > 80) continue; 
+                // 2. Simulation speed control / jitter
+                if (mt_rand(1, 100) > 90) continue; 
 
                 $index = $driver->waypoint_index;
-                
-                $index += ($driver->dispatched_to === "Uling") ? 1 : -1;
-
                 $maxIndex = count($path) - 1;
                 
-                if ($index >= $maxIndex) {
+                // 3. Move index based on physical intent (going_to)
+                $index += ($driver->going_to === "Uling") ? 1 : -1;
 
-                    if($nagaWifi->name == 'Naga' && $driver->state != "queued") {
-                        $queueService->addToQueue($driver, $nagaWifi);
-                        $driver->state = "queued";
-                    }
+                // 4. Safety Clamp: Prevents array key errors ($path[-1] or $path[max + 1])
+                if ($index > $maxIndex) $index = $maxIndex;
+                if ($index < 0) $index = 0;
 
-                    // dd($nagaWifi->id);
+                $driverIn = null;
+                $driver->wifi_bssid = null;
+                $currentTerminal = null;
 
-                    $topDriver = $queueService->getTopPosition($nagaWifi);
-
-                    if($topDriver->driver_profile_id == $driver->user_id 
-                       && $topDriver->filling_at == null) {
-                        $queueService->setFillingUp($driver);
-                    }
-
-                    if($queueService->getFillingAtMinutes($driver, $nagaWifi) >= 1) {
-                        $index = $maxIndex;
-                        $driver->dispatched_to = "Naga";
-                        $driver->state = "in_route";
-                        $queueService->removeFromQueue($driver);
-                    } else {
-                        $index--;
-                    }
-
-                } elseif ($index <= 0) {
-
-                    if($ulingWifi->name == 'Uling' && $driver->state != "queued") {
-                        $queueService->addToQueue($driver, $ulingWifi);
-                        $driver->state = "queued";
-                    }
-
-                    $topDriver = $queueService->getTopPosition($ulingWifi);
-
-                    if($topDriver->driver_profile_id == $driver->user_id 
-                       && $topDriver->filling_at == null) {
-                        $queueService->setFillingUp($driver);
-                    }
-
-                    if($queueService->getFillingAtMinutes($driver, $ulingWifi) >= 1) {
-                        $index = 0;
-                        $driver->dispatched_to = "Uling";
-                        $driver->state = "in_route";
-                        $queueService->removeFromQueue($driver);
-                    } else {
-                        $index++;
-                    }
+                // 5. Detect if driver is physically at a terminal base
+                if ($index === $maxIndex) {
+                    $driverIn = "Uling";
+                    $driver->wifi_bssid = "00:1A:2B:3C:4D:51";
+                    $currentTerminal = $ulingWifi;
+                } else if ($index === 0) {
+                    $driverIn = "Naga";
+                    $driver->wifi_bssid = "00:1A:2B:3C:4D:52";
+                    $currentTerminal = $nagaWifi;
                 }
 
-                // 5. Update the driver (Single Database Call)
+                // 6. Handle terminal events if the driver is physically at one
+                if ($driverIn !== null) {
 
+                    if ($driverIn === $driver->dispatched_to) {
+                        // --- HONEST DRIVER ---
+                        if ($driver->state != "queued") {
+                            $queueService->addToQueue($driver, $currentTerminal);
+                            $driver->state = "queued";
+                        }
+                    } else {
+                        // --- CHEATER DRIVER ---
+                        // Arrived at a terminal, but it does not match their assigned dispatch
+                        if ($driver->state != "queued") {
+                            $this->warn("Driver {$driver->user_id} is cheating! Arrived at {$driverIn} but dispatched to {$driver->dispatched_to}.");
+                            
+                            // dd($currentTerminal);
+                            $queueService->addToQueue($driver, $currentTerminal);
+                            $driver->state = "queued";
+                            
+                            $violationService->createViolation( 
+                                $driver->user_id,
+                                $violationService::TYPE_UNAUTHORIZED_TERMINAL,
+                                'Unauthorized Terminal Entry',
+                                $driverIn, // e.g., "Naga" or "Uling"
+                                [
+                                    'expected_destination' => $driver->dispatched_to,
+                                    'actual_destination'   => $driverIn,
+                                    'waypoint_index'       => $index
+                                ],
+                                'high' // Severity level
+                            );
+                        }
+                    }
+
+                    // --- TERMINAL QUEUE ENGINE ---
+                    // Runs uniformly for whoever is sitting in the queue
+                    $topDriver = $queueService->getTopPosition($currentTerminal);
+
+                    if ($topDriver && $topDriver->driver_profile_id == $driver->user_id && $topDriver->filling_at == null) {
+                        $queueService->setFillingUp($driver);
+                    }
+
+                    $duration = $queueService->getFillingAtMinutes($driver, $currentTerminal);
+
+                    if ($duration >= 0.5) {
+                        // Dispatch them to the opposite end
+                        $nextTerminal = $currentTerminal->name == "Uling" ? "Naga" : "Uling";
+
+                        $driver->dispatched_to = $nextTerminal;
+                        $driver->going_to = $nextTerminal; 
+                        $driver->state = "in_route";
+                        
+                        // Force index 1 step out of terminal boundaries to break queue loop lock
+                        $index += ($nextTerminal === "Uling") ? 1 : -1; 
+                        
+                        $queueService->removeFromQueue($driver);
+                    } 
+                }
+                
+                // 7. Extract map data and persist state updates
                 $point = $path[$index];
                 $driver->update([
                     'waypoint_index' => $index,
                     'latitude'       => $point['lat'],
                     'longitude'      => $point['lng'],
-                    'dispatched_to'  => $driver->dispatched_to, // Ensure this updates if changed
+                    'dispatched_to'  => $driver->dispatched_to,
+                    'going_to'       => $driver->going_to,
+                    'state'          => $driver->state,
                     'last_updated'   => now(),
                 ]);
             }
             
-            // 6. Sleep for a short duration to prevent CPU pinning
-            sleep(2);
+            sleep(1);
         }
     }
 }

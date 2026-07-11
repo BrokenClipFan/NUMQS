@@ -2,6 +2,6 @@ To make a fake users with complete 3 tables with foreign keys run this command
 php artisan migrate --seed
 php artisan db:seed --class=RouteSeeder
 
-\App\Models\User::factory()->count(5)->has(\App\Models\DriverProfile::factory(), 'profile')->has(\App\Models\DriverStatus::factory(), 'status')->create();
+\App\Models\User::factory()->count(20)->has(\App\Models\DriverProfile::factory(), 'profile')->has(\App\Models\DriverStatus::factory(), 'status')->create();
 
 \App\Models\DriverStatus::count()

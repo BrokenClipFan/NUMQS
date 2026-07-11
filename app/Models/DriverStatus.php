@@ -20,7 +20,9 @@ class DriverStatus extends Model
         'state',
         'last_updated',
         'is_online',
-        'waypoint_index'
+        'waypoint_index',
+        'going_to',
+        'wifi_bssid'
     ];
 
     public function user() {

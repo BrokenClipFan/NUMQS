@@ -2,17 +2,22 @@
 
 namespace App\Services;
 use App\Models\DriverQueue;
+use App\Models\DriverStatus;
 
 class QueueService {
 
   public function addToQueue($driver, $terminal) {
-      $position = (DriverQueue::where('terminal_id', $terminal->id)->max('position') ?? 0) + 1;
+    $position = (DriverQueue::where('terminal_id', $terminal->id)->max('position') ?? 0) + 1;
 
-      DriverQueue::create([
-        'driver_profile_id' => $driver->user_id,
-        'terminal_id' => $terminal->id,
-        'queued_at' => now(),
-        'position' => $position,
+    DriverQueue::create([
+      'driver_profile_id' => $driver->user_id,
+      'terminal_id' => $terminal->id,
+      'queued_at' => now(),
+      'position' => $position,
+    ]);
+
+    DriverStatus::where('user_id', $driver->user_id)->update([
+      'queued_in' => $terminal->name,
     ]);
   }
 
@@ -65,7 +70,10 @@ class QueueService {
   }
   
   public function removeFromQueue($driver) {
-    DriverQueue::where('driver_profile_id', $driver->user_id)->delete();
+    DriverStatus::where('user_id', $driver->user_id)->update([
+      'queued_in' => null,
+    ]);
+    return DriverQueue::where('driver_profile_id', $driver->user_id)->delete();
   }
 
   public function setFillingUp($driver) {
@@ -74,5 +82,4 @@ class QueueService {
       'filling_at' => now()
     ]);
   }
-
 }

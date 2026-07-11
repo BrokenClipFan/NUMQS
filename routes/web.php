@@ -42,7 +42,6 @@ Route::middleware('auth')->group(function () {
 
         // Route::post('/add/queue',[NagaQueueController::class, 'store'])->name('add.to.queue');
         
-        // Map
         Route::get('/', [DriverController::class, 'index'])->name('driver.map');
         Route::get('/drivers', [DriverController::class, 'getDrivers']);
         Route::post('/driver/location/update', [DriverController::class, 'updateLocation'])->name('location.update');
