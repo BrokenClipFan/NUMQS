@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Services\DriverProfileService;
+use App\Models\User;
 
 class DriverFleet extends Controller
 {
@@ -23,7 +24,7 @@ class DriverFleet extends Controller
                                                     'unverifiedCount', 
                                                     'verifiedCount', 
                                                     'unVerifiedUsers', 
-                                                    'verifiedUsers'
+                                                    'verifiedUsers',
                                                 ));
     }
 

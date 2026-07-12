@@ -132,38 +132,17 @@
                 <i class="bi bi-shield-lock-fill me-2" style="color: var(--admin-warning);"></i>
                 <span class="fs-5 text-dark">Admin Portal</span>
             </a>
-            <a href="#" class="btn btn-sm btn-outline-secondary fw-bold">
+            <a href="{{ route('fleet.management') }}" class="btn btn-sm btn-outline-secondary fw-bold">
                 <i class="bi bi-x-lg"></i> Exit
             </a>
         </div>
     </nav>
 
     <div class="container py-4 max-w-md mx-auto" style="max-width: 800px;">
-        
-        <!-- Next / Previous Driver Pagination -->
-        <div class="d-flex justify-content-between align-items-center mb-3 px-1">
-            @if($driver->currentPage() > 1)
-                <a href="?page={{ $driver->currentPage() - 1 }}"
-                class="btn btn-sm btn-light border-custom fw-bold text-main-dark shadow-sm">
-                    <i class="bi bi-chevron-left"></i> Previous
-                </a>
-            @else
-                <button class="btn btn-sm btn-light border-custom fw-bold shadow-sm" disabled>
-                    <i class="bi bi-chevron-left"></i> Previous
-                </button>
-            @endif
-            <span class="small fw-bold text-muted bg-white px-3 py-1 border border-custom rounded-pill">Driver {{ $driver->currentPage() }} of {{ $driver->lastPage() }}</span>
-            @if($driver->hasMorePages())
-            <a href="?page={{ $driver->currentPage() + 1 }}" class="btn btn-sm btn-light border-custom fw-bold text-main-dark shadow-sm">
-                Next <i class="bi bi-chevron-right"></i>
-            </a>
-            @endif
-        </div>
-
         <!-- Target User Header -->
         <div class="d-flex align-items-center bg-white p-3 rounded-top-3 border-custom border-bottom-0 shadow-sm mt-2">
-            @if($currentDriver->avatar)
-                <img src="{{ $currentDriver->avatar }}"
+            @if($user->avatar)
+                <img src="{{ $user->avatar }}"
                     alt="Driver Avatar"
                     class="rounded-circle me-3 flex-shrink-0 profile-placeholder"
                     width="45"
@@ -176,13 +155,13 @@
             @endif
             <div class="flex-grow-1">
                 <div class="d-flex justify-content-between align-items-start">
-                    <h5 class="fw-bold mb-0">{{ $currentDriver->name }}</h5>
+                    <h5 class="fw-bold mb-0">{{ $user->name }}</h5>
                     <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle">Pending</span>
                 </div>
-                @if($currentDriver->email)
+                @if($user->email)
                     <small class="text-muted">
                         <i class="bi bi-envelope me-1"></i>
-                        {{ $currentDriver->email }}
+                        {{ $user->email }}
                     </small>
                 @endif
             </div>
@@ -195,7 +174,7 @@
             </div>
             
             <div class="p-3 p-md-4">
-                <form action="{{ route('driver.store', $currentDriver->id) }}" method="POST" enctype="multipart/form-data">
+                <form action="{{ route('driver.store', $user->id) }}" method="POST" enctype="multipart/form-data">
                     @csrf
                     
                     <h6 class="text-muted fw-bold small text-uppercase mb-3 border-bottom pb-2">1. Personal Information</h6>
@@ -203,17 +182,17 @@
                     <div class="row g-3 mb-4">
                         <div class=" col-12 col-md-6">
                             <label class="form-label small fw-bold">First Name</label><span class="text-danger">*</span>
-                            @error('license_number')
+                            @error('first_name')
                                 <small class="text-danger">{{ $message }}</small>
                             @enderror
-                            <input type="text" name="first_name" class="form-control" placeholder="Pedro">
+                            <input type="text" name="first_name" value="{{ old('first_name') }}" class="form-control" placeholder="Pedro">
                         </div>
                         <div class=" col-12 col-md-6">
                             <label class="form-label small fw-bold">Last Name</label><span class="text-danger">*</span>
                             @error('last_name')
                                 <small class="text-danger">{{ $message }}</small>
                             @enderror
-                            <input type="text" name="last_name" class="form-control" placeholder="Pendoko">
+                            <input type="text" name="last_name" value="{{ old('last_name') }}" class="form-control" placeholder="Pendoko">
                         </div>
                     </div>
 
@@ -225,7 +204,7 @@
                             @error('middle_name')
                                 <small class="text-danger">{{ $message }}</small>
                             @enderror
-                            <input type="text" name="middle_name" class="form-control" placeholder="Lopez">
+                            <input type="text" name="middle_name" value="{{ old('middle_name') }}" class="form-control" placeholder="Lopez">
                         </div>
                         <div class="col-12 col-md-6">
                             <label class="form-label small fw-bold">
@@ -234,7 +213,7 @@
                             @error('birthdate')
                                 <small class="text-danger">{{ $message }}</small>
                             @enderror
-                            <input type="date" name="birthdate" class="form-control">
+                            <input type="date" name="birthdate" value="value="{{ old('birthdate') }}"" class="form-control">
                         </div>
                     </div>
                     <div class="mb-3">
@@ -244,7 +223,7 @@
                         @enderror
                         <div class="input-group">
                             <span class="input-group-text bg-white border-custom text-muted"><i class="bi bi-phone"></i></span>
-                            <input type="tel" name="phone" class="form-control" placeholder="09XX-XXX-XXXX" required>
+                            <input type="tel" name="phone" value="{{ old('phone') }}" class="form-control" placeholder="09XX-XXX-XXXX" required>
                         </div>
                     </div>
 
@@ -253,7 +232,7 @@
                         @error('address')
                             <small class="text-danger">{{ $message }}</small>
                         @enderror
-                        <textarea name="address" class="form-control" rows="2" placeholder="House/Block No., Street, Barangay, City"></textarea>
+                        <textarea name="address" value="{{ old('address') }}" class="form-control" rows="2" placeholder="House/Block No., Street, Barangay, City"></textarea>
                     </div>
 
                     <div class="row g-3 mb-4">
@@ -262,14 +241,14 @@
                             @error('emergency_name')
                                 <small class="text-danger">{{ $message }}</small>
                             @enderror
-                            <input type="text" name="emergency_name" class="form-control" placeholder="Full Name">
+                            <input type="text" name="emergency_name" value="{{ old('emergency_name') }}" class="form-control" placeholder="Full Name">
                         </div>
                         <div class="col-12 col-md-6">
                             <label class="form-label small fw-bold">Emergency Contact No.</label>
                             @error('emergency_phone')
                                 <small class="text-danger">{{ $message }}</small>
                             @enderror
-                            <input type="tel" name="emergency_phone" class="form-control" placeholder="09XX-XXX-XXXX">
+                            <input type="tel" name="emergency_phone" value="{{ old('emergency_phone') }}" class="form-control" placeholder="09XX-XXX-XXXX">
                         </div>
                     </div>
 
@@ -283,7 +262,7 @@
                         @enderror
                         <div class="input-group">
                             <span class="input-group-text bg-white border-custom text-muted"><i class="bi bi-card-heading"></i></span>
-                            <input type="text" name="license_number" class="form-control font-monospace" placeholder="e.g. N01-23-456789" required>
+                            <input type="text" name="license_number" value="{{ old('license_number') }}" class="form-control font-monospace" placeholder="e.g. N01-23-456789" required>
                         </div>
                     </div>
 
@@ -294,7 +273,7 @@
                         @enderror
                         <div class="input-group">
                             <span class="input-group-text bg-white border-custom text-muted"><i class="bi bi-123"></i></span>
-                            <input type="text" name="plate_number" class="form-control font-monospace fw-bold text-uppercase" placeholder="ABC-1234" required>
+                            <input type="text" name="plate_number" value="{{ old('plate_number') }}" class="form-control font-monospace fw-bold text-uppercase" placeholder="ABC-1234" required>
                         </div>
                     </div>
 
@@ -304,7 +283,7 @@
                         @error('vehicleImages')
                             <small class="text-danger">{{ $message }}</small>
                         @enderror
-                        <input class="form-control" type="file" id="vehicleImages" name="image" multiple accept="image/png, image/jpeg, image/jpg" required>
+                        <input class="form-control" type="file" id="vehicleImages" name="image" value="{{ old('image') }}" multiple accept="image/png, image/jpeg, image/jpg" required>
                         <div class="form-text small mt-1">
                             <i class="bi bi-info-circle me-1"></i>Upload images showing the front, side, and plate number.
                         </div>

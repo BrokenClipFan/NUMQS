@@ -11,10 +11,15 @@ use Illuminate\Support\Facades\DB;
 
 class DriverVerificationController extends Controller
 {
-    public function index() {
-        $driver = User::where('is_verified', false)->orderBy('created_at', 'asc')->paginate(1);
-        $currentDriver = $driver->first();
-        return view('admin.verify-driver', compact('driver', 'currentDriver'));
+    public function index($id) {
+        $user = User::findOrFail($id);
+        return view('admin.verify-driver', compact('user'));
+    }
+
+    public function create($id) {
+        $driver = User::findOrFail($id);
+
+        return view('admin.verify-driver', compact('driver'));
     }
 
     public function store(Request $request, $id)
@@ -64,14 +69,10 @@ class DriverVerificationController extends Controller
                 }
             );
                     
-            return redirect()->route('verify.driver', [
-                'page' => request('page', 1)
-            ])->with('success', 'Driver approved');
+            return redirect()->route('fleet.management')->with('success', 'Driver approved');
 
         } catch(\Exception $e) {
-            return redirect()->route('verify.driver', [
-                'page' => request('page', 1)
-            ])->with('error', $e->getMessage());
+            return back()->with('error', $e->getMessage())->withInput();
         }
     }
 }

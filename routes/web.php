@@ -1,8 +1,9 @@
 <?php
 
+use App\Http\Controllers\Admin\DriverVerificationController;
+use App\Http\Controllers\Admin\AdminProfileController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ApprovalController;
-use App\Http\Controllers\Admin\DriverVerificationController;
 use App\Http\Controllers\DriverProfileController;
 use App\Http\Controllers\NagaQueueController;
 use App\Http\Controllers\DriverController;
@@ -52,19 +53,19 @@ Route::middleware('auth')->group(function () {
     });
 
     Route::middleware('is_admin')->group(function() {
-        Route::get('/verify-driver', [DriverVerificationController::class, 'index'])->name('verify.driver');
+        Route::get('/verify/driver/{id}', [DriverVerificationController::class, 'index'])->name('verify.driver');
 
         Route::get('admin/drivers', [DriverFleet::class, 'index'])->name('fleet.management');
 
-        Route::get('/driver-info', function() {
-            return view('admin.driver-info');
-        });
+        Route::get('/admin/view/{id}', [AdminProfileController::class, 'index'])->name('view.driver');
 
         Route::get('/admin/sandbox', function () {
             return view('admin.sandbox');
         });
 
-        Route::post('/admin/profile/{id}/store', [DriverVerificationController::class, 'store'])->name('driver.store');
+        Route::post('/admin/udpate/{id}', [AdminProfileController::class, 'update'])->name('admin.drivers.update');
+
+        Route::put('/admin/profile/{id}/store', [DriverVerificationController::class, 'store'])->name('driver.store');
     });
 });
 

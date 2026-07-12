@@ -5,3 +5,11 @@ php artisan db:seed --class=RouteSeeder
 \App\Models\User::factory()->count(20)->has(\App\Models\DriverProfile::factory(), 'profile')->has(\App\Models\DriverStatus::factory(), 'status')->create();
 
 \App\Models\DriverStatus::count()
+
+
+
+
+
+Relink Storage when project is moved
+1. delete the broken storage in the public folder
+2. execute "php artisan storage:link"
