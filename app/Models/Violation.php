@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Models\DriverProfile;
 
 class Violation extends Model
 {
@@ -18,4 +19,9 @@ class Violation extends Model
     protected $casts = [
         'properties' => 'array',
     ];
+
+    public function profile()
+    {
+        return $this->belongsTo(DriverProfile::class, 'driver_profile_id');
+    }
 }

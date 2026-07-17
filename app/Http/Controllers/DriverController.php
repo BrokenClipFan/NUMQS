@@ -111,6 +111,14 @@ class DriverController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        User::findOrFail($id)->delete();
+
+        return redirect()->route('fleet.management')->with('success', 'Driver account and all historical log parameters have been permanently removed.');
+    }
+
+    public function rejected($id) {
+        User::findOrFail($id)->delete();
+
+        return redirect()->route('fleet.management')->with('success', 'Driver account has been Rejected');
     }
 }

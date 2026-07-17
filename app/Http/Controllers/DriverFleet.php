@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Services\DriverProfileService;
 use App\Models\User;
+use App\Models\Violation;
 
 class DriverFleet extends Controller
 {
@@ -19,12 +20,14 @@ class DriverFleet extends Controller
         $verifiedCount = $this->profileService->getVerifiedCount();
         $unVerifiedUsers = $this->profileService->getUnverifiedUsers();
         $verifiedUsers = $this->profileService->getVerifiedUsersWithProfile();
+        $violations = Violation::where('resolved_at', null)->with('profile')->get();
 
         return view('admin.fleet-management', compact(
                                                     'unverifiedCount', 
                                                     'verifiedCount', 
                                                     'unVerifiedUsers', 
                                                     'verifiedUsers',
+                                                    'violations'
                                                 ));
     }
 

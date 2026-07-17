@@ -29,5 +29,7 @@ class AdminProfileController extends Controller
         }
 
         $profile->save();
+
+        return redirect()->back()->with('success', 'Successfully Updated Driver Info');
     }
 }

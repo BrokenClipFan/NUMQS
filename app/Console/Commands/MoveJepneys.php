@@ -112,7 +112,7 @@ class MoveJepneys extends Command
 
                     $duration = $queueService->getFillingAtMinutes($driver, $currentTerminal);
 
-                    if ($duration >= 0.5) {
+                    if ($duration >= 1) {
                         // Dispatch them to the opposite end
                         $nextTerminal = $currentTerminal->name == "Uling" ? "Naga" : "Uling";
 
@@ -140,7 +140,7 @@ class MoveJepneys extends Command
                 ]);
             }
             
-            sleep(1);
+            sleep(2);
         }
     }
 }

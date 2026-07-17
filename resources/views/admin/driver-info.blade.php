@@ -500,7 +500,6 @@
 
             <!-- Edit Form -->
             <form action="{{ route('admin.drivers.update', $user->id) }}" method="POST" enctype="multipart/form-data" id="driverEditForm">
-            <form action="#" method="POST" enctype="multipart/form-data" id="driverEditForm">
                 @csrf
                 @method('PUT')
 

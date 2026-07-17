@@ -42,4 +42,13 @@ class ViolationService
             'severity'          => $severity,
         ]);
     }
+
+    public function resolve($id) {
+        $violation = Violation::findOrDie($id);
+        $violation->update([
+            resolved_at => now()
+        ]);
+
+        return redirect()->route('fleet.management')->with('success', 'Driver violation has been Resolve');
+    }
 }
