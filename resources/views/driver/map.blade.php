@@ -519,10 +519,96 @@
         .jeepney-marker-container { background: transparent !important; border: none !important; }
         .jeepney-sprite {
             display: block;
+            width: 100%;
+            height: 100%;
             transform-origin: center center;
             transition: transform 0.25s ease-out;
             filter: drop-shadow(0 2px 3px rgba(0,0,0,0.35));
+
+            /* NEW: Hardware acceleration to prevent blur */
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            will-change: transform;
         }
+
+        /* Search Result Dropdown Styles */
+        .search-bar {
+            position: relative;
+            flex: 1 1 250px;
+            max-width: 320px;
+        }
+
+        .search-bar .bi-search {
+            position: absolute;
+            left: 1.1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--amber); /* Amber accent for the icon */
+            font-size: 0.9rem;
+            pointer-events: none;
+            z-index: 5;
+            opacity: 0.8;
+        }
+
+        .search-bar input {
+            width: 100%;
+            padding: 0.55rem 1rem 0.55rem 2.6rem;
+            border-radius: 50px; /* Fully rounded pill shape */
+            border: 1px solid rgba(242, 166, 60, 0.3); /* Subtle amber border */
+            background: var(--ink-soft); /* Dark inset background */
+            color: #F4F5F1;
+            font-family: var(--font-mono); /* Terminal-style font */
+            font-size: 0.8rem;
+            letter-spacing: 0.02em;
+            transition: all 0.2s ease;
+            box-shadow: inset 0 2px 5px rgba(0,0,0,0.2);
+        }
+
+        .search-bar input::placeholder {
+            color: rgba(244, 245, 241, 0.4);
+            font-family: var(--font-body); /* Keep placeholder readable */
+        }
+
+        .search-bar input:focus {
+            outline: none;
+            border-color: var(--amber);
+            background: var(--ink);
+            box-shadow: 0 0 0 4px rgba(242, 166, 60, 0.15), inset 0 2px 5px rgba(0,0,0,0.3);
+        }
+
+        /* Updated Dropdown to match the dark theme */
+        #searchResults {
+            background: var(--ink-soft);
+            border: 1px solid rgba(242, 166, 60, 0.3) !important;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.4) !important;
+        }
+
+        .search-result-item {
+            background-color: transparent !important;
+            color: #F4F5F1 !important;
+            border-bottom: 1px solid rgba(255,255,255,0.05) !important;
+        }
+
+        .search-result-item:hover, 
+        .search-result-item:focus {
+            background-color: var(--ink) !important;
+            border-left: 3px solid var(--amber) !important; /* Amber highlight on hover */
+        }
+        .search-result-item {
+            background-color: var(--card);
+            color: var(--text-primary);
+            border-bottom: 1px solid var(--line);
+            font-family: var(--font-body);
+            cursor: pointer;
+            transition: background-color 0.15s ease;
+        }
+        .search-result-item:hover, .search-result-item:focus {
+            background-color: var(--stone);
+        }
+        .search-result-item:last-child {
+            border-bottom: none;
+        }
+        .text-amber { color: var(--amber); }
     </style>
 </head>
 <body data-driver-id="{{ $driver->id }}" data-is-online="{{ $driver->is_online ? '1' : '0' }}">
@@ -535,6 +621,15 @@
             </a>
 
             <div class="d-flex align-items-center gap-2">
+                <div class="search-bar position-relative">
+                    <i class="bi bi-search"></i>
+                    <input type="search" id="driverSearch" placeholder="Search by driver name or plate number" autocomplete="off">
+                    
+                    <!-- NEW: Search Results Dropdown -->
+                    <div id="searchResults" class="list-group position-absolute w-100 d-none shadow-sm" style="top: 110%; z-index: 1050; max-height: 250px; overflow-y: auto; border-radius: 12px; border: 1px solid var(--line);">
+                    </div>
+                </div>
+
                 <span class="position-readout">
                     <i class="bi bi-signpost-split-fill"></i>
                     <span class="hide-on-mobile-xs">POS</span>
@@ -657,7 +752,7 @@
             let targetLng = null;
             let jeepneyMarkers = {};
             let pollTimer = null;
-
+            let allDriversData = [];
             // ---------------------------------------------------------------
             // Small utility: escape any driver-supplied text before it goes
             // into innerHTML, to avoid XSS via name/plate/status fields.
@@ -698,6 +793,26 @@
             window.addEventListener('resize', () => map.invalidateSize());
 
             // ---------------------------------------------------------------
+            // Dynamic Icon Scaling
+            // ---------------------------------------------------------------
+            function updateIconScale() {
+                const zoom = map.getZoom();
+                let scale = 1; // Default base scale for zoom level 13
+
+                if (zoom >= 15) scale = 1.3;      // Zoomed in very close (larger)
+                else if (zoom === 14) scale = 1.1;
+                else if (zoom === 13) scale = 1.0;
+                else if (zoom === 12) scale = 0.75;
+                else if (zoom === 11) scale = 0.55;
+                else if (zoom <= 10) scale = 0.4; // Zoomed out far (smaller)
+
+                document.documentElement.style.setProperty('--jeep-scale', scale);
+            }
+
+            // Set initial scale and listen for zoom changes
+            updateIconScale();
+            map.on('zoom', updateIconScale);
+            // ---------------------------------------------------------------
             // Driver pins on the map
             // ---------------------------------------------------------------
             function addPinsToAllDrivers(drivers) {
@@ -710,10 +825,6 @@
                         return;
                     }
                     
-                    if(driver.id == 1) {
-                        console.log(driver);
-                    }
-
                     const fullName = fullNameOf(driver.profile);
                     const plate = driver.profile.plate_number;
                     const status = driver.status.state;
@@ -722,10 +833,10 @@
 
                     const jeepIcon = L.divIcon({
                         className: 'jeepney-marker-container',
-                        html: `<img src="${escapeHtml(iconFilePath)}" class="jeepney-sprite" style="width:50px; height:50px;" alt="jeepney">`,
-                        iconSize: [50, 50],
-                        iconAnchor: [25, 25],
-                        popupAnchor: [0, -25],
+                        html: `<img src="${escapeHtml(iconFilePath)}" class="jeepney-sprite" alt="jeepney">`,
+                        iconSize: [30, 30], 
+                        iconAnchor: [15, 15],
+                        popupAnchor: [0, -30],
                     });
 
                     const marker = L.marker([driverLat, driverLng], { icon: jeepIcon }).addTo(driversPinLayer);
@@ -783,7 +894,7 @@
                 if (container) {
                     const sprite = container.querySelector('.jeepney-sprite');
                     if (sprite) {
-                        sprite.style.transform = `rotate(${finalAngle}deg)`;
+                        sprite.style.transform = `rotate(${finalAngle}deg) scale(var(--jeep-scale, 1)) translateZ(0)`;
                     }
                 }
 
@@ -806,6 +917,84 @@
                     }
                 }
                 marker.animationFrameId = requestAnimationFrame(animate);
+
+                // ---------------------------------------------------------------
+                // Driver Search & Zoom Logic
+                // ---------------------------------------------------------------
+                const searchInput = document.getElementById('driverSearch');
+                const searchResultsEl = document.getElementById('searchResults');
+
+                searchInput.addEventListener('input', function() {
+                    const query = this.value.toLowerCase().trim();
+                    searchResultsEl.innerHTML = ''; // Clear previous results
+
+                    if (query.length === 0) {
+                        searchResultsEl.classList.add('d-none');
+                        return;
+                    }
+
+                    // Filter drivers by name or plate number
+                    const matches = allDriversData.filter(driver => {
+                        const fullName = fullNameOf(driver.profile).toLowerCase();
+                        const plate = (driver.profile.plate_number || '').toLowerCase();
+                        return fullName.includes(query) || plate.includes(query);
+                    });
+
+                    if (matches.length === 0) {
+                        searchResultsEl.innerHTML = '<div class="p-3 text-muted text-center" style="background: var(--card); font-size: 0.85rem;">No drivers found</div>';
+                        searchResultsEl.classList.remove('d-none');
+                        return;
+                    }
+
+                    // Render matches
+                    matches.forEach(driver => {
+                        const item = document.createElement('button');
+                        item.type = 'button';
+                        item.className = 'list-group-item border-0 search-result-item d-flex justify-content-between align-items-center p-2 px-3';
+                        
+                        item.innerHTML = `
+                            <div class="d-flex flex-column text-start">
+                                <span class="fw-bold" style="font-size: 0.9rem;">${escapeHtml(fullNameOf(driver.profile))}</span>
+                                <small class="text-muted font-monospace" style="font-size: 0.75rem;">${escapeHtml(driver.profile.plate_number)}</small>
+                            </div>
+                            <i class="bi bi-crosshair text-amber ms-2"></i>
+                        `;
+
+                        // Handle click event: Zoom map and open popup
+                        item.addEventListener('click', () => {
+                            const lat = driver.status.latitude;
+                            const lng = driver.status.longitude;
+                            
+                            if (lat && lng) {
+                                // Zoom in close to the driver
+                                map.flyTo([lat, lng], 17, { animate: true, duration: 1.5 });
+                                
+                                // Open the marker's popup after the zoom animation completes
+                                if (jeepneyMarkers[driver.id]) {
+                                    setTimeout(() => {
+                                        jeepneyMarkers[driver.id].openPopup();
+                                    }, 1500); 
+                                }
+                            }
+                            
+                            // Clean up UI after selection
+                            searchInput.value = '';
+                            searchResultsEl.classList.add('d-none');
+                            searchInput.blur();
+                        });
+
+                        searchResultsEl.appendChild(item);
+                    });
+
+                    searchResultsEl.classList.remove('d-none');
+                });
+
+                // Hide search results if the user clicks anywhere else on the screen
+                document.addEventListener('click', (e) => {
+                    if (!searchInput.contains(e.target) && !searchResultsEl.contains(e.target)) {
+                        searchResultsEl.classList.add('d-none');
+                    }
+                });
             }
 
             // ---------------------------------------------------------------
@@ -953,7 +1142,8 @@
                             isCurrentUser,
                             badgeEl: statusPill(isFilling),
                         });
-                        nagaToUlingQueueEl.appendChild(card);
+
+                        let queueCard = nagaToUlingQueueEl.appendChild(card);
                     });
                 }
 
@@ -994,13 +1184,42 @@
                     .catch(err => console.error('getAllQueues:', err));
             }
 
+            let hasAutoZoomed = false; // Add this near your other let declarations
+
             function getDriversCoord() {
                 return fetch('/drivers')
                     .then(response => {
                         if (!response.ok) throw new Error('Failed to load driver locations');
                         return response.json();
                     })
-                    .then(addPinsToAllDrivers)
+                    .then(drivers => {
+                        allDriversData = drivers; 
+                        addPinsToAllDrivers(drivers);
+
+                        // --- ADDED: URL Parameter Auto-Zoom Logic ---
+                        if (!hasAutoZoomed) {
+                            const urlParams = new URLSearchParams(window.location.search);
+                            const targetDriverId = urlParams.get('driver_id');
+                            
+                            if (targetDriverId) {
+                                const targetDriver = drivers.find(d => String(d.id) === targetDriverId);
+                                
+                                if (targetDriver && targetDriver.status.latitude && targetDriver.status.longitude) {
+                                    // Zoom in close to the target driver
+                                    map.flyTo([targetDriver.status.latitude, targetDriver.status.longitude], 17, { animate: true, duration: 1.5 });
+                                    
+                                    // Open the marker's popup after the zoom animation completes
+                                    if (jeepneyMarkers[targetDriver.id]) {
+                                        setTimeout(() => {
+                                            jeepneyMarkers[targetDriver.id].openPopup();
+                                        }, 1500); 
+                                    }
+                                }
+                            }
+                            hasAutoZoomed = true; // Prevent zooming on subsequent polling intervals
+                        }
+                        // ---------------------------------------------
+                    })
                     .catch(err => console.error('getDriversCoord:', err));
             }
 

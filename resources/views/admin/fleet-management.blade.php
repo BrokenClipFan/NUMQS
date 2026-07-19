@@ -250,6 +250,7 @@
             color: var(--text-muted);
             white-space: nowrap;
         }
+        
 
         /* ---------------------------------------------------------------
            Account & Table rows
@@ -476,6 +477,87 @@
             }
         }
 
+        @media (max-width: 768px) {
+            /* Make search toolbars full width on tablets and phones */
+            .fleet-toolbar {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 0.5rem;
+            }
+            .search-bar { flex: 1 1 100%; max-width: 100%; }
+            .results-count { text-align: left; }
+            
+            /* Metric cards spacing */
+            .metric-card { padding: 1rem !important; gap: 0.75rem !important; }
+        }
+
+        @media (max-width: 576px) {
+            /* Stack Metric Cards neatly */
+            .metric-card {
+                flex-direction: column;
+                align-items: flex-start;
+                text-align: left;
+            }
+
+            /* Stack Account List Items vertically */
+            .account-item {
+                flex-direction: column;
+                align-items: flex-start !important;
+                gap: 1rem !important;
+            }
+            
+            /* Ensure the inner content takes full width */
+            .account-item > div:first-child {
+                width: 100%;
+            }
+
+            /* Reset Bootstrap row margins inside flex containers to prevent horizontal scroll */
+            .account-item .row { 
+                margin: 0; 
+                width: 100%; 
+            }
+            
+            /* Stack the inner columns (Name, Plate, Action Buttons) */
+            .account-item .row > div { 
+                padding-left: 0; 
+                padding-right: 0; 
+                display: flex;
+                flex-direction: column;
+                align-items: flex-start;
+                margin-bottom: 0.75rem;
+            }
+            .account-item .row > div:last-child {
+                margin-bottom: 0;
+                gap: 0.5rem;
+            }
+
+            /* Make all action buttons full-width for easier thumb-tapping */
+            .account-item-actions { 
+                width: 100%; 
+                display: flex; 
+                flex-direction: column; 
+                gap: 0.5rem; 
+                margin-top: 0.5rem;
+            }
+            .account-item-actions form,
+            .account-item-actions a,
+            .account-item-actions button,
+            .account-item .row > div a { 
+                width: 100%; 
+                justify-content: center; 
+            }
+            
+            /* Table formatting: Prevent data from wrapping weirdly, force horizontal scroll */
+            #violationTable td, #violationTable th {
+                white-space: nowrap;
+            }
+            
+            /* Force table action buttons to not wrap awkwardly */
+            #violationTable .d-inline-flex {
+                flex-wrap: nowrap;
+            }
+        }
+
     </style>
 </head>
 <body>
@@ -654,20 +736,31 @@
                                     {{ $initialsOf($fullName ?: '?') }}
                                 @endif
                             </div>
-                            <div class="row w-100 g-1 align-items-center">
-                                <div class="col-12 col-md-5">
-                                    <h6 class="account-name">{{ $fullName }}</h6>
+                            <div class="row w-100 g-2 align-items-center">
+                                <!-- Driver Info (4 columns) -->
+                                <div class="col-12 col-md-4">
+                                    <h6 class="account-name mb-0">{{ $fullName }}</h6>
                                     <span class="account-meta">ID: {{ $user->profile->id }}</span>
                                 </div>
-                                <div class="col-7 col-md-4">
+                                
+                                <!-- Plate Number (3 columns) -->
+                                <div class="col-12 col-md-3">
                                     <span class="plate-pill">
                                         <i class="bi bi-truck-front-fill"></i>{{ $user->profile->plate_number }}
                                     </span>
                                 </div>
-                                <div class="col-5 col-md-3 text-md-end">
-                                    <a href="{{ route('view.driver', $user->id)}}"><button type="submit" class="btn btn-outline-success px-3 py-2 rounded-3 btn-sm shadow-sm d-inline-flex align-items-center justify-content-center gap-1">
+                                
+                                <!-- Action Buttons (5 columns, aligned to the right on desktop) -->
+                                <div class="col-12 col-md-5 d-flex justify-content-start justify-content-md-end gap-2 mt-2 mt-md-0">
+                                    <!-- Profile Button -->
+                                    <a href="{{ route('view.driver', $user->id) }}" class="btn btn-outline-success px-3 py-2 rounded-3 btn-sm shadow-sm d-inline-flex align-items-center justify-content-center gap-1">
                                         <i class="bi bi-eye"></i> Profile
-                                    </button></a>
+                                    </a>
+                                    
+                                    <!-- View in Map Feature (Now passing the user ID) -->
+                                    <a href="{{ route('driver.map', ['driver_id' => $user->id]) }}" class="btn btn-outline-warning px-3 py-2 rounded-3 btn-sm shadow-sm d-inline-flex align-items-center justify-content-center gap-1">
+                                        <i class="bi bi-geo-alt"></i> View in Map
+                                    </a>
                                 </div>
                             </div>
                         </div>
@@ -800,15 +893,6 @@
                     </tbody>
                 </table>
             </div>
-
-            @if(count($violations) > 0)
-            <div class="pager hidden" id="violationPager">
-                <button type="button" class="pager-btn pager-prev"><i class="bi bi-chevron-left"></i> Prev</button>
-                <span class="pager-label pager-page-label">Page 1 of 1</span>
-                <button type="button" class="pager-btn pager-next">Next <i class="bi bi-chevron-right"></i></button>
-            </div>
-            @endif
-        </div>
 
             @if(count($violations) > 0)
             <div class="pager hidden" id="violationPager">
