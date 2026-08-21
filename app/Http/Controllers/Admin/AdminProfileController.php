@@ -6,29 +6,98 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\DriverProfile;
 use App\Models\User;
+use Illuminate\Support\Facades\Storage;
 
 class AdminProfileController extends Controller
 {
-    public function index($id) {
-        $profile = DriverProfile::findOrFail($id);
-        $user = User::findOrFail($profile->user_id);
+    public function index(User $user) {
+        $user->load('profile');
         
-        return view('admin.driver-info', compact('profile', 'user'));
+        return view('admin.driver-info', compact('user'));
     }
 
-    public function update(Request $request, $id) {
-        $request->validate([
-            'profile_image' => 'image|mimes:jpeg,png,jpg|max:2048',
+    public function update(Request $request, int $id) {
+        $driverProfile = DriverProfile::where('user_id', $id)->with('user')->first();
+        
+        $validated = $request->validate([
+            'first_name' => 'required|string|max:255',
+            'middle_name' => 'required|string|max:255',
+            'last_name' => 'required|string|max:255',
+
+            'phone' => 'required|string|max:20',
+            'email' => 'nullable|string|max:50',
+            'address' => 'required|string|max:255',
+            'emergency_name' => 'required|string|max:255',
+            'emergency_phone' => 'required|string|max:20',
+
+            'birthdate' => 'required|date',
+
+            'license_number' => 'required|string|max:255',
+            'plate_number' => 'required|string|max:255',
+            'image_front' => 'nullable|image|mimes:jpeg,png,jpg|max:2048', 
+            'image_side' => 'nullable|image|mimes:jpeg,png,jpg|max:2048', 
+            'image_plate' => 'nullable|image|mimes:jpeg,png,jpg|max:2048', 
+
+            'profile_image' => 'nullable|image|mimes:jpeg,png,jpg|max:2048', 
         ]);
 
-        $profile = DriverProfile::findOrFail($id);
+        $validated = array_filter($validated, fn($value) => !is_null($value));
 
-        if($request->hasFile('profile_image')) {
-            $path = $request->file('profile_image')->store('profiles', 'public');
-            $profile->profile = "//" . $path;
+        if($validated['license_number'] !== $driverProfile->license_number) {
+            if(DriverProfile::where('license_number', $validated['license_number'])->exists()) {
+                return back()->with('warning', 'License Number is taken');
+            }
         }
 
-        $profile->save();
+        if($validated['plate_number'] !== $driverProfile->plate_number) {
+            if(DriverProfile::where('plate_number', $validated['plate_number'])->exists()) {
+                return back()->with('warning', 'Plate Number is taken');
+            }
+        }
+
+        if($request->hasFile('image_front')) {
+            if($driverProfile->image_front_path &&
+                Storage::disk('public')->exists($driverProfile->image_front_path)){
+                Storage::disk('public')->delete($driverProfile->image_front_path);
+            }
+
+            $validated['image_front_path'] = $request->file('image_front')->store('jeepneys/vehicleFront', 'public');
+        }
+
+        if($request->hasFile('image_side')) {
+            if($driverProfile->image_side_path &&
+                Storage::disk('public')->exists($driverProfile->image_side_path)){
+                Storage::disk('public')->delete($driverProfile->image_side_path);
+            }
+
+            $validated['image_side_path'] = $request->file('image_side')->store('jeepneys/vehicleSide', 'public');
+        }
+
+        if($request->hasFile('image_plate')) {
+            if($driverProfile->image_plate_path &&
+                Storage::disk('public')->exists($driverProfile->image_plate_path)){
+                Storage::disk('public')->delete($driverProfile->image_plate_path);
+            }
+
+            $validated['image_plate_path'] = $request->file('image_plate')->store('jeepneys/vehiclePlate', 'public');
+        }
+        
+        if($request->hasFile('profile_image')) {
+            if($driverProfile->profile &&
+                Storage::disk('public')->exists($driverProfile->profile)){
+                Storage::disk('public')->delete($driverProfile->profile);
+            }
+
+            $validated['image_profile_path'] = $request->file('profile_image')->store('profiles', 'public');
+        }
+
+        if(!empty($validated['email'])){
+            $driverProfile->user->update([
+                'email' => $validated['email']
+            ]);
+        }
+
+        $driverProfile->update($validated);
 
         return redirect()->back()->with('success', 'Successfully Updated Driver Info');
     }

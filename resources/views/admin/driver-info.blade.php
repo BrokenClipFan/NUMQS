@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -9,7 +10,9 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Mono:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Mono:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <style>
@@ -33,7 +36,9 @@
             --font-body: 'Inter', 'Segoe UI', sans-serif;
         }
 
-        * { box-sizing: border-box; }
+        * {
+            box-sizing: border-box;
+        }
 
         body {
             background-color: var(--stone);
@@ -42,24 +47,39 @@
             min-height: 100dvh;
         }
 
-        ::selection { background: var(--amber); color: var(--amber-ink); }
+        ::selection {
+            background: var(--amber);
+            color: var(--amber-ink);
+        }
 
-        a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visible, label:focus-within {
+        a:focus-visible,
+        button:focus-visible,
+        input:focus-visible,
+        textarea:focus-visible,
+        label:focus-within {
             outline: 2px solid var(--amber);
             outline-offset: 2px;
             border-radius: 4px;
         }
 
         @media (prefers-reduced-motion: reduce) {
-            *, *::before, *::after { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
+
+            *,
+            *::before,
+            *::after {
+                animation-duration: 0.001ms !important;
+                transition-duration: 0.001ms !important;
+            }
         }
 
         .visually-hidden-input {
             position: absolute;
-            width: 1px; height: 1px;
-            padding: 0; margin: -1px;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
             overflow: hidden;
-            clip: rect(0,0,0,0);
+            clip: rect(0, 0, 0, 0);
             white-space: nowrap;
             border: 0;
         }
@@ -73,7 +93,7 @@
             position: sticky;
             top: 0;
             z-index: 1030;
-            box-shadow: 0 2px 14px rgba(0,0,0,0.25);
+            box-shadow: 0 2px 14px rgba(0, 0, 0, 0.25);
         }
 
         .back-link {
@@ -85,10 +105,22 @@
             font-weight: 700;
             text-decoration: none;
         }
-        .back-link .bi-arrow-left-short { font-size: 1.5rem; color: var(--amber); }
-        .back-link:hover { color: var(--amber); }
 
-        .nav-actions { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+        .back-link .bi-arrow-left-short {
+            font-size: 1.5rem;
+            color: var(--amber);
+        }
+
+        .back-link:hover {
+            color: var(--amber);
+        }
+
+        .nav-actions {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
 
         .status-readout {
             font-family: var(--font-mono);
@@ -100,20 +132,40 @@
             align-items: center;
             gap: 0.4rem;
             letter-spacing: 0.03em;
-            border: 1px solid rgba(255,255,255,0.16);
+            border: 1px solid rgba(255, 255, 255, 0.16);
             color: #D8DBD2;
         }
-        .status-readout.online { color: var(--route-uling); border-color: rgba(47,143,107,0.4); background: rgba(47,143,107,0.1); }
+
+        .status-readout.online {
+            color: var(--route-uling);
+            border-color: rgba(47, 143, 107, 0.4);
+            background: rgba(47, 143, 107, 0.1);
+        }
 
         .live-dot {
-            width: 6px; height: 6px; border-radius: 50%;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
             background: currentColor;
             display: inline-block;
         }
-        .status-readout.online .live-dot { animation: pulse-dot 1.8s ease-in-out infinite; }
+
+        .status-readout.online .live-dot {
+            animation: pulse-dot 1.8s ease-in-out infinite;
+        }
+
         @keyframes pulse-dot {
-            0%, 100% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.45; transform: scale(0.8); }
+
+            0%,
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+
+            50% {
+                opacity: 0.45;
+                transform: scale(0.8);
+            }
         }
 
         .btn-view-map {
@@ -132,11 +184,20 @@
             box-shadow: 0 2px 0 #c78423;
             transition: filter 0.12s ease, transform 0.12s ease;
         }
-        .btn-view-map:hover { filter: brightness(1.04); color: var(--amber-ink); }
-        .btn-view-map:active { transform: scale(0.97); }
+
+        .btn-view-map:hover {
+            filter: brightness(1.04);
+            color: var(--amber-ink);
+        }
+
+        .btn-view-map:active {
+            transform: scale(0.97);
+        }
 
         @media (max-width: 400px) {
-            .hide-on-mobile-xs { display: none !important; }
+            .hide-on-mobile-xs {
+                display: none !important;
+            }
         }
 
         /* ---------------------------------------------------------------
@@ -146,14 +207,14 @@
             background: var(--card);
             border-radius: 14px;
             border: 1px solid var(--line);
-            box-shadow: 0 4px 16px rgba(23,27,33,0.06);
+            box-shadow: 0 4px 16px rgba(23, 27, 33, 0.06);
             overflow: hidden;
             margin-bottom: 1.5rem;
         }
 
         .admin-card-header {
-            background-color: rgba(209,73,91,0.08);
-            border-bottom: 1px solid rgba(209,73,91,0.25);
+            background-color: rgba(209, 73, 91, 0.08);
+            border-bottom: 1px solid rgba(209, 73, 91, 0.25);
             padding: 1rem 1.1rem;
             font-weight: 700;
             display: flex;
@@ -178,7 +239,7 @@
            Profile hero + editable avatar
         ----------------------------------------------------------------*/
         .profile-hero {
-            background: linear-gradient(180deg, rgba(242,166,60,0.08), rgba(242,166,60,0.01));
+            background: linear-gradient(180deg, rgba(242, 166, 60, 0.08), rgba(242, 166, 60, 0.01));
             border-bottom: 1px solid var(--line);
             text-align: center;
             padding: 2.25rem 1rem 1.5rem 1rem;
@@ -195,7 +256,7 @@
             height: 96px;
             border-radius: 50%;
             border: 4px solid var(--card);
-            box-shadow: 0 4px 14px rgba(23,27,33,0.15);
+            box-shadow: 0 4px 14px rgba(23, 27, 33, 0.15);
             background-color: var(--ink);
             color: var(--amber);
             display: flex;
@@ -206,7 +267,12 @@
             font-weight: 700;
             overflow: hidden;
         }
-        .driver-avatar-lg img { width: 100%; height: 100%; object-fit: cover; }
+
+        .driver-avatar-lg img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
 
         .photo-edit-btn {
             position: absolute;
@@ -223,11 +289,17 @@
             justify-content: center;
             font-size: 0.85rem;
             cursor: pointer;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
             transition: transform 0.12s ease;
         }
-        .photo-edit-btn:hover { transform: scale(1.08); }
-        .photo-edit-btn:active { transform: scale(0.95); }
+
+        .photo-edit-btn:hover {
+            transform: scale(1.08);
+        }
+
+        .photo-edit-btn:active {
+            transform: scale(0.95);
+        }
 
         .profile-name {
             font-family: var(--font-display);
@@ -245,8 +317,8 @@
             font-family: var(--font-mono);
             font-size: 0.68rem;
             color: var(--amber-ink);
-            background: rgba(242,166,60,0.18);
-            border: 1px solid rgba(242,166,60,0.4);
+            background: rgba(242, 166, 60, 0.18);
+            border: 1px solid rgba(242, 166, 60, 0.4);
             border-radius: 20px;
             padding: 0.2rem 0.6rem;
             display: inline-flex;
@@ -281,17 +353,21 @@
             margin-bottom: 1rem;
         }
 
-        .form-control, .form-select {
+        .form-control,
+        .form-select {
             background-color: var(--stone);
             border: 1.5px solid var(--line);
             font-size: 0.88rem;
             border-radius: 8px;
         }
-        .form-control:focus, .form-select:focus {
+
+        .form-control:focus,
+        .form-select:focus {
             border-color: var(--amber);
-            box-shadow: 0 0 0 3px rgba(242,166,60,0.18);
+            box-shadow: 0 0 0 3px rgba(242, 166, 60, 0.18);
             background-color: var(--card);
         }
+
         .form-control:disabled {
             background-color: var(--stone);
             font-family: var(--font-mono);
@@ -314,8 +390,16 @@
             align-items: center;
             justify-content: center;
         }
-        .photo-slot.has-image { border-style: solid; }
-        .photo-slot.pending-upload { border-color: var(--amber); border-style: solid; box-shadow: 0 0 0 3px rgba(242,166,60,0.18); }
+
+        .photo-slot.has-image {
+            border-style: solid;
+        }
+
+        .photo-slot.pending-upload {
+            border-color: var(--amber);
+            border-style: solid;
+            box-shadow: 0 0 0 3px rgba(242, 166, 60, 0.18);
+        }
 
         .photo-slot img {
             width: 100%;
@@ -333,13 +417,17 @@
             align-items: center;
             gap: 0.3rem;
         }
-        .photo-slot-placeholder .bi { font-size: 1.3rem; opacity: 0.6; }
+
+        .photo-slot-placeholder .bi {
+            font-size: 1.3rem;
+            opacity: 0.6;
+        }
 
         .photo-slot-label {
             position: absolute;
             top: 6px;
             left: 6px;
-            background: rgba(23,27,33,0.75);
+            background: rgba(23, 27, 33, 0.75);
             color: #F4F5F1;
             font-family: var(--font-mono);
             font-size: 0.62rem;
@@ -367,9 +455,20 @@
             box-shadow: 0 3px 0 #c78423;
             transition: filter 0.12s ease, transform 0.12s ease, opacity 0.12s ease;
         }
-        .btn-main:hover { filter: brightness(1.04); color: var(--amber-ink); }
-        .btn-main:active:not(:disabled) { transform: scale(0.99); }
-        .btn-main.is-submitting { opacity: 0.65; pointer-events: none; }
+
+        .btn-main:hover {
+            filter: brightness(1.04);
+            color: var(--amber-ink);
+        }
+
+        .btn-main:active:not(:disabled) {
+            transform: scale(0.99);
+        }
+
+        .btn-main.is-submitting {
+            opacity: 0.65;
+            pointer-events: none;
+        }
 
         .btn-delete-driver {
             color: var(--alert);
@@ -378,12 +477,20 @@
             font-weight: 700;
             transition: background-color 0.15s ease, color 0.15s ease;
         }
-        .btn-delete-driver:hover { background-color: var(--alert); color: white; }
+
+        .btn-delete-driver:hover {
+            background-color: var(--alert);
+            color: white;
+        }
 
         /* ---------------------------------------------------------------
            Violations table
         ----------------------------------------------------------------*/
-        .table-custom { margin-bottom: 0; font-family: var(--font-body); }
+        .table-custom {
+            margin-bottom: 0;
+            font-family: var(--font-body);
+        }
+
         .table-custom thead th {
             background-color: var(--stone);
             color: var(--text-muted);
@@ -394,15 +501,29 @@
             letter-spacing: 0.05em;
             text-transform: uppercase;
         }
+
         .table-custom tbody td {
             border-bottom: 1px solid var(--line);
             vertical-align: middle;
             font-size: 0.88rem;
         }
-        .table-custom tbody tr:last-child td { border-bottom: none; }
 
-        .violation-date { font-family: var(--font-mono); font-weight: 700; display: block; font-size: 0.85rem; }
-        .violation-time { font-family: var(--font-mono); font-size: 0.72rem; color: var(--text-muted); }
+        .table-custom tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .violation-date {
+            font-family: var(--font-mono);
+            font-weight: 700;
+            display: block;
+            font-size: 0.85rem;
+        }
+
+        .violation-time {
+            font-family: var(--font-mono);
+            font-size: 0.72rem;
+            color: var(--text-muted);
+        }
 
         .badge-route {
             background: var(--stone);
@@ -414,9 +535,9 @@
         }
 
         .badge-violation {
-            background-color: rgba(209,73,91,0.1);
+            background-color: rgba(209, 73, 91, 0.1);
             color: var(--alert);
-            border: 1px solid rgba(209,73,91,0.25);
+            border: 1px solid rgba(209, 73, 91, 0.25);
             font-family: var(--font-mono);
             font-size: 0.72rem;
             font-weight: 700;
@@ -433,26 +554,34 @@
            Mobile tweaks
         ----------------------------------------------------------------*/
         @media (max-width: 576px) {
-            .profile-hero { padding: 1.75rem 1rem 1.25rem; }
-            .nav-actions { width: 100%; justify-content: flex-end; }
+            .profile-hero {
+                padding: 1.75rem 1rem 1.25rem;
+            }
+
+            .nav-actions {
+                width: 100%;
+                justify-content: flex-end;
+            }
         }
     </style>
 </head>
+
 <body>
 
     @php
         $isOnline = $user->is_online ?? false;
         $violationCount = isset($violations) ? count($violations) : 0;
-        $avatarPath = !empty($profile->profile) ? asset('storage/' . ltrim($profile->profile, '/')) : null;
-        $initials = collect([$profile->first_name ?? '', $profile->last_name ?? ''])
+        $avatarPath = !empty($user->avatar) ? asset('storage/' . ltrim($user->profile->image_profile_path, '/')) : null;
+        $initials = collect([$user->profile->first_name ?? '', $user->profile->last_name ?? ''])
             ->filter()
-            ->map(fn ($n) => mb_strtoupper(mb_substr($n, 0, 1)))
+            ->map(fn($n) => mb_strtoupper(mb_substr($n, 0, 1)))
             ->implode('');
     @endphp
 
     <!-- Admin Navbar -->
     <nav class="navbar navbar-expand-lg nav-sticky-top px-3 py-2">
-        <div class="container-fluid d-flex justify-content-between align-items-center p-0 flex-wrap gap-2" style="max-width: 900px; margin: 0 auto;">
+        <div class="container-fluid d-flex justify-content-between align-items-center p-0 flex-wrap gap-2"
+            style="max-width: 900px; margin: 0 auto;">
             <a class="back-link" href="{{ route('fleet.management') }}">
                 <i class="bi bi-arrow-left-short"></i>
                 <span class="fs-6">Edit Driver</span>
@@ -480,7 +609,7 @@
             <div class="profile-hero">
                 <div class="avatar-edit-wrap">
                     <div class="driver-avatar-lg" id="avatarPreviewWrap">
-                        @if($avatarPath)
+                        @if ($avatarPath)
                             <img src="{{ $avatarPath }}" alt="" id="avatarPreviewImg">
                         @else
                             <span id="avatarInitials">{{ $initials ?: '?' }}</span>
@@ -491,19 +620,25 @@
                         <span class="visually-hidden">Change profile photo</span>
                     </label>
                 </div>
-                <h4 class="profile-name">{{ $profile->first_name }} {{ $profile->last_name }}</h4>
+                <h4 class="profile-name">{{ $user->profile->first_name }} {{ $user->profile->last_name }}</h4>
                 <p class="profile-id mb-0">Driver ID: {{ $user->id }}</p>
                 <span class="pending-change-note d-none" id="avatarPendingNote">
                     <i class="bi bi-arrow-repeat"></i> New photo staged — save to apply
                 </span>
+                @error('profile_image')
+                    <div class="text-danger small mt-2 fw-bold"><i
+                            class="bi bi-exclamation-circle-fill me-1"></i>{{ $message }}</div>
+                @enderror
             </div>
 
             <!-- Edit Form -->
-            <form action="{{ route('admin.drivers.update', $user->id) }}" method="POST" enctype="multipart/form-data" id="driverEditForm">
+            <form action="{{ route('admin.drivers.update', $user->id) }}" method="POST" enctype="multipart/form-data"
+                id="driverEditForm">
                 @csrf
                 @method('PUT')
 
-                <input type="file" name="profile_image" id="avatarInput" accept="image/png, image/jpeg, image/jpg" class="visually-hidden-input">
+                <input type="file" name="profile_image" id="avatarInput" accept="image/png, image/jpeg, image/jpg"
+                    class="visually-hidden-input">
 
                 <div class="p-3 p-md-4">
 
@@ -514,53 +649,114 @@
 
                             <div class="mb-3">
                                 <label class="field-label">First Name</label>
-                                <input type="text" name="first_name" class="form-control" value="{{ $profile->first_name }}" required>
+                                <input type="text" name="first_name"
+                                    class="form-control @error('first_name') is-invalid @enderror"
+                                    value="{{ old('first_name', $user->profile->first_name) }}" required>
+                                @error('first_name')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
                             </div>
                             <div class="mb-3">
                                 <label class="field-label">Middle Name</label>
-                                <input type="text" name="middle_name" class="form-control" value="{{ $profile->middle_name }}">
+                                <input type="text" name="middle_name"
+                                    class="form-control @error('middle_name') is-invalid @enderror"
+                                    value="{{ old('middle_name', $user->profile->middle_name) }}">
+                                @error('middle_name')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
                             </div>
                             <div class="mb-3">
                                 <label class="field-label">Last Name</label>
-                                <input type="text" name="last_name" class="form-control" value="{{ $profile->last_name }}" required>
+                                <input type="text" name="last_name"
+                                    class="form-control @error('last_name') is-invalid @enderror"
+                                    value="{{ old('last_name', $user->profile->last_name) }}" required>
+                                @error('last_name')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                            <div class="mb-3">
+                                <label class="field-label">Birth Date</label>
+                                <input type="date" name="birthdate"
+                                    class="form-control @error('birthdate') is-invalid @enderror"
+                                    value="{{ old('birthdate', $user->profile->birthdate->format('Y-m-d')) }}">
+
+                                @error('birthdate')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
                             </div>
                             <div class="mb-3">
                                 <label class="field-label">Phone Number</label>
-                                <input type="tel" name="phone_number" class="form-control" value="{{ $profile->phone }}" required>
+                                <input type="tel" name="phone"
+                                    class="form-control @error('phone') is-invalid @enderror"
+                                    value="{{ old('phone', $user->profile->phone) }}" required>
+                                @error('phone')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
                             </div>
                             <div class="mb-3">
                                 <label class="field-label">Email Address</label>
-                                <input type="email" name="email" class="form-control" value="{{ $user->email }}">
+                                <input type="email" name="email"
+                                    class="form-control @error('email') is-invalid @enderror"
+                                    value="{{ old('email', $user->email) }}">
+                                @error('email')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
                             </div>
                             <div class="mb-3">
                                 <label class="field-label">Home Address</label>
-                                <textarea name="address" class="form-control" rows="2">{{ $profile->address }}</textarea>
+                                <textarea name="address" class="form-control @error('address') is-invalid @enderror" rows="2">{{ old('address', $user->profile->address) }}</textarea>
+                                @error('address')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
                             </div>
                             <div class="mb-1">
                                 <label class="field-label">Registered At</label>
-                                <input type="text" class="form-control" value="{{ optional($profile->created_at)->format('M d, Y \a\t h:i A') ?? '—' }}" disabled>
+                                <input type="text" class="form-control"
+                                    value="{{ optional($user->profile->created_at)->format('M d, Y \a\t h:i A') ?? '—' }}"
+                                    disabled>
                             </div>
                         </div>
 
                         <!-- License & Emergency -->
                         <div class="col-12 col-md-6">
-                            <h6 class="section-heading"><i class="bi bi-shield-check me-1"></i>License & Emergency</h6>
+                            <h6 class="section-heading"><i class="bi bi-shield-check me-1"></i>License & Emergency
+                            </h6>
 
                             <div class="mb-3">
                                 <label class="field-label">Driver's License No.</label>
-                                <input type="text" name="license_number" class="form-control font-monospace" value="{{ $profile->license_number }}" required>
+                                <input type="text" name="license_number"
+                                    class="form-control font-monospace @error('license_number') is-invalid @enderror"
+                                    value="{{ old('license_number', $user->profile->license_number) }}" required>
+                                @error('license_number')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
                             </div>
                             <div class="mb-3">
                                 <label class="field-label">Plate Number</label>
-                                <input type="text" name="plate_number" class="form-control font-monospace text-uppercase fw-bold" value="{{ $profile->plate_number }}" required>
+                                <input type="text" name="plate_number"
+                                    class="form-control font-monospace text-uppercase fw-bold @error('plate_number') is-invalid @enderror"
+                                    value="{{ old('plate_number', $user->profile->plate_number) }}" required>
+                                @error('plate_number')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
                             </div>
                             <div class="mb-3 mt-4">
                                 <label class="field-label">Emergency Contact Name</label>
-                                <input type="text" name="emergency_name" class="form-control" value="{{ $profile->emergency_name }}">
+                                <input type="text" name="emergency_name"
+                                    class="form-control @error('emergency_name') is-invalid @enderror"
+                                    value="{{ old('emergency_name', $user->profile->emergency_name) }}">
+                                @error('emergency_name')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
                             </div>
                             <div class="mb-3">
                                 <label class="field-label">Emergency Contact No.</label>
-                                <input type="tel" name="emergency_phone" class="form-control" value="{{ $profile->emergency_phone }}">
+                                <input type="tel" name="emergency_phone"
+                                    class="form-control @error('emergency_phone') is-invalid @enderror"
+                                    value="{{ old('emergency_phone', $user->profile->emergency_phone) }}">
+                                @error('emergency_phone')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
                             </div>
                         </div>
                     </div>
@@ -570,33 +766,58 @@
                     <div class="row g-2 mb-4">
                         @php
                             $photoSlots = [
-                                ['key' => 'front', 'label' => 'Front', 'field' => 'front_image', 'icon' => 'bi-camera', 'src' => $profile->front_image ?? null],
-                                ['key' => 'side', 'label' => 'Side', 'field' => 'side_image', 'icon' => 'bi-camera', 'src' => $profile->side_image ?? null],
-                                ['key' => 'plate', 'label' => 'Plate', 'field' => 'plate_image', 'icon' => 'bi-123', 'src' => $profile->plate_image ?? null],
+                                [
+                                    'key' => 'front',
+                                    'label' => 'Front',
+                                    'field' => 'image_front',
+                                    'icon' => 'bi-camera',
+                                    'src' => $user->profile->image_front_path ?? null,
+                                ],
+                                [
+                                    'key' => 'side',
+                                    'label' => 'Side',
+                                    'field' => 'image_side',
+                                    'icon' => 'bi-camera',
+                                    'src' => $user->profile->image_side_path ?? null,
+                                ],
+                                [
+                                    'key' => 'plate',
+                                    'label' => 'Plate',
+                                    'field' => 'image_plate',
+                                    'icon' => 'bi-123',
+                                    'src' => $user->profile->image_plate_path ?? null,
+                                ],
                             ];
                         @endphp
 
-                        @foreach($photoSlots as $slot)
-                        <div class="col-4">
-                            <div class="photo-slot {{ $slot['src'] ? 'has-image' : '' }}" id="photoSlot-{{ $slot['key'] }}">
-                                <span class="photo-slot-label">{{ $slot['label'] }}</span>
-                                @if($slot['src'])
-                                    <img src="{{ asset('storage/' . ltrim($slot['src'], '/')) }}" alt="{{ $slot['label'] }} view" id="photoPreview-{{ $slot['key'] }}">
-                                @else
-                                    <div class="photo-slot-placeholder" id="photoPreview-{{ $slot['key'] }}">
-                                        <i class="bi {{ $slot['icon'] }}"></i>
-                                        No photo
-                                    </div>
-                                @endif
-                                <label for="photoInput-{{ $slot['key'] }}" class="photo-edit-btn" title="Change {{ strtolower($slot['label']) }} photo">
-                                    <i class="bi bi-pencil-fill"></i>
-                                    <span class="visually-hidden">Change {{ $slot['label'] }} photo</span>
-                                </label>
-                                <input type="file" name="{{ $slot['field'] }}" id="photoInput-{{ $slot['key'] }}"
-                                       accept="image/png, image/jpeg, image/jpg" class="visually-hidden-input"
-                                       data-slot="{{ $slot['key'] }}">
+                        @foreach ($photoSlots as $slot)
+                            <div class="col-4">
+                                <div class="photo-slot {{ $slot['src'] ? 'has-image' : '' }} @error($slot['field']) border-danger @enderror"
+                                    id="photoSlot-{{ $slot['key'] }}">
+                                    <span class="photo-slot-label">{{ $slot['label'] }}</span>
+                                    @if ($slot['src'])
+                                        <img src="{{ asset('storage/' . ltrim($slot['src'], '/')) }}"
+                                            alt="{{ $slot['label'] }} view" id="photoPreview-{{ $slot['key'] }}">
+                                    @else
+                                        <div class="photo-slot-placeholder" id="photoPreview-{{ $slot['key'] }}">
+                                            <i class="bi {{ $slot['icon'] }}"></i>
+                                            No photo
+                                        </div>
+                                    @endif
+                                    <label for="photoInput-{{ $slot['key'] }}" class="photo-edit-btn"
+                                        title="Change {{ strtolower($slot['label']) }} photo">
+                                        <i class="bi bi-pencil-fill"></i>
+                                        <span class="visually-hidden">Change {{ $slot['label'] }} photo</span>
+                                    </label>
+                                    <input type="file" name="{{ $slot['field'] }}"
+                                        id="photoInput-{{ $slot['key'] }}" accept="image/png, image/jpeg, image/jpg"
+                                        class="visually-hidden-input" data-slot="{{ $slot['key'] }}">
+                                </div>
+                                @error($slot['field'])
+                                    <div class="text-danger small mt-1 text-center" style="font-size: 0.75rem;">
+                                        {{ $message }}</div>
+                                @enderror
                             </div>
-                        </div>
                         @endforeach
                     </div>
 
@@ -604,7 +825,9 @@
 
                     <!-- Main Form Actions -->
                     <div class="d-flex flex-column gap-3">
-                        <button type="submit" class="btn btn-main py-3 fw-bold rounded-3 shadow-sm d-flex align-items-center justify-content-center text-uppercase" id="saveChangesBtn">
+                        <button type="submit"
+                            class="btn btn-main py-3 fw-bold rounded-3 shadow-sm d-flex align-items-center justify-content-center text-uppercase"
+                            id="saveChangesBtn">
                             <i class="bi bi-floppy-fill fs-5 me-2"></i> Save Changes
                         </button>
                     </div>
@@ -614,10 +837,12 @@
             <!-- Delete Driver Separated Form -->
             <div class="px-3 px-md-4 pb-4">
                 {{-- <form action="{{ route('admin.drivers.destroy', $user->id) }}" method="POST" onsubmit="return confirm('CRITICAL WARNING: Are you sure you want to permanently delete this driver and all their records? This cannot be undone.')"> --}}
-                <form action="#" method="POST" onsubmit="return confirm('CRITICAL WARNING: Are you sure you want to permanently delete this driver and all their records? This cannot be undone.')">
+                <form action="#" method="POST"
+                    onsubmit="return confirm('CRITICAL WARNING: Are you sure you want to permanently delete this driver and all their records? This cannot be undone.')">
                     @csrf
                     @method('DELETE')
-                    <button type="submit" class="btn btn-delete-driver w-100 py-3 fw-bold rounded-3 d-flex align-items-center justify-content-center">
+                    <button type="submit"
+                        class="btn btn-delete-driver w-100 py-3 fw-bold rounded-3 d-flex align-items-center justify-content-center">
                         <i class="bi bi-person-x-fill fs-5 me-2"></i> Delete Driver Account
                     </button>
                 </form>
@@ -627,63 +852,72 @@
         <!-- Violations & Warnings Card -->
         <div class="admin-card">
             <div class="admin-card-header">
-                <span class="text-danger-emphasis" style="color: var(--alert) !important;"><i class="bi bi-exclamation-triangle-fill me-2"></i>Violation Logs</span>
+                <span class="text-danger-emphasis" style="color: var(--alert) !important;"><i
+                        class="bi bi-exclamation-triangle-fill me-2"></i>Violation Logs</span>
                 <span class="section-tag">{{ $violationCount }} Incident{{ $violationCount === 1 ? '' : 's' }}</span>
             </div>
 
-            @if($violationCount > 0)
-            <div class="table-responsive">
-                <table class="table table-custom">
-                    <thead>
-                        <tr>
-                            <th scope="col" class="ps-4">Date &amp; Time</th>
-                            <th scope="col">Route Path</th>
-                            <th scope="col">Violation Type</th>
-                            <th scope="col" class="text-end pe-4">Action</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach($violations as $violation)
-                        <tr>
-                            <td class="ps-4">
-                                <span class="violation-date">{{ optional($violation->created_at)->format('M d, Y') }}</span>
-                                <span class="violation-time">{{ optional($violation->created_at)->format('h:i A') }}</span>
-                            </td>
-                            <td>
-                                <span class="badge badge-route">
-                                    <i class="bi bi-{{ ($violation->route_from ?? '') === 'Naga' ? 'arrow-right-circle' : 'arrow-left-circle' }} me-1"></i>
-                                    {{ $violation->route_from ?? '—' }} to {{ $violation->route_to ?? '—' }}
-                                </span>
-                            </td>
-                            <td>
-                                <span class="badge badge-violation">
-                                    <i class="bi bi-flag-fill me-1"></i> {{ $violation->type ?? 'Unspecified' }}
-                                </span>
-                            </td>
-                            <td class="text-end pe-4">
-                                {{-- <form action="{{ route('admin.violations.destroy', $violation->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Remove this violation record?')"> --}}
-                                <form action="#" method="POST" class="d-inline" onsubmit="return confirm('Remove this violation record?')">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="btn btn-sm btn-outline-danger py-1 px-2" title="Delete Violation">
-                                        <i class="bi bi-trash3"></i>
-                                    </button>
-                                </form>
-                            </td>
-                        </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            </div>
+            @if ($violationCount > 0)
+                <div class="table-responsive">
+                    <table class="table table-custom">
+                        <thead>
+                            <tr>
+                                <th scope="col" class="ps-4">Date &amp; Time</th>
+                                <th scope="col">Route Path</th>
+                                <th scope="col">Violation Type</th>
+                                <th scope="col" class="text-end pe-4">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach ($violations as $violation)
+                                <tr>
+                                    <td class="ps-4">
+                                        <span
+                                            class="violation-date">{{ optional($violation->created_at)->format('M d, Y') }}</span>
+                                        <span
+                                            class="violation-time">{{ optional($violation->created_at)->format('h:i A') }}</span>
+                                    </td>
+                                    <td>
+                                        <span class="badge badge-route">
+                                            <i
+                                                class="bi bi-{{ ($violation->route_from ?? '') === 'Naga' ? 'arrow-right-circle' : 'arrow-left-circle' }} me-1"></i>
+                                            {{ $violation->route_from ?? '—' }} to {{ $violation->route_to ?? '—' }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="badge badge-violation">
+                                            <i class="bi bi-flag-fill me-1"></i>
+                                            {{ $violation->type ?? 'Unspecified' }}
+                                        </span>
+                                    </td>
+                                    <td class="text-end pe-4">
+                                        {{-- <form action="{{ route('admin.violations.destroy', $violation->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Remove this violation record?')"> --}}
+                                        <form action="#" method="POST" class="d-inline"
+                                            onsubmit="return confirm('Remove this violation record?')">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="btn btn-sm btn-outline-danger py-1 px-2"
+                                                title="Delete Violation">
+                                                <i class="bi bi-trash3"></i>
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
             @else
-            <div class="p-4 text-center" style="color: var(--text-muted); font-size: 0.88rem;">
-                <i class="bi bi-check-circle display-6 d-block mb-2" style="opacity: 0.35;"></i>
-                No violations on record for this driver.
-            </div>
+                <div class="p-4 text-center" style="color: var(--text-muted); font-size: 0.88rem;">
+                    <i class="bi bi-check-circle display-6 d-block mb-2" style="opacity: 0.35;"></i>
+                    No violations on record for this driver.
+                </div>
             @endif
 
-            <div class="p-3 border-top text-end" style="border-color: var(--line) !important; background: var(--stone);">
-                <button class="btn btn-sm btn-outline-secondary fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#addWarningModal">
+            <div class="p-3 border-top text-end"
+                style="border-color: var(--line) !important; background: var(--stone);">
+                <button class="btn btn-sm btn-outline-secondary fw-bold shadow-sm" data-bs-toggle="modal"
+                    data-bs-target="#addWarningModal">
                     <i class="bi bi-journal-plus me-1"></i> Add Manual Warning
                 </button>
             </div>
@@ -692,15 +926,18 @@
     </div>
 
     <!-- Add Manual Warning Modal -->
-    <div class="modal fade" id="addWarningModal" tabindex="-1" aria-labelledby="addWarningModalLabel" aria-hidden="true">
+    <div class="modal fade" id="addWarningModal" tabindex="-1" aria-labelledby="addWarningModalLabel"
+        aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content" style="border-radius: 14px; border: 1px solid var(--line);">
                 {{-- <form action="{{ route('admin.violations.store', $user->id) }}" method="POST"> --}}
                 <form action="#" method="POST">
                     @csrf
                     <div class="modal-header" style="border-color: var(--line);">
-                        <h5 class="modal-title" id="addWarningModalLabel" style="font-family: var(--font-display);">Add Manual Warning</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        <h5 class="modal-title" id="addWarningModalLabel" style="font-family: var(--font-display);">
+                            Add Manual Warning</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"
+                            aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
                         <input type="hidden" name="user_id" value="{{ $user->id }}">
@@ -729,7 +966,8 @@
                         </div>
                     </div>
                     <div class="modal-footer" style="border-color: var(--line);">
-                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="button" class="btn btn-outline-secondary"
+                            data-bs-dismiss="modal">Cancel</button>
                         <button type="submit" class="btn btn-main fw-bold">Log Warning</button>
                     </div>
                 </form>
@@ -737,9 +975,11 @@
         </div>
     </div>
 
+    @include('partials.notifications')
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        (function () {
+        (function() {
             'use strict';
 
             // ---------------------------------------------------------------
@@ -800,4 +1040,5 @@
         })();
     </script>
 </body>
+
 </html>

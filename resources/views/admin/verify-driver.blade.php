@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -9,7 +10,9 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Mono:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Mono:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <style>
@@ -33,7 +36,9 @@
             --font-body: 'Inter', 'Segoe UI', sans-serif;
         }
 
-        * { box-sizing: border-box; }
+        * {
+            box-sizing: border-box;
+        }
 
         body {
             background-color: var(--stone);
@@ -42,16 +47,28 @@
             min-height: 100dvh;
         }
 
-        ::selection { background: var(--amber); color: var(--amber-ink); }
+        ::selection {
+            background: var(--amber);
+            color: var(--amber-ink);
+        }
 
-        a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visible {
+        a:focus-visible,
+        button:focus-visible,
+        input:focus-visible,
+        textarea:focus-visible {
             outline: 2px solid var(--amber);
             outline-offset: 2px;
             border-radius: 4px;
         }
 
         @media (prefers-reduced-motion: reduce) {
-            *, *::before, *::after { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
+
+            *,
+            *::before,
+            *::after {
+                animation-duration: 0.001ms !important;
+                transition-duration: 0.001ms !important;
+            }
         }
 
         /* ---------------------------------------------------------------
@@ -63,7 +80,7 @@
             position: sticky;
             top: 0;
             z-index: 1030;
-            box-shadow: 0 2px 14px rgba(0,0,0,0.25);
+            box-shadow: 0 2px 14px rgba(0, 0, 0, 0.25);
         }
 
         .brand-mark {
@@ -74,7 +91,11 @@
             font-family: var(--font-display);
             font-weight: 700;
         }
-        .brand-mark .bi { color: var(--amber); font-size: 1.1rem; }
+
+        .brand-mark .bi {
+            color: var(--amber);
+            font-size: 1.1rem;
+        }
 
         .btn-exit {
             font-family: var(--font-body);
@@ -82,9 +103,13 @@
             font-size: 0.8rem;
             background: transparent;
             color: #D8DBD2;
-            border: 1px solid rgba(255,255,255,0.16);
+            border: 1px solid rgba(255, 255, 255, 0.16);
         }
-        .btn-exit:hover { border-color: var(--amber); color: var(--amber); }
+
+        .btn-exit:hover {
+            border-color: var(--amber);
+            color: var(--amber);
+        }
 
         /* ---------------------------------------------------------------
            Target user header strip
@@ -108,12 +133,17 @@
             font-family: var(--font-display);
             font-weight: 700;
             font-size: 0.95rem;
-            background: rgba(242,166,60,0.15);
+            background: rgba(242, 166, 60, 0.15);
             color: #A5691B;
-            border: 1px solid rgba(242,166,60,0.35);
+            border: 1px solid rgba(242, 166, 60, 0.35);
             overflow: hidden;
         }
-        .avatar-circle img { width: 100%; height: 100%; object-fit: cover; }
+
+        .avatar-circle img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
 
         .status-pill {
             font-family: var(--font-mono);
@@ -122,9 +152,9 @@
             letter-spacing: 0.03em;
             padding: 0.3rem 0.6rem;
             border-radius: 20px;
-            background: rgba(242,166,60,0.15);
+            background: rgba(242, 166, 60, 0.15);
             color: #A5691B;
-            border: 1px solid rgba(242,166,60,0.4);
+            border: 1px solid rgba(242, 166, 60, 0.4);
             white-space: nowrap;
         }
 
@@ -136,7 +166,7 @@
             border-radius: 0 0 14px 14px;
             border: 1px solid var(--line);
             border-top: none;
-            box-shadow: 0 4px 16px rgba(23,27,33,0.06);
+            box-shadow: 0 4px 16px rgba(23, 27, 33, 0.06);
             overflow: hidden;
         }
 
@@ -145,8 +175,16 @@
             border-bottom: 1px solid var(--line);
             padding: 1rem;
         }
-        .form-header h6 { font-family: var(--font-body); font-weight: 700; margin: 0; }
-        .form-header .bi { color: var(--amber-ink); }
+
+        .form-header h6 {
+            font-family: var(--font-body);
+            font-weight: 700;
+            margin: 0;
+        }
+
+        .form-header .bi {
+            color: var(--amber-ink);
+        }
 
         .section-heading {
             font-family: var(--font-mono);
@@ -170,17 +208,24 @@
             display: block;
             margin-bottom: 0.3rem;
         }
-        .field-label .req { color: var(--alert); margin-left: 0.15rem; }
 
-        .form-control, .form-select {
+        .field-label .req {
+            color: var(--alert);
+            margin-left: 0.15rem;
+        }
+
+        .form-control,
+        .form-select {
             background-color: var(--stone);
             border: 1.5px solid var(--line);
             font-size: 0.88rem;
             border-radius: 8px;
         }
-        .form-control:focus, .form-select:focus {
+
+        .form-control:focus,
+        .form-select:focus {
             border-color: var(--amber);
-            box-shadow: 0 0 0 3px rgba(242,166,60,0.18);
+            box-shadow: 0 0 0 3px rgba(242, 166, 60, 0.18);
             background-color: var(--card);
         }
 
@@ -201,7 +246,10 @@
             font-size: 0.82rem;
             transition: background-color 0.15s ease;
         }
-        input[type=file]::file-selector-button:hover { background-color: var(--ink-soft); }
+
+        input[type=file]::file-selector-button:hover {
+            background-color: var(--ink-soft);
+        }
 
         .field-error {
             font-family: var(--font-mono);
@@ -220,13 +268,19 @@
             gap: 0.5rem;
             margin-top: 0.75rem;
         }
+
         .photo-preview-grid .thumb {
             aspect-ratio: 1;
             border-radius: 8px;
             overflow: hidden;
             border: 1px solid var(--line);
         }
-        .photo-preview-grid .thumb img { width: 100%; height: 100%; object-fit: cover; }
+
+        .photo-preview-grid .thumb img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
 
         .file-hint {
             font-family: var(--font-mono);
@@ -245,9 +299,20 @@
             box-shadow: 0 3px 0 #c78423;
             transition: filter 0.12s ease, transform 0.12s ease, opacity 0.12s ease;
         }
-        .btn-main:hover { filter: brightness(1.04); color: var(--amber-ink); }
-        .btn-main:active:not(:disabled) { transform: scale(0.99); }
-        .btn-main.is-submitting { opacity: 0.65; pointer-events: none; }
+
+        .btn-main:hover {
+            filter: brightness(1.04);
+            color: var(--amber-ink);
+        }
+
+        .btn-main:active:not(:disabled) {
+            transform: scale(0.99);
+        }
+
+        .btn-main.is-submitting {
+            opacity: 0.65;
+            pointer-events: none;
+        }
 
         .btn-reject {
             background-color: transparent;
@@ -256,20 +321,60 @@
             font-weight: 700;
             transition: background-color 0.15s ease, color 0.15s ease;
         }
-        .btn-reject:hover { background-color: var(--alert); color: white; }
 
-        .modal-content { border-radius: 14px; border: 1px solid var(--line); }
-        .modal-header, .modal-footer { border-color: var(--line) !important; }
-        .modal-title { font-family: var(--font-display); }
+        .btn-reject:hover {
+            background-color: var(--alert);
+            color: white;
+        }
+
+        .modal-content {
+            border-radius: 14px;
+            border: 1px solid var(--line);
+        }
+
+        .modal-header,
+        .modal-footer {
+            border-color: var(--line) !important;
+        }
+
+        .modal-title {
+            font-family: var(--font-display);
+        }
+
+        .upload-card {
+            border: 2px dashed var(--line);
+            border-radius: 10px;
+            background: var(--stone);
+            height: 140px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            overflow: hidden;
+            transition: all 0.2s ease;
+        }
+
+        .upload-card:hover {
+            border-color: var(--amber);
+            background: var(--card);
+        }
+
+        .preview-container img {
+            width: 100%;
+            height: 140px;
+            object-fit: cover;
+        }
     </style>
 </head>
+
 <body>
 
     @php $backRoute = \Illuminate\Support\Facades\Route::has('fleet.management') ? route('fleet.management') : '#'; @endphp
 
     <!-- Admin Navbar -->
     <nav class="navbar navbar-expand-lg nav-sticky-top px-3 py-2">
-        <div class="container-fluid d-flex justify-content-between align-items-center p-0" style="max-width: 800px; margin: 0 auto;">
+        <div class="container-fluid d-flex justify-content-between align-items-center p-0"
+            style="max-width: 800px; margin: 0 auto;">
             <a class="navbar-brand brand-mark m-0" href="{{ $backRoute }}">
                 <i class="bi bi-shield-lock-fill"></i>
                 <span class="fs-6">Admin Portal</span>
@@ -284,7 +389,7 @@
 
         <!-- Target User Header -->
         <div class="d-flex align-items-center target-user-strip mt-2">
-            @if($user->avatar)
+            @if ($user->avatar)
                 <div class="avatar-circle me-3">
                     <img src="{{ $user->avatar }}" alt="">
                 </div>
@@ -298,7 +403,7 @@
                     <h5 class="fw-bold mb-0">{{ $user->name }}</h5>
                     <span class="status-pill"><i class="bi bi-clock-history me-1"></i>Pending</span>
                 </div>
-                @if($user->email)
+                @if ($user->email)
                     <small class="text-muted">
                         <i class="bi bi-envelope me-1"></i>{{ $user->email }}
                     </small>
@@ -313,8 +418,10 @@
             </div>
 
             <div class="p-3 p-md-4">
-                <form action="{{ route('driver.store', $user->id) }}" method="POST" enctype="multipart/form-data" id="verifyForm">
+                <form action="{{ route('driver.store', $user->id) }}" method="POST" enctype="multipart/form-data"
+                    id="verifyForm">
                     @csrf
+                    @method('PUT')
 
                     <h6 class="section-heading">1. Personal Information</h6>
                     <div class="row g-3 mb-4">
@@ -323,14 +430,16 @@
                             @error('first_name')
                                 <small class="field-error">{{ $message }}</small>
                             @enderror
-                            <input type="text" name="first_name" value="{{ old('first_name') }}" class="form-control" placeholder="Pedro" required>
+                            <input type="text" name="first_name" value="{{ old('first_name') }}" class="form-control"
+                                placeholder="Pedro" required>
                         </div>
                         <div class="col-12 col-md-6">
                             <label class="field-label">Last Name<span class="req">*</span></label>
                             @error('last_name')
                                 <small class="field-error">{{ $message }}</small>
                             @enderror
-                            <input type="text" name="last_name" value="{{ old('last_name') }}" class="form-control" placeholder="Pendoko" required>
+                            <input type="text" name="last_name" value="{{ old('last_name') }}" class="form-control"
+                                placeholder="Pendoko" required>
                         </div>
                     </div>
 
@@ -340,7 +449,8 @@
                             @error('middle_name')
                                 <small class="field-error">{{ $message }}</small>
                             @enderror
-                            <input type="text" name="middle_name" value="{{ old('middle_name') }}" class="form-control" placeholder="Lopez">
+                            <input type="text" name="middle_name" value="{{ old('middle_name') }}"
+                                class="form-control" placeholder="Lopez">
                         </div>
                         <div class="col-12 col-md-6">
                             <label class="field-label">Birth Date</label>
@@ -358,7 +468,8 @@
                         @enderror
                         <div class="input-group">
                             <span class="input-group-text"><i class="bi bi-phone"></i></span>
-                            <input type="tel" name="phone" value="{{ old('phone') }}" class="form-control" placeholder="09XX-XXX-XXXX" required>
+                            <input type="tel" name="phone" value="{{ old('phone') }}" class="form-control"
+                                placeholder="09XX-XXX-XXXX" required>
                         </div>
                     </div>
 
@@ -376,14 +487,16 @@
                             @error('emergency_name')
                                 <small class="field-error">{{ $message }}</small>
                             @enderror
-                            <input type="text" name="emergency_name" value="{{ old('emergency_name') }}" class="form-control" placeholder="Full Name">
+                            <input type="text" name="emergency_name" value="{{ old('emergency_name') }}"
+                                class="form-control" placeholder="Full Name">
                         </div>
                         <div class="col-12 col-md-6">
                             <label class="field-label">Emergency Contact No.</label>
                             @error('emergency_phone')
                                 <small class="field-error">{{ $message }}</small>
                             @enderror
-                            <input type="tel" name="emergency_phone" value="{{ old('emergency_phone') }}" class="form-control" placeholder="09XX-XXX-XXXX">
+                            <input type="tel" name="emergency_phone" value="{{ old('emergency_phone') }}"
+                                class="form-control" placeholder="09XX-XXX-XXXX">
                         </div>
                     </div>
 
@@ -396,7 +509,8 @@
                         @enderror
                         <div class="input-group">
                             <span class="input-group-text"><i class="bi bi-card-heading"></i></span>
-                            <input type="text" name="license_number" value="{{ old('license_number') }}" class="form-control font-monospace" placeholder="e.g. N01-23-456789" required>
+                            <input type="text" name="license_number" value="{{ old('license_number') }}"
+                                class="form-control font-monospace" placeholder="e.g. N01-23-456789" required>
                         </div>
                     </div>
 
@@ -407,34 +521,84 @@
                         @enderror
                         <div class="input-group">
                             <span class="input-group-text"><i class="bi bi-123"></i></span>
-                            <input type="text" name="plate_number" value="{{ old('plate_number') }}" class="form-control font-monospace fw-bold text-uppercase" placeholder="ABC-1234" required>
+                            <input type="text" name="plate_number" value="{{ old('plate_number') }}"
+                                class="form-control font-monospace fw-bold text-uppercase" placeholder="ABC-1234"
+                                required>
                         </div>
                     </div>
-
                     <div class="mb-4">
-                        <label class="field-label">Vehicle Photos<span class="req">*</span></label>
-                        @error('image')
-                            <small class="field-error">{{ $message }}</small>
-                        @enderror
-                        <input class="form-control" type="file" id="vehicleImages" name="image[]"
-                               multiple accept="image/png, image/jpeg, image/jpg" required>
-                        <div class="file-hint mt-1">
-                            <i class="bi bi-info-circle me-1"></i>Upload images showing the front, side, and plate number.
+                        <h6 class="section-heading mt-4">3. Vehicle Photos</h6>
+                        <div class="row g-3 mb-4">
+                            <!-- Front View Upload Card -->
+                            <div class="col-12 col-md-4">
+                                <label class="field-label">Front View Image<span class="req">*</span></label>
+
+                                <!-- Hidden input triggered by label click -->
+                                <input class="visually-hidden image-input" type="file" name="image_front"
+                                    id="imageFront" accept="image/*" required>
+
+                                <div class="upload-card" onclick="document.getElementById('imageFront').click()">
+                                    <div id="previewFront" class="preview-container text-center w-100">
+                                        <i class="bi bi-camera fs-2 text-muted"></i>
+                                        <span class="d-block text-muted small mt-1">Upload Front View</span>
+                                    </div>
+                                </div>
+                                @error('image_front')
+                                    <small class="field-error">{{ $message }}</small>
+                                @enderror
+                            </div>
+                            <div class="col-12 col-md-4">
+                                <label class="field-label">Side View Image<span class="req">*</span></label>
+
+                                <!-- Hidden input triggered by label click -->
+                                <input class="visually-hidden image-input" type="file" name="image_side"
+                                    id="imageSide" accept="image/*" required>
+
+                                <div class="upload-card" onclick="document.getElementById('imageSide').click()">
+                                    <div id="previewSide" class="preview-container text-center w-100">
+                                        <i class="bi bi-camera fs-2 text-muted"></i>
+                                        <span class="d-block text-muted small mt-1">Upload Side View</span>
+                                    </div>
+                                </div>
+                                @error('image_side')
+                                    <small class="field-error">{{ $message }}</small>
+                                @enderror
+                            </div>
+                            <div class="col-12 col-md-4">
+                                <label class="field-label"> Back View Image<span class="req">*</span></label>
+
+                                <!-- Hidden input triggered by label click -->
+                                <input class="visually-hidden image-input" type="file" name="image_plate"
+                                    id="imagePlate" accept="image/*" required>
+
+                                <div class="upload-card" onclick="document.getElementById('imagePlate').click()">
+                                    <div id="previewPlate" class="preview-container text-center w-100">
+                                        <i class="bi bi-camera fs-2 text-muted"></i>
+                                        <span class="d-block text-muted small mt-1">Upload Back View</span>
+                                    </div>
+                                </div>
+                                @error('image_plate')
+                                    <small class="field-error">{{ $message }}</small>
+                                @enderror
+                            </div>
+
                         </div>
-                        <div class="photo-preview-grid" id="photoPreviewGrid"></div>
                     </div>
 
                     <hr class="my-4" style="border-color: var(--line);">
 
-                    <button type="submit" class="btn btn-main w-100 py-3 fw-bold rounded-3 shadow-sm d-flex align-items-center justify-content-center text-uppercase" id="approveBtn">
+                    <button type="submit"
+                        class="btn btn-main w-100 py-3 fw-bold rounded-3 shadow-sm d-flex align-items-center justify-content-center text-uppercase"
+                        id="approveBtn">
                         <i class="bi bi-check-circle-fill fs-5 me-2"></i> Approve Account
                     </button>
                 </form>
 
                 <!-- Reject / Delete trigger -->
                 <div class="d-flex flex-column flex-md-row mt-3">
-                    <button type="button" class="btn btn-reject w-100 py-3 fw-bold rounded-3 shadow-sm d-flex align-items-center justify-content-center"
-                            data-bs-toggle="modal" data-bs-target="#rejectModal">
+                    <button type="button"
+                        class="btn btn-reject w-100 py-3 fw-bold rounded-3 shadow-sm d-flex align-items-center justify-content-center"
+                        data-bs-toggle="modal" data-bs-target="#rejectModal">
                         <i class="bi bi-trash3-fill me-2"></i> Reject & Delete
                     </button>
                 </div>
@@ -448,7 +612,8 @@
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="rejectModalLabel"><i class="bi bi-exclamation-triangle-fill me-2" style="color: var(--alert);"></i>Reject Application?</h5>
+                    <h5 class="modal-title" id="rejectModalLabel"><i class="bi bi-exclamation-triangle-fill me-2"
+                            style="color: var(--alert);"></i>Reject Application?</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
@@ -459,7 +624,8 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <form action="{{ route('admin.verify.reject', $user->id) }}" method="POST" class="m-0" id="rejectForm">
+                    <form action="{{ route('admin.verify.reject', $user->id) }}" method="POST" class="m-0"
+                        id="rejectForm">
                         @csrf
                         @method('DELETE')
                         <button type="submit" class="btn btn-reject fw-bold px-3" id="rejectConfirmBtn">
@@ -474,39 +640,42 @@
     @include('partials.notifications')
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        (function () {
+        (function() {
             'use strict';
 
-            // ---------------------------------------------------------------
-            // Live thumbnail previews for selected vehicle photos
-            // ---------------------------------------------------------------
-            const fileInput = document.getElementById('vehicleImages');
-            const previewGrid = document.getElementById('photoPreviewGrid');
+            // Preview handler for individual image inputs
+            function setupPreview(inputId, previewContainerId) {
+                const input = document.getElementById(inputId);
+                const container = document.getElementById(previewContainerId);
 
-            if (fileInput && previewGrid) {
-                fileInput.addEventListener('change', () => {
-                    previewGrid.replaceChildren();
-                    Array.from(fileInput.files || []).forEach((file) => {
-                        if (!file.type.startsWith('image/')) return;
-                        const reader = new FileReader();
-                        reader.onload = (e) => {
-                            const thumb = document.createElement('div');
-                            thumb.className = 'thumb';
-                            const img = document.createElement('img');
-                            img.src = e.target.result;
-                            img.alt = file.name;
-                            thumb.appendChild(img);
-                            previewGrid.appendChild(thumb);
-                        };
-                        reader.readAsDataURL(file);
+                if (input && container) {
+                    input.addEventListener('change', function() {
+                        container.replaceChildren(); // Clear existing preview
+                        const file = this.files[0];
+
+                        if (file && file.type.startsWith('image/')) {
+                            const reader = new FileReader();
+                            reader.onload = (e) => {
+                                const thumb = document.createElement('div');
+                                thumb.className = 'thumb';
+                                const img = document.createElement('img');
+                                img.src = e.target.result;
+                                img.alt = file.name;
+                                thumb.appendChild(img);
+                                container.appendChild(thumb);
+                            };
+                            reader.readAsDataURL(file);
+                        }
                     });
-                });
+                }
             }
 
-            // ---------------------------------------------------------------
-            // Prevent double submits on both the main form and the
-            // reject-confirmation form inside the modal
-            // ---------------------------------------------------------------
+            // Attach preview handlers
+            setupPreview('imageFront', 'previewFront');
+            setupPreview('imageSide', 'previewSide');
+            setupPreview('imagePlate', 'previewPlate');
+
+            // Prevent double submits
             const verifyForm = document.getElementById('verifyForm');
             const approveBtn = document.getElementById('approveBtn');
             if (verifyForm && approveBtn) {
@@ -521,10 +690,12 @@
             if (rejectForm && rejectConfirmBtn) {
                 rejectForm.addEventListener('submit', () => {
                     rejectConfirmBtn.disabled = true;
-                    rejectConfirmBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Deleting…';
+                    rejectConfirmBtn.innerHTML =
+                        '<span class="spinner-border spinner-border-sm me-1"></span> Deleting…';
                 });
             }
         })();
     </script>
 </body>
+
 </html>

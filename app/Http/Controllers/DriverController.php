@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Services\DriverAssignmentService;
 use App\Services\QueueService;
 use App\Models\DriverProfile;
+use Illuminate\Support\Facades\Auth;
 
 class DriverController extends Controller
 {
@@ -16,7 +17,7 @@ class DriverController extends Controller
      */
     public function index()
     {
-        $driver = DriverStatus::where('user_id', auth()->user()->id)->first();
+        $driver = DriverStatus::where('user_id', Auth::id())->first();
         $driverProfiles = DriverProfile::all();
         return view('driver.map', compact('driver', 'driverProfiles'));
     }
@@ -83,7 +84,7 @@ class DriverController extends Controller
             'longitude' => 'required|numeric',
         ]);
 
-        $user = DriverStatus::where('user_id', auth()->user()->id)->firstOrFail();
+        $user = DriverStatus::where('user_id', Auth::id())->firstOrFail();
         $user->update([
             'latitude' => $request->latitude,
             'longitude' => $request->longitude,
@@ -98,7 +99,7 @@ class DriverController extends Controller
             'is_online' => 'required|boolean'
         ]);
 
-        $driver = DriverStatus::where('user_id', auth()->user()->id)->firstOrFail();
+        $driver = DriverStatus::where('user_id', Auth::id())->firstOrFail();
         
         $service->setDriving($driver, $request->is_online);
         

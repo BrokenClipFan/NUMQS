@@ -11,18 +11,18 @@ use Illuminate\Support\Facades\DB;
 
 class DriverVerificationController extends Controller
 {
-    public function index($id) {
+    public function index(int $id) {
         $user = User::findOrFail($id);
         return view('admin.verify-driver', compact('user'));
     }
 
-    public function create($id) {
+    public function create(int $id) {
         $driver = User::findOrFail($id);
 
         return view('admin.verify-driver', compact('driver'));
     }
 
-    public function store(Request $request, $id)
+    public function store(Request $request, int $id)
     {
         $validated = $request->validate([
             'first_name' => 'required|string|max:255',
@@ -38,7 +38,9 @@ class DriverVerificationController extends Controller
 
             'license_number' => 'required|string|max:255|unique:driver_profiles,license_number',
             'plate_number' => 'required|string|max:255|unique:driver_profiles,license_number',
-            'image' => 'required|image|mimes:jpeg,png,jpg|max:2048', 
+            'image_front' => 'required|image|mimes:jpeg,png,jpg|max:2048', 
+            'image_side' => 'required|image|mimes:jpeg,png,jpg|max:2048', 
+            'image_plate' => 'required|image|mimes:jpeg,png,jpg|max:2048', 
         ]);
 
         $user = User::findOrFail($id);
@@ -46,15 +48,17 @@ class DriverVerificationController extends Controller
 
         try{
             DB::transaction(function() use ($request, $validated, $id, $user) {
-                if ($request->hasFile('image')) {
-                    $extension = $request->file('image')->getClientOriginalExtension();
-                    $fileName = "driver_{$id}.{$extension}";
-                    
-                    // 2. Store the image and get the path
-                    $path = $request->file('image')->storeAs('jeepneys', $fileName, 'public');
-                    
-                    // 3. Add the path to your $validated array
-                    $validated['image_path'] = $path;
+
+                if ($request->hasFile('image_front')) {
+                    $validated['image_front_path'] = $request->file('image_front')->store('jeepneys/vehicleFront', 'public/jeepney');
+                }
+
+                if ($request->hasFile('image_side')) {
+                    $validated['image_side_path'] = $request->file('image_side')->store('jeepneys/vehicleSide', 'public/jeepney');
+                }
+
+                if ($request->hasFile('image_back')) {
+                    $validated['image_plate_path'] = $request->file('image_plate')->store('jeepneys/vehiclePlate', 'public');
                 }
 
                 // 4. Create the record with the full, validated data including the image path

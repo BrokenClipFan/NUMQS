@@ -33,13 +33,7 @@ Route::middleware('auth')->group(function () {
         Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
         Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
         
-        Route::get('/driver/profile', function () {
-            return view('driver.profile');
-        })->name('profile');
-
-        Route::get('/dashboard', function () {
-            return view('driver.profile');
-        })->name('dashboard');
+        Route::resource('/profile', DriverProfileController::class)->names('profile');
 
         // Route::post('/add/queue',[NagaQueueController::class, 'store'])->name('add.to.queue');
         
@@ -64,7 +58,7 @@ Route::middleware('auth')->group(function () {
 
         Route::get('admin/dashboard', [DriverFleet::class, 'index'])->name('fleet.management');
 
-        Route::get('/admin/view/{id}', [AdminProfileController::class, 'index'])->name('view.driver');
+        Route::get('/admin/view/{user}', [AdminProfileController::class, 'index'])->name('view.driver');
 
         Route::get('/admin/sandbox', function () {
             return view('admin.sandbox');
@@ -104,6 +98,6 @@ Route::get('/auth/callback', function () {
 
     Auth::login($user);
 
-    return redirect('/dashboard');
+    return redirect('/profile');
 });
 require __DIR__.'/auth.php';
