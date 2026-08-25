@@ -1,4 +1,4 @@
-'<?php
+<?php
 
 use App\Http\Controllers\Admin\DriverVerificationController;
 use App\Http\Controllers\Admin\AdminProfileController;

@@ -224,7 +224,7 @@
                 Profile</span>
 
             <div style="width: 80px;" class="d-flex justify-content-end">
-                <a href="{{-- route('home') --}}#"
+                <a href="{{ route('driver.map') }}"
                     class="btn btn-sm btn-nav-back d-flex align-items-center justify-content-center rounded-2"
                     title="Home">
                     <i class="bi bi-house-door-fill mb-0"></i>

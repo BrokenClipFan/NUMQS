@@ -1,16 +1,20 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Driver Map & Queue Board</title>
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Mono:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Mono:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     @vite(['resources/js/app.js', 'resources/sass/app.scss'])
@@ -18,16 +22,26 @@
     <style>
         :root {
             /* -- Dispatch-board palette -------------------------------- */
-            --ink: #171B21;           /* steel/charcoal chrome */
-            --ink-soft: #262C36;      /* secondary dark surface */
-            --stone: #E7E9E3;         /* terminal-floor paper background */
-            --card: #FDFDFB;          /* ticket/card surface */
-            --line: #D8DBD2;          /* hairline / divider on stone */
-            --amber: #F2A63C;         /* signal amber - the one loud accent */
-            --amber-ink: #4A2E05;     /* readable text on amber */
-            --route-naga: #3E7CA6;    /* Naga direction */
-            --route-uling: #2F8F6B;   /* Uling direction */
-            --alert: #D1495B;         /* overdue / stop */
+            --ink: #171B21;
+            /* steel/charcoal chrome */
+            --ink-soft: #262C36;
+            /* secondary dark surface */
+            --stone: #E7E9E3;
+            /* terminal-floor paper background */
+            --card: #FDFDFB;
+            /* ticket/card surface */
+            --line: #D8DBD2;
+            /* hairline / divider on stone */
+            --amber: #F2A63C;
+            /* signal amber - the one loud accent */
+            --amber-ink: #4A2E05;
+            /* readable text on amber */
+            --route-naga: #3E7CA6;
+            /* Naga direction */
+            --route-uling: #2F8F6B;
+            /* Uling direction */
+            --alert: #D1495B;
+            /* overdue / stop */
             --text-primary: #1B1F26;
             --text-muted: #6B7280;
 
@@ -36,7 +50,9 @@
             --font-body: 'Inter', 'Segoe UI', sans-serif;
         }
 
-        * { box-sizing: border-box; }
+        * {
+            box-sizing: border-box;
+        }
 
         body {
             background-color: var(--stone);
@@ -49,17 +65,28 @@
             overflow: hidden;
         }
 
-        ::selection { background: var(--amber); color: var(--amber-ink); }
+        ::selection {
+            background: var(--amber);
+            color: var(--amber-ink);
+        }
 
         /* Visible focus ring everywhere, in amber, for keyboard/a11y */
-        a:focus-visible, button:focus-visible, .nav-link:focus-visible {
+        a:focus-visible,
+        button:focus-visible,
+        .nav-link:focus-visible {
             outline: 2px solid var(--amber);
             outline-offset: 2px;
             border-radius: 4px;
         }
 
         @media (prefers-reduced-motion: reduce) {
-            *, *::before, *::after { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
+
+            *,
+            *::before,
+            *::after {
+                animation-duration: 0.001ms !important;
+                transition-duration: 0.001ms !important;
+            }
         }
 
         /* ---------------------------------------------------------------
@@ -70,7 +97,7 @@
             border-bottom: 3px solid var(--amber);
             flex-shrink: 0;
             z-index: 1030;
-            box-shadow: 0 2px 14px rgba(0,0,0,0.25);
+            box-shadow: 0 2px 14px rgba(0, 0, 0, 0.25);
         }
 
         .brand-mark {
@@ -98,8 +125,17 @@
         }
 
         @keyframes pulse-dot {
-            0%, 100% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.45; transform: scale(0.8); }
+
+            0%,
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+
+            50% {
+                opacity: 0.45;
+                transform: scale(0.8);
+            }
         }
 
         .position-readout {
@@ -108,7 +144,7 @@
             font-size: 0.78rem;
             background: var(--ink-soft);
             color: var(--amber);
-            border: 1px solid rgba(242,166,60,0.35);
+            border: 1px solid rgba(242, 166, 60, 0.35);
             padding: 0.35rem 0.6rem;
             border-radius: 6px;
             display: flex;
@@ -123,9 +159,13 @@
             font-size: 0.8rem;
             background: transparent;
             color: #D8DBD2;
-            border: 1px solid rgba(255,255,255,0.16);
+            border: 1px solid rgba(255, 255, 255, 0.16);
         }
-        .btn-dashboard:hover { border-color: var(--amber); color: var(--amber); }
+
+        .btn-dashboard:hover {
+            border-color: var(--amber);
+            color: var(--amber);
+        }
 
         /* ---------------------------------------------------------------
            Layout
@@ -144,12 +184,17 @@
             background: var(--ink);
         }
 
-        #map { height: 100%; width: 100%; filter: saturate(0.92); }
+        #map {
+            height: 100%;
+            width: 100%;
+            filter: saturate(0.92);
+        }
 
         /* Viewfinder-style corner brackets framing the live map */
         #map-container::before,
         #map-container::after,
-        .map-frame-tl, .map-frame-br {
+        .map-frame-tl,
+        .map-frame-br {
             content: '';
             position: absolute;
             width: 22px;
@@ -159,17 +204,41 @@
             pointer-events: none;
             opacity: 0.85;
         }
-        #map-container::before { top: 10px; left: 10px; border-right: none; border-bottom: none; }
-        #map-container::after { bottom: 10px; right: 10px; border-left: none; border-top: none; }
-        .map-frame-tl { top: 10px; right: 10px; border-left: none; border-bottom: none; }
-        .map-frame-br { bottom: 10px; left: 10px; border-right: none; border-top: none; }
+
+        #map-container::before {
+            top: 10px;
+            left: 10px;
+            border-right: none;
+            border-bottom: none;
+        }
+
+        #map-container::after {
+            bottom: 10px;
+            right: 10px;
+            border-left: none;
+            border-top: none;
+        }
+
+        .map-frame-tl {
+            top: 10px;
+            right: 10px;
+            border-left: none;
+            border-bottom: none;
+        }
+
+        .map-frame-br {
+            bottom: 10px;
+            left: 10px;
+            border-right: none;
+            border-top: none;
+        }
 
         .map-live-badge {
             position: absolute;
             top: 14px;
             left: 42px;
             z-index: 460;
-            background: rgba(23,27,33,0.88);
+            background: rgba(23, 27, 33, 0.88);
             color: #F4F5F1;
             font-family: var(--font-mono);
             font-size: 0.68rem;
@@ -180,7 +249,7 @@
             display: flex;
             align-items: center;
             gap: 0.4rem;
-            border: 1px solid rgba(242,166,60,0.3);
+            border: 1px solid rgba(242, 166, 60, 0.3);
         }
 
         #geoWarning {
@@ -197,7 +266,7 @@
             border: none;
             border-radius: 7px;
             padding: 0.45rem 0.75rem;
-            box-shadow: 0 4px 14px rgba(0,0,0,0.25);
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
             max-width: 88%;
         }
 
@@ -209,8 +278,13 @@
         }
 
         @media (min-width: 768px) {
-            .main-wrapper { flex-direction: row; }
-            #map-container { flex: 0 0 60%; }
+            .main-wrapper {
+                flex-direction: row;
+            }
+
+            #map-container {
+                flex: 0 0 60%;
+            }
         }
 
         /* ---------------------------------------------------------------
@@ -223,7 +297,7 @@
             padding: 1rem;
             margin: 1rem;
             margin-bottom: 0.85rem;
-            box-shadow: 0 1px 2px rgba(23,27,33,0.04);
+            box-shadow: 0 1px 2px rgba(23, 27, 33, 0.04);
         }
 
         .control-deck h6 {
@@ -249,25 +323,48 @@
             gap: 0.3rem;
             transition: transform 0.12s ease, box-shadow 0.12s ease, opacity 0.12s ease;
         }
-        .btn-deck:active:not(:disabled) { transform: scale(0.97); }
+
+        .btn-deck:active:not(:disabled) {
+            transform: scale(0.97);
+        }
 
         .btn-deck-start {
             background: var(--amber);
             color: var(--amber-ink);
             box-shadow: 0 3px 0 #c78423;
         }
-        .btn-deck-start:hover:not(:disabled) { filter: brightness(1.04); }
-        .btn-deck-start:disabled { background: #EDE0C6; color: #A98F5E; box-shadow: none; opacity: 0.8; }
+
+        .btn-deck-start:hover:not(:disabled) {
+            filter: brightness(1.04);
+        }
+
+        .btn-deck-start:disabled {
+            background: #EDE0C6;
+            color: #A98F5E;
+            box-shadow: none;
+            opacity: 0.8;
+        }
 
         .btn-deck-end {
             background: var(--card);
             color: var(--text-primary);
             border: 1.5px solid var(--line);
         }
-        .btn-deck-end:hover:not(:disabled) { border-color: var(--alert); color: var(--alert); }
-        .btn-deck-end:disabled { color: #B7BCC4; box-shadow: none; }
 
-        .btn-deck.is-submitting { opacity: 0.6; pointer-events: none; }
+        .btn-deck-end:hover:not(:disabled) {
+            border-color: var(--alert);
+            color: var(--alert);
+        }
+
+        .btn-deck-end:disabled {
+            color: #B7BCC4;
+            box-shadow: none;
+        }
+
+        .btn-deck.is-submitting {
+            opacity: 0.6;
+            pointer-events: none;
+        }
 
         .status-readout {
             display: flex;
@@ -289,7 +386,11 @@
             border-radius: 50%;
             background: #B7BCC4;
         }
-        .status-dot.online { background: var(--route-uling); animation: pulse-dot 1.8s ease-in-out infinite; }
+
+        .status-dot.online {
+            background: var(--route-uling);
+            animation: pulse-dot 1.8s ease-in-out infinite;
+        }
 
         /* ---------------------------------------------------------------
            Route tabs
@@ -323,8 +424,14 @@
             border-radius: 50%;
             flex-shrink: 0;
         }
-        .route-dot.naga { background: var(--route-naga); }
-        .route-dot.uling { background: var(--route-uling); }
+
+        .route-dot.naga {
+            background: var(--route-naga);
+        }
+
+        .route-dot.uling {
+            background: var(--route-uling);
+        }
 
         .route-chip.active {
             background: var(--ink) !important;
@@ -332,7 +439,9 @@
             border-color: var(--ink);
         }
 
-        .tab-content { padding: 0 1rem 1.25rem; }
+        .tab-content {
+            padding: 0 1rem 1.25rem;
+        }
 
         .queue-section-label {
             font-family: var(--font-mono);
@@ -375,7 +484,7 @@
 
         .queue-card:hover {
             transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(23,27,33,0.08);
+            box-shadow: 0 8px 20px rgba(23, 27, 33, 0.08);
         }
 
         /* die-cut ticket notch on the left edge */
@@ -390,13 +499,19 @@
             background: var(--stone);
             border: 1px solid var(--line);
         }
-        .queue-card::before { top: -7px; }
-        .queue-card::after { bottom: -7px; }
+
+        .queue-card::before {
+            top: -7px;
+        }
+
+        .queue-card::after {
+            bottom: -7px;
+        }
 
         .queue-card.active-driver {
             border-color: var(--amber);
-            background: linear-gradient(180deg, rgba(242,166,60,0.07), rgba(242,166,60,0.02));
-            box-shadow: 0 0 0 1px rgba(242,166,60,0.25);
+            background: linear-gradient(180deg, rgba(242, 166, 60, 0.07), rgba(242, 166, 60, 0.02));
+            box-shadow: 0 0 0 1px rgba(242, 166, 60, 0.25);
         }
 
         .queue-position {
@@ -407,7 +522,10 @@
             min-width: 1.6rem;
             text-align: center;
         }
-        .queue-card.active-driver .queue-position { color: var(--amber-ink); }
+
+        .queue-card.active-driver .queue-position {
+            color: var(--amber-ink);
+        }
 
         .queue-name {
             font-family: var(--font-body);
@@ -446,8 +564,18 @@
             border-radius: 20px;
             white-space: nowrap;
         }
-        .status-pill.queued { background: #EEF0EA; color: var(--text-muted); border: 1px solid var(--line); }
-        .status-pill.filling { background: rgba(47,143,107,0.12); color: var(--route-uling); border: 1px solid rgba(47,143,107,0.3); }
+
+        .status-pill.queued {
+            background: #EEF0EA;
+            color: var(--text-muted);
+            border: 1px solid var(--line);
+        }
+
+        .status-pill.filling {
+            background: rgba(47, 143, 107, 0.12);
+            color: var(--route-uling);
+            border: 1px solid rgba(47, 143, 107, 0.3);
+        }
 
         /* Split-flap departure-board countdown timer */
         .flap-display {
@@ -455,6 +583,7 @@
             align-items: center;
             gap: 3px;
         }
+
         .flap-tile {
             font-family: var(--font-mono);
             font-weight: 700;
@@ -468,17 +597,38 @@
             min-width: 0.85rem;
             text-align: center;
         }
+
         .flap-tile::after {
             content: '';
             position: absolute;
-            left: 0; right: 0; top: 50%;
+            left: 0;
+            right: 0;
+            top: 50%;
             height: 1px;
-            background: rgba(0,0,0,0.35);
+            background: rgba(0, 0, 0, 0.35);
         }
-        .flap-colon { color: var(--text-muted); font-family: var(--font-mono); font-weight: 700; font-size: 0.78rem; }
-        .flap-display.overdue .flap-tile { background: var(--alert); color: #FFF3F3; }
-        .flap-display .flap-icon { color: var(--text-muted); font-size: 0.75rem; margin-right: 0.1rem; }
-        .flap-display.overdue .flap-icon { color: var(--alert); }
+
+        .flap-colon {
+            color: var(--text-muted);
+            font-family: var(--font-mono);
+            font-weight: 700;
+            font-size: 0.78rem;
+        }
+
+        .flap-display.overdue .flap-tile {
+            background: var(--alert);
+            color: #FFF3F3;
+        }
+
+        .flap-display .flap-icon {
+            color: var(--text-muted);
+            font-size: 0.75rem;
+            margin-right: 0.1rem;
+        }
+
+        .flap-display.overdue .flap-icon {
+            color: var(--alert);
+        }
 
         .empty-state {
             font-family: var(--font-body);
@@ -487,7 +637,13 @@
             padding: 2rem 0.5rem;
             color: var(--text-muted);
         }
-        .empty-state .bi { font-size: 1.4rem; display: block; margin-bottom: 0.4rem; opacity: 0.5; }
+
+        .empty-state .bi {
+            font-size: 1.4rem;
+            display: block;
+            margin-bottom: 0.4rem;
+            opacity: 0.5;
+        }
 
         /* ---------------------------------------------------------------
            Leaflet overrides
@@ -498,11 +654,16 @@
             border: 2px solid var(--ink);
             font-family: var(--font-body);
         }
-        .leaflet-popup-tip { background: var(--ink); }
+
+        .leaflet-popup-tip {
+            background: var(--ink);
+        }
 
         .driver-popup-img {
             width: 52px;
             height: 52px;
+            min-width: 52px;
+            flex-shrink: 0;
             object-fit: cover;
             border-radius: 50%;
             border: 2px solid var(--amber);
@@ -513,17 +674,23 @@
         }
 
         @media (max-width: 400px) {
-            .hide-on-mobile-xs { display: none !important; }
+            .hide-on-mobile-xs {
+                display: none !important;
+            }
         }
 
-        .jeepney-marker-container { background: transparent !important; border: none !important; }
+        .jeepney-marker-container {
+            background: transparent !important;
+            border: none !important;
+        }
+
         .jeepney-sprite {
             display: block;
             width: 100%;
             height: 100%;
             transform-origin: center center;
             transition: transform 0.25s ease-out;
-            filter: drop-shadow(0 2px 3px rgba(0,0,0,0.35));
+            filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.35));
 
             /* NEW: Hardware acceleration to prevent blur */
             backface-visibility: hidden;
@@ -543,7 +710,8 @@
             left: 1.1rem;
             top: 50%;
             transform: translateY(-50%);
-            color: var(--amber); /* Amber accent for the icon */
+            color: var(--amber);
+            /* Amber accent for the icon */
             font-size: 0.9rem;
             pointer-events: none;
             z-index: 5;
@@ -553,47 +721,54 @@
         .search-bar input {
             width: 100%;
             padding: 0.55rem 1rem 0.55rem 2.6rem;
-            border-radius: 50px; /* Fully rounded pill shape */
-            border: 1px solid rgba(242, 166, 60, 0.3); /* Subtle amber border */
-            background: var(--ink-soft); /* Dark inset background */
+            border-radius: 50px;
+            /* Fully rounded pill shape */
+            border: 1px solid rgba(242, 166, 60, 0.3);
+            /* Subtle amber border */
+            background: var(--ink-soft);
+            /* Dark inset background */
             color: #F4F5F1;
-            font-family: var(--font-mono); /* Terminal-style font */
+            font-family: var(--font-mono);
+            /* Terminal-style font */
             font-size: 0.8rem;
             letter-spacing: 0.02em;
             transition: all 0.2s ease;
-            box-shadow: inset 0 2px 5px rgba(0,0,0,0.2);
+            box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.2);
         }
 
         .search-bar input::placeholder {
             color: rgba(244, 245, 241, 0.4);
-            font-family: var(--font-body); /* Keep placeholder readable */
+            font-family: var(--font-body);
+            /* Keep placeholder readable */
         }
 
         .search-bar input:focus {
             outline: none;
             border-color: var(--amber);
             background: var(--ink);
-            box-shadow: 0 0 0 4px rgba(242, 166, 60, 0.15), inset 0 2px 5px rgba(0,0,0,0.3);
+            box-shadow: 0 0 0 4px rgba(242, 166, 60, 0.15), inset 0 2px 5px rgba(0, 0, 0, 0.3);
         }
 
         /* Updated Dropdown to match the dark theme */
         #searchResults {
             background: var(--ink-soft);
             border: 1px solid rgba(242, 166, 60, 0.3) !important;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.4) !important;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4) !important;
         }
 
         .search-result-item {
             background-color: transparent !important;
             color: #F4F5F1 !important;
-            border-bottom: 1px solid rgba(255,255,255,0.05) !important;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
         }
 
-        .search-result-item:hover, 
+        .search-result-item:hover,
         .search-result-item:focus {
             background-color: var(--ink) !important;
-            border-left: 3px solid var(--amber) !important; /* Amber highlight on hover */
+            border-left: 3px solid var(--amber) !important;
+            /* Amber highlight on hover */
         }
+
         .search-result-item {
             background-color: var(--card);
             color: var(--text-primary);
@@ -602,15 +777,22 @@
             cursor: pointer;
             transition: background-color 0.15s ease;
         }
-        .search-result-item:hover, .search-result-item:focus {
+
+        .search-result-item:hover,
+        .search-result-item:focus {
             background-color: var(--stone);
         }
+
         .search-result-item:last-child {
             border-bottom: none;
         }
-        .text-amber { color: var(--amber); }
+
+        .text-amber {
+            color: var(--amber);
+        }
     </style>
 </head>
+
 <body data-driver-id="{{ $driver->id }}" data-is-online="{{ $driver->is_online ? '1' : '0' }}">
     <nav class="navbar navbar-expand-lg nav-sticky-top px-2 py-2">
         <div class="container-fluid d-flex justify-content-between align-items-center p-0">
@@ -623,10 +805,12 @@
             <div class="d-flex align-items-center gap-2">
                 <div class="search-bar position-relative">
                     <i class="bi bi-search"></i>
-                    <input type="search" id="driverSearch" placeholder="Search by driver name or plate number" autocomplete="off">
-                    
+                    <input type="search" id="driverSearch" placeholder="Search by driver name or plate number"
+                        autocomplete="off">
+
                     <!-- NEW: Search Results Dropdown -->
-                    <div id="searchResults" class="list-group position-absolute w-100 d-none shadow-sm" style="top: 110%; z-index: 1050; max-height: 250px; overflow-y: auto; border-radius: 12px; border: 1px solid var(--line);">
+                    <div id="searchResults" class="list-group position-absolute w-100 d-none shadow-sm"
+                        style="top: 110%; z-index: 1050; max-height: 250px; overflow-y: auto; border-radius: 12px; border: 1px solid var(--line);">
                     </div>
                 </div>
 
@@ -636,7 +820,8 @@
                     <span id="navPositionBadge">—</span>
                 </span>
 
-                <a href="{{ route('profile') }}" class="btn btn-sm btn-dashboard d-flex align-items-center gap-1 px-2 rounded-2" title="Dashboard">
+                <a href="{{ route('profile.index') }}"
+                    class="btn btn-sm btn-dashboard d-flex align-items-center gap-1 px-2 rounded-2" title="Dashboard">
                     <i class="bi bi-speedometer2"></i> <span class="d-none d-md-inline">Dashboard</span>
                 </a>
             </div>
@@ -662,7 +847,8 @@
                     <form class="col-6 drive-form" action="{{ route('online.update') }}" method="POST">
                         @csrf
                         <input type="hidden" name="is_online" value="1">
-                        <button type="submit" id="btnStartDrive" class="btn btn-deck btn-deck-start w-100" @if($driver->is_online) disabled @endif>
+                        <button type="submit" id="btnStartDrive" class="btn btn-deck btn-deck-start w-100"
+                            @if ($driver->is_online) disabled @endif>
                             <i class="bi bi-play-circle-fill fs-4"></i>
                             <span>Start Drive</span>
                         </button>
@@ -670,7 +856,8 @@
                     <form class="col-6 drive-form" action="{{ route('online.update') }}" method="POST">
                         @csrf
                         <input type="hidden" name="is_online" value="0">
-                        <button type="submit" id="btnEndDrive" class="btn btn-deck btn-deck-end w-100" @unless($driver->is_online) disabled @endunless>
+                        <button type="submit" id="btnEndDrive" class="btn btn-deck btn-deck-end w-100"
+                            @unless ($driver->is_online) disabled @endunless>
                             <i class="bi bi-stop-circle-fill fs-4"></i>
                             <span>End Drive</span>
                         </button>
@@ -684,19 +871,22 @@
 
             <ul class="nav nav-fill" id="queueTabs" role="tablist">
                 <li class="nav-item" role="presentation">
-                    <button class="nav-link route-chip active" id="naga-uling-tab" data-bs-toggle="tab" data-bs-target="#naga-uling" type="button" role="tab">
+                    <button class="nav-link route-chip active" id="naga-uling-tab" data-bs-toggle="tab"
+                        data-bs-target="#naga-uling" type="button" role="tab">
                         <span class="route-dot naga"></span> Naga → Uling
                     </button>
                 </li>
                 <li class="nav-item" role="presentation">
-                    <button class="nav-link route-chip" id="uling-naga-tab" data-bs-toggle="tab" data-bs-target="#uling-naga" type="button" role="tab">
+                    <button class="nav-link route-chip" id="uling-naga-tab" data-bs-toggle="tab"
+                        data-bs-target="#uling-naga" type="button" role="tab">
                         <span class="route-dot uling"></span> Uling → Naga
                     </button>
                 </li>
             </ul>
 
             <div class="tab-content" id="queueTabsContent">
-                <div class="tab-pane fade show active" id="naga-uling" role="tabpanel" aria-labelledby="naga-uling-tab">
+                <div class="tab-pane fade show active" id="naga-uling" role="tabpanel"
+                    aria-labelledby="naga-uling-tab">
                     <div class="d-flex justify-content-between align-items-center mb-2 px-1">
                         <span class="queue-section-label">Queue Lineup · FIFO</span>
                         <span class="badge queue-count-badge" id="nagaToUlingQueueCount">0 Active</span>
@@ -726,11 +916,12 @@
         </div>
     </div>
 
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
-        (function () {
+        (function() {
             'use strict';
 
             // ---------------------------------------------------------------
@@ -774,20 +965,27 @@
                 const totalSeconds = Math.floor(clamped / 1000);
                 const minutes = String(Math.floor(totalSeconds / 60)).padStart(2, '0');
                 const seconds = String(totalSeconds % 60).padStart(2, '0');
-                return { minutes, seconds };
+                return {
+                    minutes,
+                    seconds
+                };
             }
 
             // ---------------------------------------------------------------
             // Map setup
             // ---------------------------------------------------------------
-            const map = L.map('map', { zoomControl: false }).setView([10.2350, 123.7350], 13);
+            const map = L.map('map', {
+                zoomControl: false
+            }).setView([10.2350, 123.7350], 13);
 
             L.tileLayer('https://{s}.tile-cyclosm.openstreetmap.fr/cyclosm/{z}/{x}/{y}.png', {
                 attribution: '<a href="https://github.com/cyclosm/cyclosm-cartocss-style/releases" title="CyclOSM - Open Bicycle render">CyclOSM</a> | Map data: &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
             }).addTo(map);
 
             const driversPinLayer = L.layerGroup().addTo(map);
-            L.control.zoom({ position: 'bottomleft' }).addTo(map);
+            L.control.zoom({
+                position: 'bottomleft'
+            }).addTo(map);
 
             setTimeout(() => map.invalidateSize(), 300);
             window.addEventListener('resize', () => map.invalidateSize());
@@ -799,7 +997,7 @@
                 const zoom = map.getZoom();
                 let scale = 1; // Default base scale for zoom level 13
 
-                if (zoom >= 15) scale = 1.3;      // Zoomed in very close (larger)
+                if (zoom >= 15) scale = 1.3; // Zoomed in very close (larger)
                 else if (zoom === 14) scale = 1.1;
                 else if (zoom === 13) scale = 1.0;
                 else if (zoom === 12) scale = 0.75;
@@ -821,44 +1019,47 @@
                     const driverLng = driver.status.longitude;
 
                     if (jeepneyMarkers[driver.id]) {
-                        smoothMoveWithRotation(jeepneyMarkers[driver.id], driverLat, driverLng, POLL_INTERVAL_MS);
+                        smoothMoveWithRotation(jeepneyMarkers[driver.id], driverLat, driverLng,
+                            POLL_INTERVAL_MS);
                         return;
                     }
-                    
+
                     const fullName = fullNameOf(driver.profile);
                     const plate = driver.profile.plate_number;
                     const status = driver.status.state;
-                    const avatar = driver.avatar;
+
+                    // FIX: Construct storage URL using standard JavaScript
+                    const avatarPath = driver.profile?.image_profile_path ?
+                        `/storage/${driver.profile.image_profile_path}` :
+                        '/images/default-avatar.png'; // Optional fallback image
+
                     const iconFilePath = '/storage/' + driver.profile.jeep_icon;
 
                     const jeepIcon = L.divIcon({
                         className: 'jeepney-marker-container',
                         html: `<img src="${escapeHtml(iconFilePath)}" class="jeepney-sprite" alt="jeepney">`,
-                        iconSize: [30, 30], 
+                        iconSize: [30, 30],
                         iconAnchor: [15, 15],
                         popupAnchor: [0, -30],
                     });
 
-                    const marker = L.marker([driverLat, driverLng], { icon: jeepIcon }).addTo(driversPinLayer);
+                    const marker = L.marker([driverLat, driverLng], {
+                        icon: jeepIcon
+                    }).addTo(driversPinLayer);
 
                     const popupContent = `
-                        <div class="p-1" style="min-width: 180px;">
-                            <div class="d-flex align-items-center gap-2 mb-2">
-                                <img src="${escapeHtml(avatar)}" class="driver-popup-img" alt="${escapeHtml(fullName)}">
-                                <div>
-                                    <h6 class="m-0 fw-bold" style="color: var(--ink); font-size:0.9rem;">${escapeHtml(fullName)}</h6>
-                                    <span class="badge bg-light text-dark font-monospace border" style="font-size:0.7rem;">${escapeHtml(plate)}</span>
-                                </div>
-                            </div>
-                            <hr class="my-1 opacity-25">
-                            <div class="d-flex align-items-center gap-1 text-muted" style="font-size:0.75rem;">
-                                <i class="bi bi-info-circle-fill" style="color: var(--amber);"></i>
-                                <span>Status: <strong>${escapeHtml(status)}</strong></span>
-                            </div>
-                        </div>
-                    `;
-                    marker.bindPopup(popupContent);
+            <div class="p-1" style="min-width: 180px;">
+                <div class="d-flex align-items-center gap-2 mb-2">
+                    <img src="${escapeHtml(avatarPath)}" class="driver-popup-img" alt="${escapeHtml(fullName)}">
+                    <div>
+                        <strong>${escapeHtml(fullName)}</strong><br>
+                        <small class="text-muted">Plate: ${escapeHtml(plate)}</small>
+                    </div>
+                </div>
+                <div>Status: <span class="badge bg-info">${escapeHtml(status)}</span></div>
+            </div>`;
 
+                    marker.bindPopup(popupContent);
                     jeepneyMarkers[driver.id] = marker;
                 });
             }
@@ -871,13 +1072,15 @@
                 const hasNewDestination = marker.lastTargetLat !== targetLat || marker.lastTargetLng !== targetLng;
 
                 if (hasNewDestination && marker.lastTargetLat !== undefined) {
-                    const lat1 = marker.lastTargetLat, lon1 = marker.lastTargetLng;
-                    const lat2 = targetLat, lon2 = targetLng;
+                    const lat1 = marker.lastTargetLat,
+                        lon1 = marker.lastTargetLng;
+                    const lat2 = targetLat,
+                        lon2 = targetLng;
 
                     const dLon = (lon2 - lon1) * Math.PI / 180;
                     const y = Math.sin(dLon) * Math.cos(lat2 * Math.PI / 180);
                     const x = Math.cos(lat1 * Math.PI / 180) * Math.sin(lat2 * Math.PI / 180) -
-                              Math.sin(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.cos(dLon);
+                        Math.sin(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.cos(dLon);
 
                     let angle = (Math.atan2(y, x) * 180 / Math.PI + 360) % 360;
                     angle = (angle - 90 + 360) % 360;
@@ -941,7 +1144,8 @@
                     });
 
                     if (matches.length === 0) {
-                        searchResultsEl.innerHTML = '<div class="p-3 text-muted text-center" style="background: var(--card); font-size: 0.85rem;">No drivers found</div>';
+                        searchResultsEl.innerHTML =
+                            '<div class="p-3 text-muted text-center" style="background: var(--card); font-size: 0.85rem;">No drivers found</div>';
                         searchResultsEl.classList.remove('d-none');
                         return;
                     }
@@ -950,8 +1154,9 @@
                     matches.forEach(driver => {
                         const item = document.createElement('button');
                         item.type = 'button';
-                        item.className = 'list-group-item border-0 search-result-item d-flex justify-content-between align-items-center p-2 px-3';
-                        
+                        item.className =
+                            'list-group-item border-0 search-result-item d-flex justify-content-between align-items-center p-2 px-3';
+
                         item.innerHTML = `
                             <div class="d-flex flex-column text-start">
                                 <span class="fw-bold" style="font-size: 0.9rem;">${escapeHtml(fullNameOf(driver.profile))}</span>
@@ -964,19 +1169,22 @@
                         item.addEventListener('click', () => {
                             const lat = driver.status.latitude;
                             const lng = driver.status.longitude;
-                            
+
                             if (lat && lng) {
                                 // Zoom in close to the driver
-                                map.flyTo([lat, lng], 17, { animate: true, duration: 1.5 });
-                                
+                                map.flyTo([lat, lng], 17, {
+                                    animate: true,
+                                    duration: 1.5
+                                });
+
                                 // Open the marker's popup after the zoom animation completes
                                 if (jeepneyMarkers[driver.id]) {
                                     setTimeout(() => {
                                         jeepneyMarkers[driver.id].openPopup();
-                                    }, 1500); 
+                                    }, 1500);
                                 }
                             }
-                            
+
                             // Clean up UI after selection
                             searchInput.value = '';
                             searchResultsEl.classList.add('d-none');
@@ -1030,7 +1238,10 @@
                 const deadline = new Date(fillingAt).getTime() + FILL_WINDOW_MS;
                 const remaining = deadline - Date.now();
                 const overdue = remaining <= 0;
-                const { minutes, seconds } = formatCountdownParts(remaining);
+                const {
+                    minutes,
+                    seconds
+                } = formatCountdownParts(remaining);
 
                 const wrapper = document.createElement('span');
                 wrapper.className = `flap-display${overdue ? ' overdue' : ''}`;
@@ -1058,13 +1269,19 @@
                 return wrapper;
             }
 
-            function buildQueueCard({ position, name, plate, isCurrentUser, badgeEl }) {
+            function buildQueueCard({
+                position,
+                name,
+                plate,
+                isCurrentUser,
+                badgeEl
+            }) {
                 const card = document.createElement('div');
                 card.className = `card queue-card${isCurrentUser ? ' active-driver' : ''}`;
 
                 const row = document.createElement('div');
                 row.className = 'd-flex align-items-center justify-content-between';
-                
+
                 const left = document.createElement('div');
                 left.className = 'd-flex align-items-center gap-2';
 
@@ -1168,7 +1385,8 @@
                     });
                 }
 
-                navPositionBadge.textContent = myPosition ? `${myQueueLabel}-${String(myPosition).padStart(2, '0')}` : '—';
+                navPositionBadge.textContent = myPosition ? `${myQueueLabel}-${String(myPosition).padStart(2, '0')}` :
+                    '—';
             }
 
             // ---------------------------------------------------------------
@@ -1193,26 +1411,29 @@
                         return response.json();
                     })
                     .then(drivers => {
-                        allDriversData = drivers; 
+                        allDriversData = drivers;
                         addPinsToAllDrivers(drivers);
 
                         // --- ADDED: URL Parameter Auto-Zoom Logic ---
                         if (!hasAutoZoomed) {
                             const urlParams = new URLSearchParams(window.location.search);
                             const targetDriverId = urlParams.get('driver_id');
-                            
+
                             if (targetDriverId) {
                                 const targetDriver = drivers.find(d => String(d.id) === targetDriverId);
-                                
+
                                 if (targetDriver && targetDriver.status.latitude && targetDriver.status.longitude) {
                                     // Zoom in close to the target driver
-                                    map.flyTo([targetDriver.status.latitude, targetDriver.status.longitude], 17, { animate: true, duration: 1.5 });
-                                    
+                                    map.flyTo([targetDriver.status.latitude, targetDriver.status.longitude], 17, {
+                                        animate: true,
+                                        duration: 1.5
+                                    });
+
                                     // Open the marker's popup after the zoom animation completes
                                     if (jeepneyMarkers[targetDriver.id]) {
                                         setTimeout(() => {
                                             jeepneyMarkers[targetDriver.id].openPopup();
-                                        }, 1500); 
+                                        }, 1500);
                                     }
                                 }
                             }
@@ -1230,7 +1451,10 @@
                         'Content-Type': 'application/json',
                         'X-CSRF-TOKEN': csrfToken,
                     },
-                    body: JSON.stringify({ latitude: lat, longitude: lng }),
+                    body: JSON.stringify({
+                        latitude: lat,
+                        longitude: lng
+                    }),
                 }).catch(err => console.error('saveLocationToDatabase:', err));
             }
 
@@ -1271,7 +1495,8 @@
             function startLocationTracking() {
                 if (!navigator.geolocation) {
                     geoWarningEl.classList.remove('hidden');
-                    geoWarningEl.innerHTML = '<i class="bi bi-exclamation-triangle-fill"></i> This browser doesn\'t support location sharing.';
+                    geoWarningEl.innerHTML =
+                        '<i class="bi bi-exclamation-triangle-fill"></i> This browser doesn\'t support location sharing.';
                     return;
                 }
 
@@ -1284,9 +1509,13 @@
                     (err) => {
                         console.error('Geolocation error:', err);
                         geoWarningEl.classList.remove('hidden');
-                        geoWarningEl.innerHTML = '<i class="bi bi-exclamation-triangle-fill"></i> Location permission needed to update the map.';
-                    },
-                    { enableHighAccuracy: true, maximumAge: 5000, timeout: 10000 }
+                        geoWarningEl.innerHTML =
+                            '<i class="bi bi-exclamation-triangle-fill"></i> Location permission needed to update the map.';
+                    }, {
+                        enableHighAccuracy: true,
+                        maximumAge: 5000,
+                        timeout: 10000
+                    }
                 );
             }
 
@@ -1315,4 +1544,5 @@
     </script>
     @include('partials.notifications')
 </body>
+
 </html>

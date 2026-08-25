@@ -139,7 +139,7 @@ class MoveJepneys extends Command
                     'last_updated'   => now(),
                 ]);
             }
-            
+
             sleep(2);
         }
     }

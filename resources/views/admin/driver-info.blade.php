@@ -571,7 +571,8 @@
     @php
         $isOnline = $user->is_online ?? false;
         $violationCount = isset($violations) ? count($violations) : 0;
-        $avatarPath = !empty($user->avatar) ? asset('storage/' . ltrim($user->profile->image_profile_path, '/')) : null;
+        $avatarPath = asset('storage/' . $user->profile->image_profile_path);
+
         $initials = collect([$user->profile->first_name ?? '', $user->profile->last_name ?? ''])
             ->filter()
             ->map(fn($n) => mb_strtoupper(mb_substr($n, 0, 1)))
