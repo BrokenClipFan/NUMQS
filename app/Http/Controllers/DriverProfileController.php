@@ -11,11 +11,10 @@ class DriverProfileController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index( )
+    public function index()
     {
         $userId = Auth::id();
-        $driver = DriverProfile::where('user_id', $userId)->exists();
-        dd($driver);
+        $driver = DriverProfile::where('user_id', $userId)->first();
         return view('driver.profile', compact('driver'));
     }
 
@@ -54,9 +53,23 @@ class DriverProfileController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(Request $request)
     {
-        //
+        $id = Auth::id();
+        $profile = DriverProfile::where('user_id', $id)->first();
+
+        $validated = $request->validate([
+            'phone' => 'nullable|string|max:20',
+            'email' => 'nullable|string|max:50',
+            'address' => 'nullable|string|max:100',
+            'emergency_name' => 'nullable|string|max:100',
+            'emergency_phone' => 'nullable|string|max:100',
+        ]);
+
+        $data = array_filter($validated, function($value){ return !is_null($value) && $value !== ''; });
+
+        $profile->update($data);
+        return redirect()->back()->with('success', 'profile has updated');
     }
 
     /**
