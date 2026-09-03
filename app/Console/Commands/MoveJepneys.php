@@ -89,13 +89,12 @@ class MoveJepneys extends Command
                             
                             $violationService->createViolation( 
                                 $driver->user_id,
-                                $violationService::TYPE_UNAUTHORIZED_TERMINAL,
-                                'Unauthorized Terminal Entry',
+                                'wrong_terminal',
+                                'Went to wrong terminal (Cheating)',
                                 $driverIn, // e.g., "Naga" or "Uling"
                                 [
-                                    'expected_destination' => $driver->dispatched_to,
-                                    'actual_destination'   => $driverIn,
-                                    'waypoint_index'       => $index
+                                    'Supposed to go to' => $driver->dispatched_to,
+                                    'Caught cheating at' => $driverIn
                                 ],
                                 'high' // Severity level
                             );

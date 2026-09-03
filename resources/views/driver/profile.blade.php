@@ -463,79 +463,64 @@
                 </div>
 
                 <div class="card-custom bg-custom-tint overflow-hidden">
-                    <div
-                        class="bg-white border-bottom border-custom d-flex justify-content-between align-items-center py-3 px-3">
+                    <div class="bg-white border-bottom border-custom d-flex justify-content-between align-items-center py-3 px-3">
                         <h6 class="mb-0 fw-bold" style="color: var(--ink); font-family: var(--font-display);">
-                            <i class="bi bi-cone-striped me-2" style="color: var(--amber-ink);"></i> Warnings &
-                            Violations
+                            <i class="bi bi-cone-striped me-2" style="color: var(--amber-ink);"></i> Warnings & Violations
                         </h6>
-                        <span class="badge rounded-pill font-monospace" style="background-color: var(--alert);">2
-                            Incidents</span>
+                        @php $vCount = count($violations); @endphp
+                        <span class="badge rounded-pill font-monospace" style="background-color: {{ $vCount > 0 ? 'var(--alert)' : '#198754' }};">
+                            {{ $vCount }} {{ $vCount === 1 ? 'Warning' : 'Warnings' }}
+                        </span>
                     </div>
 
                     <div class="p-3">
                         <div class="d-flex flex-column gap-3">
 
-                            {{-- @forelse ($violations as $violation) --}}
-
-                            <div class="card violation-card shadow-sm p-3 border-top-0 border-end-0 border-bottom-0">
-                                <div class="d-flex justify-content-between align-items-start mb-2">
-                                    <div class="d-flex gap-2 align-items-center">
-                                        <div class="violation-icon">
-                                            <i class="bi bi-geo-alt-fill fs-5"></i>
+                            @forelse ($violations as $violation)
+                                @php
+                                    $isHighSeverity = strtolower($violation->severity) === 'high' || strtolower($violation->severity) === 'critical';
+                                    $borderColor = $isHighSeverity ? 'var(--alert)' : 'var(--amber)';
+                                    $iconBg = $isHighSeverity ? 'rgba(209, 73, 91, 0.1)' : 'rgba(242, 166, 60, 0.15)';
+                                    $textColor = $isHighSeverity ? 'var(--alert)' : 'var(--amber-ink)';
+                                    $badgeBorder = $isHighSeverity ? 'rgba(209, 73, 91, 0.25)' : 'rgba(242, 166, 60, 0.35)';
+                                @endphp
+                                <div class="card violation-card shadow-sm p-3 border-top-0 border-end-0 border-bottom-0" style="border-left-color: {{ $borderColor }};">
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <div class="d-flex gap-2 align-items-center">
+                                            <div class="violation-icon" style="background-color: {{ $iconBg }}; color: {{ $textColor }};">
+                                                <i class="bi {{ $isHighSeverity ? 'bi-geo-alt-fill' : 'bi-exclamation-circle' }} fs-5"></i>
+                                            </div>
+                                            <div>
+                                                <h6 class="mb-0 fw-bold" style="color: {{ $textColor }};">{{ $violation->name }}</h6>
+                                                <small class="text-muted fw-bold font-monospace" style="font-size: 0.7rem;">{{ $violation->location ?? 'Unknown Location' }}</small>
+                                            </div>
                                         </div>
-                                        <div>
-                                            <h6 class="mb-0 fw-bold" style="color: var(--alert);">Geofence Cheating
-                                            </h6>
-                                            <small class="text-muted fw-bold font-monospace"
-                                                style="font-size: 0.7rem;">Naga → Uling Route</small>
-                                        </div>
+                                        <span class="badge border font-monospace text-uppercase"
+                                            style="background-color: {{ $iconBg }}; color: {{ $textColor }}; border-color: {{ $badgeBorder }} !important;">
+                                            {{ $violation->severity }}
+                                        </span>
                                     </div>
-                                    <span class="badge border font-monospace"
-                                        style="background-color: rgba(209, 73, 91, 0.1); color: var(--alert); border-color: rgba(209, 73, 91, 0.25) !important;">Penalty</span>
-                                </div>
-                                <div class="p-2 rounded small font-monospace mt-2 d-flex justify-content-between"
-                                    style="background-color: var(--stone); color: var(--text-muted); border: 1px solid var(--line);">
-                                    <span><i class="bi bi-calendar-event me-1"></i> Oct 12, 2024</span>
-                                    <span><i class="bi bi-clock me-1"></i> 08:45 AM</span>
-                                </div>
-                                <div class="small mt-2" style="color: var(--ink-soft);">
-                                    <strong>System Note:</strong> Failed to ping Uling Wi-Fi Router verification point.
-                                    Arrived at terminal abnormally fast.
-                                </div>
-                            </div>
-
-                            <div class="card violation-card shadow-sm p-3 border-top-0 border-end-0 border-bottom-0"
-                                style="border-left-color: var(--amber);">
-                                <div class="d-flex justify-content-between align-items-start mb-2">
-                                    <div class="d-flex gap-2 align-items-center">
-                                        <div class="violation-icon"
-                                            style="background-color: rgba(242, 166, 60, 0.15); color: var(--amber-ink);">
-                                            <i class="bi bi-router fs-5"></i>
-                                        </div>
-                                        <div>
-                                            <h6 class="mb-0 fw-bold" style="color: var(--amber-ink);">Connection
-                                                Dropped</h6>
-                                            <small class="text-muted fw-bold font-monospace"
-                                                style="font-size: 0.7rem;">Uling → Naga Route</small>
-                                        </div>
+                                    <div class="p-2 rounded small font-monospace mt-2 d-flex justify-content-between"
+                                        style="background-color: var(--stone); color: var(--text-muted); border: 1px solid var(--line);">
+                                        <span><i class="bi bi-calendar-event me-1"></i> {{ $violation->created_at->format('M d, Y') }}</span>
+                                        <span><i class="bi bi-clock me-1"></i> {{ $violation->created_at->format('h:i A') }}</span>
                                     </div>
-                                    <span class="badge border font-monospace"
-                                        style="background-color: rgba(242, 166, 60, 0.15); color: var(--amber-ink); border-color: rgba(242, 166, 60, 0.35) !important;">Warning</span>
+                                    @if(!empty($violation->properties))
+                                        <div class="small mt-2" style="color: var(--ink-soft);">
+                                            <strong>System Note:</strong><br>
+                                            @foreach($violation->properties as $key => $val)
+                                                <span class="d-block">&bull; {{ $key }}: <span class="text-muted">{{ is_array($val) ? json_encode($val) : $val }}</span></span>
+                                            @endforeach
+                                        </div>
+                                    @endif
                                 </div>
-                                <div class="p-2 rounded small font-monospace mt-2 d-flex justify-content-between"
-                                    style="background-color: var(--stone); color: var(--text-muted); border: 1px solid var(--line);">
-                                    <span><i class="bi bi-calendar-event me-1"></i> Sep 28, 2024</span>
-                                    <span><i class="bi bi-clock me-1"></i> 02:15 PM</span>
+                            @empty
+                                <div class="text-center p-4">
+                                    <i class="bi bi-shield-check text-success fs-1 mb-2 d-block"></i>
+                                    <h6 class="fw-bold mb-0">No Active Warnings</h6>
+                                    <small class="text-muted">Your record is clean.</small>
                                 </div>
-                                <div class="small mt-2" style="color: var(--ink-soft);">
-                                    <strong>System Note:</strong> Dispatch delayed. Driver disconnected from Uling
-                                    router without clearing the queue gate.
-                                </div>
-                            </div>
-
-                            {{-- @empty --}}
-                            {{-- @endforelse --}}
+                            @endforelse
 
                         </div>
                     </div>

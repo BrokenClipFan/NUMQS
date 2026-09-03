@@ -50,6 +50,7 @@ Route::middleware('auth')->group(function () {
         Route::delete('/admin/reject/{id}', [DriverController::class, 'rejected'])->name('admin.verify.reject');
         
         Route::delete('/admin/violation/resolve/{id}', [DriverController::class, 'resolve'])->name('admin.violations.resolve');
+        Route::get('/admin/violations/resolved', [DriverFleet::class, 'resolved'])->name('admin.violations.resolved');
 
         Route::get('/verify/driver/{id}', [DriverVerificationController::class, 'index'])->name('verify.driver');
 

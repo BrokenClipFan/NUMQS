@@ -122,4 +122,8 @@ class DriverController extends Controller
 
         return redirect()->route('fleet.management')->with('success', 'Driver account has been Rejected');
     }
+
+    public function resolve(int $id, \App\Services\ViolationService $violationService) {
+        return $violationService->resolve($id);
+    }
 }

@@ -31,4 +31,8 @@ class DriverFleet extends Controller
                                                 ));
     }
 
+    public function resolved() {
+        $violations = Violation::whereNotNull('resolved_at')->with('profile')->get();
+        return view('admin.resolved-violations', compact('violations'));
+    }
 }

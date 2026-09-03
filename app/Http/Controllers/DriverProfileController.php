@@ -15,7 +15,15 @@ class DriverProfileController extends Controller
     {
         $userId = Auth::id();
         $driver = DriverProfile::where('user_id', $userId)->first();
-        return view('driver.profile', compact('driver'));
+        // Fetch unresolved violations for this driver's profile
+        $violations = collect();
+        if ($driver) {
+            $violations = \App\Models\Violation::where('driver_profile_id', $driver->id)
+                            ->whereNull('resolved_at')
+                            ->orderBy('created_at', 'desc')
+                            ->get();
+        }
+        return view('driver.profile', compact('driver', 'violations'));
     }
 
     /**

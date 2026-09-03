@@ -43,12 +43,12 @@ class ViolationService
         ]);
     }
 
-    public function resolve($id) {
-        $violation = Violation::findOrDie($id);
+    public function resolve(int $id) {
+        $violation = Violation::findOrFail($id);
         $violation->update([
-            resolved_at => now()
+            'resolved_at' => now()
         ]);
 
-        return redirect()->route('fleet.management')->with('success', 'Driver violation has been Resolve');
+        return redirect()->route('fleet.management')->with('success', 'Cheating warning has been resolved.');
     }
 }

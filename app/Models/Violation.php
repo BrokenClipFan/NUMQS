@@ -14,10 +14,12 @@ class Violation extends Model
         'location',
         'severity',
         'properties',
+        'resolved_at',
     ];
 
     protected $casts = [
         'properties' => 'array',
+        'resolved_at' => 'datetime',
     ];
 
     public function profile()

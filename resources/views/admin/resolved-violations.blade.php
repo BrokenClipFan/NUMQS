@@ -568,7 +568,6 @@
             $letters = array_map(fn ($p) => mb_strtoupper(mb_substr($p, 0, 1)), array_slice($parts, 0, 2));
             return implode('', $letters) ?: '?';
         };
-        $totalRegistered = ($unverifiedCount ?? count($unVerifiedUsers)) + ($verifiedCount ?? count($verifiedUsers));
     @endphp
 
     <!-- Admin Navigation Header -->
@@ -588,216 +587,15 @@
 
     <div class="container py-4" style="max-width: 960px;">
 
-        <!-- Quick Fleet Overview Section -->
-        <div class="row g-3 mb-4">
-            <div class="col-6 col-md-3">
-                <div class="metric-card p-3 d-flex align-items-center gap-3">
-                    <div class="metric-icon amber">
-                        <i class="bi bi-person-fill-exclamation"></i>
-                    </div>
-                    <div>
-                        <h4 class="metric-value">{{ $unverifiedCount ?? count($unVerifiedUsers) }}</h4>
-                        <span class="metric-label">Pending</span>
-                    </div>
-                </div>
-            </div>
-            <div class="col-6 col-md-3">
-                <div class="metric-card p-3 d-flex align-items-center gap-3">
-                    <div class="metric-icon green">
-                        <i class="bi bi-person-check-fill"></i>
-                    </div>
-                    <div>
-                        <h4 class="metric-value">{{ $verifiedCount ?? count($verifiedUsers) }}</h4>
-                        <span class="metric-label">Verified</span>
-                    </div>
-                </div>
-            </div>
-            <div class="col-6 col-md-3">
-                <div class="metric-card p-3 d-flex align-items-center gap-3">
-                    <div class="metric-icon blue">
-                        <i class="bi bi-truck"></i>
-                    </div>
-                    <div>
-                        <h4 class="metric-value">{{ $totalRegistered }}</h4>
-                        <span class="metric-label">Total Fleet</span>
-                    </div>
-                </div>
-            </div>
-            <div class="col-6 col-md-3">
-                <div class="metric-card p-3 d-flex align-items-center gap-3">
-                    <div class="metric-icon red">
-                        <i class="bi bi-exclamation-octagon-fill"></i>
-                    </div>
-                    <div>
-                        <h4 class="metric-value">{{ $violationsCount ?? count($violations) }}</h4>
-                        <span class="metric-label">Violations</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- SECTION 1: PENDING UNVERIFIED ACCOUNTS -->
-        <div class="fleet-card mb-4">
-            <div class="fleet-card-header pending">
-                <span><i class="bi bi-clock-history me-2"></i>Pending Applications</span>
-                <span class="section-tag pending">Needs Verification</span>
-            </div>
-
-            @if(count($unVerifiedUsers) > 0)
-            <div class="fleet-toolbar">
-                <div class="search-bar">
-                    <i class="bi bi-search"></i>
-                    <label for="pendingSearch" class="visually-hidden">Search pending applications</label>
-                    <input type="search" id="pendingSearch" placeholder="Search by name or email…" autocomplete="off">
-                </div>
-                <span class="results-count" id="pendingResultsCount"></span>
-            </div>
-            @endif
-
-            <div class="list-group list-group-flush m-0" id="pendingList" data-page-size="6">
-                @forelse($unVerifiedUsers as $user)
-                <div class="p-3 account-item d-flex align-items-center justify-content-between flex-wrap gap-2"
-                     data-search="{{ strtolower(($user->name ?? '') . ' ' . ($user->email ?? '')) }}">
-                    <div class="d-flex align-items-center gap-3">
-                        <div class="avatar-circle pending">
-                            @if(!empty($user->avatar))
-                                <img src="{{ $user->avatar }}" alt="">
-                            @else
-                                {{ $initialsOf($user->name ?? '?') }}
-                            @endif
-                        </div>
-                        <div>
-                            <h6 class="account-name">{{ $user->name }}</h6>
-                            <span class="account-meta">
-                                @if($user->email)
-                                    <i class="bi bi-envelope me-1"></i>{{ $user->email }}
-                                @else
-                                    <i class="bi bi-facebook me-1"></i>
-                                    <a href="https://www.facebook.com/profile.php?id={{ $user->facebook_id }}" class="text-decoration-none">
-                                        Facebook Profile
-                                    </a>
-                                @endif
-                            </span>
-                        </div>
-                    </div>
-                    <div class="account-item-actions">
-                        <a href="{{ route('verify.driver', $user->id) }}" class="btn btn-verify px-3 py-2 rounded-3 btn-sm shadow-sm d-inline-flex align-items-center justify-content-center gap-1">
-                            <i class="bi bi-pencil-square"></i> Verify &amp; Complete Profile
-                        </a>
-                    </div>
-                </div>
-                @empty
-                <div class="empty-state">
-                    <i class="bi bi-inbox"></i>
-                    No pending applications right now.
-                </div>
-                @endforelse
-            </div>
-
-            @if(count($unVerifiedUsers) > 0)
-            <div class="pager hidden" id="pendingPager">
-                <button type="button" class="pager-btn pager-prev"><i class="bi bi-chevron-left"></i> Prev</button>
-                <span class="pager-label pager-page-label">Page 1 of 1</span>
-                <button type="button" class="pager-btn pager-next">Next <i class="bi bi-chevron-right"></i></button>
-            </div>
-            @endif
-        </div>
-
-        <!-- SECTION 2: VERIFIED ACCOUNTS -->
-        <div class="fleet-card mb-4">
-            <div class="fleet-card-header verified">
-                <span><i class="bi bi-shield-check me-2"></i>Verified Fleet Database</span>
-                <span class="section-tag verified">Active Trackers</span>
-            </div>
-
-            @if(count($verifiedUsers) > 0)
-            <div class="fleet-toolbar">
-                <div class="search-bar">
-                    <i class="bi bi-search"></i>
-                    <label for="verifiedSearch" class="visually-hidden">Search verified drivers</label>
-                    <input type="search" id="verifiedSearch" placeholder="Search by name or plate number…" autocomplete="off">
-                </div>
-                <span class="results-count" id="verifiedResultsCount"></span>
-            </div>
-            @endif
-
-            <div class="list-group list-group-flush m-0" id="verifiedList" data-page-size="8">
-                @forelse($verifiedUsers as $user)
-                    @php
-                        $fullName = trim(($user->profile->first_name ?? '') . ' ' . ($user->profile->last_name ?? ''));
-                    @endphp
-                    <div class="p-3 account-item d-flex align-items-center justify-content-between flex-wrap gap-3"
-                         data-search="{{ strtolower($fullName . ' ' . ($user->profile->plate_number ?? '')) }}">
-                        <div class="d-flex align-items-center flex-grow-1 gap-3">
-                            <div class="avatar-circle verified">
-                                @if(!empty($user->avatar))
-                                    <img src="{{ $user->avatar }}" alt="">
-                                @else
-                                    {{ $initialsOf($fullName ?: '?') }}
-                                @endif
-                            </div>
-                            <div class="row w-100 g-2 align-items-center">
-                                <!-- Driver Info (4 columns) -->
-                                <div class="col-12 col-md-4">
-                                    <h6 class="account-name mb-0">{{ $fullName }}</h6>
-                                    <span class="account-meta">ID: {{ $user->profile->id }}</span>
-                                </div>
-                                
-                                <!-- Plate Number (3 columns) -->
-                                <div class="col-12 col-md-3">
-                                    <span class="plate-pill">
-                                        <i class="bi bi-truck-front-fill"></i>{{ $user->profile->plate_number }}
-                                    </span>
-                                </div>
-                                
-                                <!-- Action Buttons (5 columns, aligned to the right on desktop) -->
-                                <div class="col-12 col-md-5 d-flex justify-content-start justify-content-md-end gap-2 mt-2 mt-md-0">
-                                    <!-- Profile Button -->
-                                    <a href="{{ route('view.driver', $user->id) }}" class="btn btn-outline-success px-3 py-2 rounded-3 btn-sm shadow-sm d-inline-flex align-items-center justify-content-center gap-1">
-                                        <i class="bi bi-eye"></i> Profile
-                                    </a>
-                                    
-                                    <!-- View in Map Feature (Now passing the user ID) -->
-                                    <a href="{{ route('driver.map', ['driver_id' => $user->id]) }}" class="btn btn-outline-warning px-3 py-2 rounded-3 btn-sm shadow-sm d-inline-flex align-items-center justify-content-center gap-1">
-                                        <i class="bi bi-geo-alt"></i> View in Map
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="account-item-actions">
-                            <button type="button" 
-                                    class="btn btn-delete-account px-3 py-2 rounded-3 btn-sm shadow-sm d-inline-flex align-items-center justify-content-center gap-1"
-                                    onclick="modalOpen('{{ route('admin.drivers.destroy', $user->id) }}', '{{ $fullName }}')">
-                                <i class="bi bi-trash3"></i> Delete Account
-                            </button>
-                        </div>
-                    </div>
-                @empty
-                    <div class="empty-state">
-                        <i class="bi bi-inbox"></i>
-                        No verified drivers yet.
-                    </div>
-                @endforelse
-            </div>
-
-            @if(count($verifiedUsers) > 0)
-            <div class="pager hidden" id="verifiedPager">
-                <button type="button" class="pager-btn pager-prev"><i class="bi bi-chevron-left"></i> Prev</button>
-                <span class="pager-label pager-page-label">Page 1 of 1</span>
-                <button type="button" class="pager-btn pager-next">Next <i class="bi bi-chevron-right"></i></button>
-            </div>
-            @endif
-        </div>
-
         <!-- SECTION 3: CHEATING WARNINGS -->
         <div class="fleet-card">
-            <div class="fleet-card-header violations d-flex justify-content-between align-items-center">
+            <div class="fleet-card-header violations bg-success bg-opacity-10 d-flex justify-content-between align-items-center">
                 <div>
-                    <span><i class="bi bi-exclamation-octagon-fill me-2"></i>Driver Cheating Warnings</span>
-                    <span class="section-tag violations">Warning Logs</span>
+                    <span class="text-success"><i class="bi bi-check-circle-fill me-2"></i>Resolved Cheating Warnings</span>
+                    <span class="section-tag bg-success text-white">Resolved Logs</span>
                 </div>
-                <a href="{{ route('admin.violations.resolved') }}" class="btn btn-sm btn-light text-success fw-bold border-success rounded-3 px-3">
-                    <i class="bi bi-check-all"></i> View Resolved
+                <a href="{{ route('fleet.management') }}" class="btn btn-sm btn-light border-secondary rounded-3 px-3 fw-bold">
+                    <i class="bi bi-arrow-left"></i> Back to Dashboard
                 </a>
             </div>
 
@@ -878,10 +676,9 @@
                                             </a>
                                         @endif
 
-                                        <button type="button" class="btn btn-outline-success btn-sm px-2 py-2 rounded-3 d-inline-flex align-items-center justify-content-center gap-1"
-                                                onclick="violationModalOpen('{{ route('admin.violations.resolve', $violation->id) }}', '{{ $violation->name }}', '{{ $driverName }}')" title="Resolve Warning">
-                                            <i class="bi bi-check-circle"></i> Resolve
-                                        </button>
+                                        <span class="badge bg-success-subtle text-success px-2 py-2 rounded-3 d-inline-flex align-items-center gap-1">
+                                            <i class="bi bi-check-all"></i> Resolved
+                                        </span>
                                     </div>
                                 </td>
                             </tr>

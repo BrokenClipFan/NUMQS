@@ -797,8 +797,7 @@
     <nav class="navbar navbar-expand-lg nav-sticky-top px-2 py-2">
         <div class="container-fluid d-flex justify-content-between align-items-center p-0">
             <a class="navbar-brand brand-mark m-0" href="#">
-                <i class="bi bi-bus-front-fill"></i>
-                <span class="fs-6 fs-md-5">ParaTrack</span>
+                <img src="{{ asset('Logo.png') }}" alt="Logo" style="height: 28px; width: auto; object-fit: contain;">
                 <span class="live-dot ms-1" title="Live"></span>
             </a>
 
@@ -819,6 +818,13 @@
                     <span class="hide-on-mobile-xs">POS</span>
                     <span id="navPositionBadge">—</span>
                 </span>
+
+                @if(auth()->check() && auth()->user()->role === 'admin')
+                    <a href="{{ route('fleet.management') }}"
+                        class="btn btn-sm btn-dashboard d-flex align-items-center gap-1 px-2 rounded-2" title="Admin Dashboard">
+                        <i class="bi bi-shield-lock-fill text-amber"></i> <span class="d-none d-md-inline">Admin</span>
+                    </a>
+                @endif
 
                 <a href="{{ route('profile.index') }}"
                     class="btn btn-sm btn-dashboard d-flex align-items-center gap-1 px-2 rounded-2" title="Dashboard">
@@ -978,8 +984,10 @@
                 zoomControl: false
             }).setView([10.2350, 123.7350], 13);
 
-            L.tileLayer('https://{s}.tile-cyclosm.openstreetmap.fr/cyclosm/{z}/{x}/{y}.png', {
-                attribution: '<a href="https://github.com/cyclosm/cyclosm-cartocss-style/releases" title="CyclOSM - Open Bicycle render">CyclOSM</a> | Map data: &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+            // Use standard, clean OSM map tiles (most reliable, no ORB issues)
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 20,
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
             }).addTo(map);
 
             const driversPinLayer = L.layerGroup().addTo(map);
@@ -1033,8 +1041,9 @@
                         `/storage/${driver.profile.image_profile_path}` :
                         '/images/default-avatar.png'; // Optional fallback image
 
-                    const iconFilePath = '/storage/' + driver.profile.jeep_icon;
-
+                    const iconFilePath = driver.profile?.jeep_icon ?
+                        `/storage/${driver.profile.jeep_icon}` :
+                        '/Logo.png'; // Fallback to logo or default icon if null
                     const jeepIcon = L.divIcon({
                         className: 'jeepney-marker-container',
                         html: `<img src="${escapeHtml(iconFilePath)}" class="jeepney-sprite" alt="jeepney">`,
@@ -1126,22 +1135,27 @@
                 // ---------------------------------------------------------------
                 const searchInput = document.getElementById('driverSearch');
                 const searchResultsEl = document.getElementById('searchResults');
+                
+                let searchDebounceTimer;
 
                 searchInput.addEventListener('input', function() {
-                    const query = this.value.toLowerCase().trim();
-                    searchResultsEl.innerHTML = ''; // Clear previous results
-
-                    if (query.length === 0) {
-                        searchResultsEl.classList.add('d-none');
-                        return;
-                    }
-
-                    // Filter drivers by name or plate number
-                    const matches = allDriversData.filter(driver => {
-                        const fullName = fullNameOf(driver.profile).toLowerCase();
-                        const plate = (driver.profile.plate_number || '').toLowerCase();
-                        return fullName.includes(query) || plate.includes(query);
-                    });
+                    clearTimeout(searchDebounceTimer);
+                    
+                    searchDebounceTimer = setTimeout(() => {
+                        const query = this.value.toLowerCase().trim();
+                        searchResultsEl.innerHTML = ''; // Clear previous results
+    
+                        if (query.length === 0) {
+                            searchResultsEl.classList.add('d-none');
+                            return;
+                        }
+    
+                        // Filter drivers by name or plate number
+                        const matches = allDriversData.filter(driver => {
+                            const fullName = fullNameOf(driver.profile).toLowerCase();
+                            const plate = (driver.profile.plate_number || '').toLowerCase();
+                            return fullName.includes(query) || plate.includes(query);
+                        });
 
                     if (matches.length === 0) {
                         searchResultsEl.innerHTML =
@@ -1195,6 +1209,7 @@
                     });
 
                     searchResultsEl.classList.remove('d-none');
+                    }, 300); // 300ms debounce
                 });
 
                 // Hide search results if the user clicks anywhere else on the screen
