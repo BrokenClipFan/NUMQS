@@ -77,19 +77,41 @@ class DriverController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function updateLocation(Request $request)
+    public function updateLocation(Request $request, \App\Services\QueueService $queueService, \App\Services\TerminalService $terminalService)
     {
         $request->validate([
             'latitude' => 'required|numeric',
             'longitude' => 'required|numeric',
+            'wifi_bssid' => 'nullable|string'
         ]);
 
         $user = DriverStatus::where('user_id', Auth::id())->firstOrFail();
+        
+        $oldBssid = $user->wifi_bssid;
+        $newBssid = $request->input('wifi_bssid', $oldBssid);
+
         $user->update([
             'latitude' => $request->latitude,
             'longitude' => $request->longitude,
+            'wifi_bssid' => $newBssid,
             'last_updated' => now()
         ]);
+
+        // If driver was queued and they leave the terminal's WiFi, automatically dispatch them
+        if ($user->state === 'queued' && $oldBssid && $oldBssid !== $newBssid) {
+            $currentTerminal = $terminalService->getTerminalByBssid($oldBssid);
+            if ($currentTerminal) {
+                $nextTerminal = $currentTerminal->name == "Uling" ? "Naga" : "Uling";
+                
+                $user->update([
+                    'dispatched_to' => $nextTerminal,
+                    'going_to' => $nextTerminal,
+                    'state' => 'in_route'
+                ]);
+
+                $queueService->removeFromQueue($user);
+            }
+        }
 
         return back()->with('success', 'Location is Updated');
     }

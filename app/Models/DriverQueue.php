@@ -22,4 +22,8 @@ class DriverQueue extends Model
     public function status() {
         return $this->belongsTo(DriverStatus::class, 'driver_profile_id', 'user_id');
     }
+
+    public function terminal() {
+        return $this->belongsTo(Terminal::class, 'terminal_id');
+    }
 }

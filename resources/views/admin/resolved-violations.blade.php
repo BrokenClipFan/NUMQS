@@ -570,22 +570,10 @@
         };
     @endphp
 
-    <!-- Admin Navigation Header -->
-    <nav class="navbar navbar-expand-lg nav-sticky-top px-3 py-2">
-        <div class="container-fluid d-flex justify-content-between align-items-center p-0" style="max-width: 960px; margin: 0 auto;">
-            <a class="back-link" href="{{ route('driver.map') }}">
-                <i class="bi bi-arrow-left-short"></i>
-                <span class="fs-6">Map</span>
-            </a>
-            <a class="navbar-brand brand-mark m-0" href="#">
-                <i class="bi bi-shield-lock-fill"></i>
-                <span class="fs-6 fs-md-5">Admin Fleet Directory</span>
-            </a>
-        </div>
-    </nav>
+    @include('partials.admin-nav')
     @include('partials.notifications');
 
-    <div class="container py-4" style="max-width: 960px;">
+    <div class="container-fluid px-3 px-md-4 py-4">
 
         <!-- SECTION 3: CHEATING WARNINGS -->
         <div class="fleet-card">
@@ -1087,3 +1075,4 @@
     </script>
 </body>
 </html>
+

@@ -14,6 +14,7 @@ class QueueService {
       'terminal_id' => $terminal->id,
       'queued_at' => now(),
       'position' => $position,
+      'filling_at' => $position == 1 ? now() : null // Auto-start if first
     ]);
 
     DriverStatus::where('user_id', $driver->user_id)->update([
@@ -42,7 +43,7 @@ class QueueService {
   }
 
   public function getTopPosition($wifi) {
-    return DriverQueue::where('terminal_id', $wifi->id)->orderBy('position')->first();
+    return DriverQueue::where('terminal_id', $wifi->id)->orderBy('position', 'asc')->first();
   }
 
   public function getFillingAtMinutes($driver, $wifi) {
@@ -70,10 +71,24 @@ class QueueService {
   }
   
   public function removeFromQueue($driver) {
+    // Get their terminal before deleting
+    $queuedDriver = DriverQueue::where('driver_profile_id', $driver->user_id)->first();
+    $terminalId = $queuedDriver ? $queuedDriver->terminal_id : null;
+
     DriverStatus::where('user_id', $driver->user_id)->update([
       'queued_in' => null,
     ]);
-    return DriverQueue::where('driver_profile_id', $driver->user_id)->delete();
+    $deleted = DriverQueue::where('driver_profile_id', $driver->user_id)->delete();
+
+    // Promote the next driver in the queue to start filling up
+    if ($terminalId) {
+        $nextTop = DriverQueue::where('terminal_id', $terminalId)->orderBy('position', 'asc')->first();
+        if ($nextTop && is_null($nextTop->filling_at)) {
+            $nextTop->update(['filling_at' => now()]);
+        }
+    }
+
+    return $deleted;
   }
 
   public function setFillingUp($driver) {

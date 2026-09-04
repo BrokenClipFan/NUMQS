@@ -246,7 +246,7 @@
                             <div class="text-center mb-4">
                                 <div class="profile-img-container">
                                     <img src="{{ asset('storage/' . $driver->image_profile_path) }}" id="profilePreview"
-                                        class="profile-img" alt="Driver Photo">
+                                        class="profile-img" alt="Driver Photo" onclick="zoomImage(this.src)" style="cursor: zoom-in;">
 
                                     <label for="photoUpload" class="upload-btn" title="Upload new photo">
                                         <i class="bi bi-pencil-fill"></i>
@@ -389,8 +389,8 @@
                                         <span class="position-absolute top-0 start-0 m-1 px-1 rounded text-white"
                                             style="font-size: 0.55rem; background: rgba(0,0,0,0.6); z-index: 2;">FRONT</span>
                                         <img src="{{ asset('storage/' . $driver->image_front_path) }}"
-                                            style="width: 100%; height: 100%; object-fit: cover; opacity: 0.8;"
-                                            alt="Front view">
+                                            style="width: 100%; height: 100%; object-fit: cover; opacity: 0.8; cursor: zoom-in;"
+                                            alt="Front view" onclick="zoomImage(this.src)">
                                     </div>
                                 </div>
                                 <div class="col-4">
@@ -399,8 +399,8 @@
                                         <span class="position-absolute top-0 start-0 m-1 px-1 rounded text-white"
                                             style="font-size: 0.55rem; background: rgba(0,0,0,0.6); z-index: 2;">SIDE</span>
                                         <img src="{{ asset('storage/' . $driver->image_side_path) }}"
-                                            style="width: 100%; height: 100%; object-fit: cover; opacity: 0.8;"
-                                            alt="Side view">
+                                            style="width: 100%; height: 100%; object-fit: cover; opacity: 0.8; cursor: zoom-in;"
+                                            alt="Side view" onclick="zoomImage(this.src)">
                                     </div>
                                 </div>
                                 <div class="col-4">
@@ -409,8 +409,8 @@
                                         <span class="position-absolute top-0 start-0 m-1 px-1 rounded text-white"
                                             style="font-size: 0.55rem; background: rgba(0,0,0,0.6); z-index: 2;">PLATE</span>
                                         <img src="{{ asset('storage/' . $driver->image_plate_path) }}"
-                                            style="width: 100%; height: 100%; object-fit: cover; opacity: 0.8;"
-                                            alt="Plate view">
+                                            style="width: 100%; height: 100%; object-fit: cover; opacity: 0.8; cursor: zoom-in;"
+                                            alt="Plate view" onclick="zoomImage(this.src)">
                                     </div>
                                 </div>
                             </div>
@@ -454,11 +454,10 @@
                     style="background-color: rgba(209, 73, 91, 0.08); border: 1px solid rgba(209, 73, 91, 0.25); color: var(--alert);">
                     <i class="bi bi-shield-exclamation fs-3 mt-1"></i>
                     <div>
-                        <h6 class="fw-bold mb-1" style="font-family: var(--font-display);">Anti-Cheating System Active
-                        </h6>
-                        <p class="mb-0 small" style="color: var(--ink-soft);">Bypassing the Uling Wi-Fi Router
-                            dead-spot verification (Geofence Cheating) will result in automatic warnings and potential
-                            queue suspensions.</p>
+                        <h6 class="fw-bold mb-1" style="font-family: var(--font-display);">Anti-Cheating System Active</h6>
+                        <p class="mb-0 small" style="color: var(--ink-soft);">
+                            Going to the wrong terminal or bypassing the proper route will automatically log a Cheating Warning on your record.
+                        </p>
                     </div>
                 </div>
 
@@ -530,9 +529,29 @@
         </div>
     </div>
 
+    <!-- Image Zoom Modal -->
+    <div class="modal fade" id="imageZoomModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content bg-transparent border-0">
+                <div class="modal-header border-0 pb-0 justify-content-end">
+                    <button type="button" class="btn-close btn-close-white bg-white m-2" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body text-center pt-0">
+                    <img id="zoomedImage" src="" class="img-fluid rounded-3 shadow-lg" alt="Zoomed view" style="max-height: 85vh; object-fit: contain;">
+                </div>
+            </div>
+        </div>
+    </div>
+
     @include('partials.notifications')
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
+        function zoomImage(src) {
+            document.getElementById('zoomedImage').src = src;
+            new bootstrap.Modal(document.getElementById('imageZoomModal')).show();
+        }
+
+
         // Simple script to preview the profile image before submitting the form
         function previewImage(event) {
             const input = event.target;

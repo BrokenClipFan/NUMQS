@@ -935,7 +935,7 @@
             // ---------------------------------------------------------------
             const CURRENT_DRIVER_ID = "{{ $driver->id }}";
             const POLL_INTERVAL_MS = 2000;
-            const FILL_WINDOW_MS = 10 * 60 * 1000; // 10 minute strict window
+            const FILL_WINDOW_MS = 15 * 60 * 1000; // 15 minute strict window
 
             const nagaToUlingQueueEl = document.getElementById('nagaToUlingQueue');
             const ulingToNagaQueueEl = document.getElementById('ulingToNagaQueue');
@@ -1250,7 +1250,9 @@
                     return badge;
                 }
 
-                const deadline = new Date(fillingAt).getTime() + FILL_WINDOW_MS;
+                // Fix Safari/Chrome UTC parsing by replacing space with T and appending Z
+                const safeDateStr = fillingAt.replace(' ', 'T') + (fillingAt.endsWith('Z') ? '' : 'Z');
+                const deadline = new Date(safeDateStr).getTime() + FILL_WINDOW_MS;
                 const remaining = deadline - Date.now();
                 const overdue = remaining <= 0;
                 const {

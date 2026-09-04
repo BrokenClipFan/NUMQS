@@ -109,21 +109,8 @@ class MoveJepneys extends Command
                         $queueService->setFillingUp($driver);
                     }
 
-                    $duration = $queueService->getFillingAtMinutes($driver, $currentTerminal);
-
-                    if ($duration >= 1) {
-                        // Dispatch them to the opposite end
-                        $nextTerminal = $currentTerminal->name == "Uling" ? "Naga" : "Uling";
-
-                        $driver->dispatched_to = $nextTerminal;
-                        $driver->going_to = $nextTerminal; 
-                        $driver->state = "in_route";
-                        
-                        // Force index 1 step out of terminal boundaries to break queue loop lock
-                        $index += ($nextTerminal === "Uling") ? 1 : -1; 
-                        
-                        $queueService->removeFromQueue($driver);
-                    } 
+                    // Dispatch logic has been moved to DriverController@updateLocation
+                    // where it dynamically checks if the driver moves outside the terminal's Wi-Fi BSSID
                 }
                 
                 // 7. Extract map data and persist state updates

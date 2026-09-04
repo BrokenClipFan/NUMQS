@@ -31,8 +31,23 @@ class DriverFleet extends Controller
                                                 ));
     }
 
+    public function queues() {
+        $activeQueues = \App\Models\DriverQueue::with(['profile.user', 'terminal'])->orderBy('terminal_id')->orderBy('position')->get();
+        return view('admin.queues', compact('activeQueues'));
+    }
+
     public function resolved() {
         $violations = Violation::whereNotNull('resolved_at')->with('profile')->get();
         return view('admin.resolved-violations', compact('violations'));
+    }
+
+    public function reorder(\Illuminate\Http\Request $request) {
+        $orders = $request->input('orders');
+        if (is_array($orders)) {
+            foreach ($orders as $index => $id) {
+                \App\Models\DriverQueue::where('id', $id)->update(['position' => $index + 1]);
+            }
+        }
+        return response()->json(['success' => true, 'message' => 'Queue reordered successfully']);
     }
 }

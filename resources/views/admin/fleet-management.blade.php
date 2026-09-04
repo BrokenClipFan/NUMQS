@@ -571,22 +571,10 @@
         $totalRegistered = ($unverifiedCount ?? count($unVerifiedUsers)) + ($verifiedCount ?? count($verifiedUsers));
     @endphp
 
-    <!-- Admin Navigation Header -->
-    <nav class="navbar navbar-expand-lg nav-sticky-top px-3 py-2">
-        <div class="container-fluid d-flex justify-content-between align-items-center p-0" style="max-width: 960px; margin: 0 auto;">
-            <a class="back-link" href="{{ route('driver.map') }}">
-                <i class="bi bi-arrow-left-short"></i>
-                <span class="fs-6">Map</span>
-            </a>
-            <a class="navbar-brand brand-mark m-0" href="#">
-                <i class="bi bi-shield-lock-fill"></i>
-                <span class="fs-6 fs-md-5">Admin Fleet Directory</span>
-            </a>
-        </div>
-    </nav>
+    @include('partials.admin-nav')
     @include('partials.notifications');
 
-    <div class="container py-4" style="max-width: 960px;">
+    <div class="container-fluid px-3 px-md-4 py-4">
 
         <!-- Quick Fleet Overview Section -->
         <div class="row g-3 mb-4">
@@ -635,6 +623,7 @@
                 </div>
             </div>
         </div>
+
 
         <!-- SECTION 1: PENDING UNVERIFIED ACCOUNTS -->
         <div class="fleet-card mb-4">
@@ -789,16 +778,10 @@
             @endif
         </div>
 
-        <!-- SECTION 3: CHEATING WARNINGS -->
         <div class="fleet-card">
-            <div class="fleet-card-header violations d-flex justify-content-between align-items-center">
-                <div>
-                    <span><i class="bi bi-exclamation-octagon-fill me-2"></i>Driver Cheating Warnings</span>
-                    <span class="section-tag violations">Warning Logs</span>
-                </div>
-                <a href="{{ route('admin.violations.resolved') }}" class="btn btn-sm btn-light text-success fw-bold border-success rounded-3 px-3">
-                    <i class="bi bi-check-all"></i> View Resolved
-                </a>
+            <div class="fleet-card-header violations">
+                <span><i class="bi bi-exclamation-octagon-fill me-2"></i>Driver Cheating Warnings</span>
+                <span class="section-tag violations">Warning Logs</span>
             </div>
 
             @if(count($violations) > 0)
@@ -1290,3 +1273,4 @@
     </script>
 </body>
 </html>
+

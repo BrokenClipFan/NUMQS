@@ -51,6 +51,8 @@ Route::middleware('auth')->group(function () {
         
         Route::delete('/admin/violation/resolve/{id}', [DriverController::class, 'resolve'])->name('admin.violations.resolve');
         Route::get('/admin/violations/resolved', [DriverFleet::class, 'resolved'])->name('admin.violations.resolved');
+        Route::get('/admin/queues', [DriverFleet::class, 'queues'])->name('admin.queues');
+        Route::post('/admin/queues/reorder', [DriverFleet::class, 'reorder'])->name('admin.queues.reorder');
 
         Route::get('/verify/driver/{id}', [DriverVerificationController::class, 'index'])->name('verify.driver');
 
