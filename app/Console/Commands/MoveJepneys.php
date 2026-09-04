@@ -109,8 +109,40 @@ class MoveJepneys extends Command
                         $queueService->setFillingUp($driver);
                     }
 
-                    // Dispatch logic has been moved to DriverController@updateLocation
-                    // where it dynamically checks if the driver moves outside the terminal's Wi-Fi BSSID
+                    // SIMULATION DISPATCH LOGIC:
+                    // In real life, DriverController@updateLocation handles BSSID departure.
+                    // For this simulation command, we must simulate them physically leaving.
+                    if ($driver->state == 'queued') {
+                        $duration = $queueService->getFillingAtMinutes($driver, $currentTerminal);
+                        $shouldDispatch = false;
+
+                        if ($currentTerminal->name == "Uling") {
+                            // Uling dispatches strictly on a timer (e.g. 15 mins)
+                            // We use 3 minutes here so the simulation doesn't take forever to watch
+                            if ($duration >= 3) {
+                                $shouldDispatch = true;
+                            }
+                        } else {
+                            // Naga dispatches randomly when jeepney is full
+                            // We simulate a random chance of getting full after at least 1 minute
+                            if ($duration >= 1 && mt_rand(1, 100) > 70) {
+                                $shouldDispatch = true;
+                            }
+                        }
+
+                        if ($shouldDispatch) {
+                            $nextTerminal = $currentTerminal->name == "Uling" ? "Naga" : "Uling";
+
+                            $driver->dispatched_to = $nextTerminal;
+                            $driver->going_to = $nextTerminal; 
+                            $driver->state = "in_route";
+                            
+                            // Step out of terminal bounds so they start moving
+                            $index += ($nextTerminal === "Uling") ? 1 : -1; 
+                            
+                            $queueService->removeFromQueue($driver);
+                        }
+                    }
                 }
                 
                 // 7. Extract map data and persist state updates
