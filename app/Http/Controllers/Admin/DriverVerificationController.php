@@ -22,6 +22,17 @@ class DriverVerificationController extends Controller
         return view('admin.verify-driver', compact('driver'));
     }
 
+    public function setDispatcher(int $id) {
+        $user = User::findOrFail($id);
+        
+        $user->update([
+            'role' => 'dispatcher',
+            'is_verified' => true
+        ]);
+        
+        return redirect()->route('fleet.management')->with('success', 'User has been approved as a Dispatcher.');
+    }
+
     public function store(Request $request, int $id)
     {
         $validated = $request->validate([

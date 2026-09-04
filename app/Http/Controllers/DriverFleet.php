@@ -50,4 +50,17 @@ class DriverFleet extends Controller
         }
         return response()->json(['success' => true, 'message' => 'Queue reordered successfully']);
     }
+
+    public function dispatchers() {
+        $dispatchers = User::where('role', 'dispatcher')->get();
+        return view('admin.dispatchers', compact('dispatchers'));
+    }
+
+    public function revokeDispatcher($id) {
+        $user = User::findOrFail($id);
+        if ($user->role === 'dispatcher') {
+            $user->delete();
+        }
+        return redirect()->route('admin.dispatchers')->with('success', 'Dispatcher account successfully revoked and deleted.');
+    }
 }

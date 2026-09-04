@@ -1,4 +1,4 @@
-﻿<!-- Admin Navigation Header -->
+<!-- Admin Navigation Header -->
 <nav class="navbar navbar-expand-lg nav-sticky-top px-3 py-2">
     <div class="container-fluid d-flex justify-content-between align-items-center p-0" style="width: 100%;">
         <div class="d-flex align-items-center gap-2 gap-md-3">
@@ -11,6 +11,9 @@
             </a>
             <a href="{{ route('admin.queues') }}" class="btn {{ request()->routeIs('admin.queues') ? 'btn-light text-primary' : 'btn-primary text-white' }} btn-sm d-inline-flex align-items-center gap-2 rounded-3 shadow-sm px-3 fw-bold" style="{{ request()->routeIs('admin.queues') ? '' : 'background-color: var(--primary); border: none;' }}">
                 <i class="bi bi-list-ol"></i> <span class="d-none d-md-inline">Live Queues</span>
+            </a>
+            <a href="{{ route('admin.dispatchers') }}" class="btn {{ request()->routeIs('admin.dispatchers') ? 'btn-light text-primary' : 'btn-primary text-white' }} btn-sm d-inline-flex align-items-center gap-2 rounded-3 shadow-sm px-3 fw-bold" style="{{ request()->routeIs('admin.dispatchers') ? '' : 'background-color: var(--primary); border: none;' }}">
+                <i class="bi bi-person-badge-fill"></i> <span class="d-none d-md-inline">Dispatchers</span>
             </a>
             <a href="{{ route('admin.violations.resolved') }}" class="btn {{ request()->routeIs('admin.violations.resolved') ? 'btn-light text-primary' : 'btn-primary text-white' }} btn-sm d-inline-flex align-items-center gap-2 rounded-3 shadow-sm px-3 fw-bold border-0" style="{{ request()->routeIs('admin.violations.resolved') ? '' : 'background-color: var(--primary); border: none;' }}">
                 <i class="bi bi-check-all"></i> <span class="d-none d-md-inline">Resolved Warnings</span>

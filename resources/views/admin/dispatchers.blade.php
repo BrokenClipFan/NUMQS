@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Fleet Management | Admin Dashboard</title>
@@ -562,309 +561,97 @@
     </style>
 </head>
 <body>
-
-    @php
-        $initialsOf = function (string $text): string {
-            $parts = array_filter(preg_split('/\s+/', trim($text)));
-            $letters = array_map(fn ($p) => mb_strtoupper(mb_substr($p, 0, 1)), array_slice($parts, 0, 2));
-            return implode('', $letters) ?: '?';
-        };
-        
-        $fullNameOf = function($profile) {
-            if(!$profile) return 'Unknown Driver';
-            $name = trim(($profile->first_name ?? '') . ' ' . ($profile->middle_name ?? '') . ' ' . ($profile->last_name ?? ''));
-            $name = preg_replace('/\s+/', ' ', $name);
-            return $name ?: ($profile->user->name ?? 'Unknown Driver');
-        };
-
-        $nagaQueues = $activeQueues->filter(function($q) { return stripos($q->terminal->name ?? '', 'naga') !== false; })->values();
-        $ulingQueues = $activeQueues->filter(function($q) { return stripos($q->terminal->name ?? '', 'uling') !== false; })->values();
-    @endphp
-
-        <!-- Dispatcher Navigation Header -->
-    <nav class="navbar navbar-expand-lg nav-sticky-top px-3 py-2">
-        <div class="container-fluid d-flex justify-content-between align-items-center p-0" style="width: 100%;">
-            <div class="d-flex align-items-center gap-2 gap-md-3">
-                <span class="fs-5 fw-bold d-flex align-items-center gap-2" style="color: var(--amber);">
-                    <i class="bi bi-person-badge-fill"></i> Dispatcher Console
-                </span>
-            </div>
-            <a class="navbar-brand m-0 d-none d-sm-flex" href="#">
-                <img src="{{ asset('Logo.png') }}" alt="Logo" style="height: 38px; width: auto;">
-            </a>
-            <form method="POST" action="{{ route('logout') }}" class="m-0">
-                @csrf
-                <button type="submit" class="btn btn-outline-light btn-sm px-3 rounded-3" style="color: var(--stone); border-color: var(--stone);">
-                    <i class="bi bi-box-arrow-left me-1"></i> Sign Out
-                </button>
-            </form>
-        </div>
-    </nav>
-    @include('partials.notifications');
+    @include('partials.admin-nav')
+    @include('partials.notifications')
 
     <div class="container-fluid px-3 px-md-4 py-4">
 
-    @php
-        $nagaQueues = $activeQueues->filter(function($q) { return stripos($q->terminal->name ?? '', 'naga') !== false; })->values();
-        $ulingQueues = $activeQueues->filter(function($q) { return stripos($q->terminal->name ?? '', 'uling') !== false; })->values();
-    @endphp
-
-    <!-- NAGA QUEUE -->
-    <div class="fleet-card mb-4" id="naga-queue-container">
-        <div class="fleet-card-header bg-primary bg-opacity-10 d-flex justify-content-between align-items-center">
+        <!-- Header Section -->
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-4 gap-3">
             <div>
-                <span class="text-primary"><i class="bi bi-geo-alt-fill me-2"></i>Naga Terminal Queue</span>
-                <span class="section-tag bg-primary text-white border-primary">Live</span>
-            </div>
-            <div class="d-flex gap-2">
-                <button class="btn btn-sm btn-outline-secondary d-none cancel-btn" onclick="cancelOrder('naga')">Cancel</button>
-                <button class="btn btn-sm btn-primary d-none save-btn" onclick="saveOrder('naga')">Save Changes</button>
+                <h1 class="mb-0 fs-3 fw-bold" style="color: var(--ink); font-family: var(--font-display);">
+                    <i class="bi bi-person-badge-fill" style="color: var(--amber);"></i> Dispatcher Accounts
+                </h1>
+                <p class="mb-0 text-muted">Manage terminal dispatchers and revoke access if necessary.</p>
             </div>
         </div>
 
-        <div class="table-responsive m-0" style="max-height: 450px; overflow-y: auto;">
-            <table class="table table-hover align-middle m-0" style="background: var(--card);">
-                <thead class="table-dark font-monospace" style="font-size: 0.75rem; background-color: var(--ink); position: sticky; top: 0; z-index: 10;">
-                    <tr>
-                        <th class="border-0 px-4 py-3" style="border-top-left-radius: 6px; width: 80px;">POS</th>
-                        <th class="border-0 py-3">DRIVER & JEEPNEY</th>
-                        <th class="border-0 py-3">QUEUED TIME</th>
-                        
-                    </tr>
-                </thead>
-                <tbody id="naga-queue-body">
-                    @forelse($nagaQueues as $index => $queue)
-                        @php 
-                            $driverName = $fullNameOf($queue->profile); 
-                            $displayPos = $index + 1;
-                        @endphp
-                        <tr data-id="{{ $queue->id }}">
-                            <td class="px-4">
-                                <div class="d-flex align-items-center gap-2">
-                                    <i class="bi bi-grip-vertical text-muted drag-handle fs-5" style="cursor: grab;"></i>
-                                    <div class="queue-pos-badge d-inline-flex align-items-center justify-content-center fw-bold text-white rounded-circle shadow-sm" style="width: 32px; height: 32px; background: {{ $displayPos === 1 ? 'var(--amber-ink)' : '#64748b' }};">
-                                        {{ $displayPos }}
-                                    </div>
-                                </div>
-                            </td>
-                            <td>
-                                <div class="d-flex align-items-center gap-3">
-                                    <div class="rounded-circle overflow-hidden shadow-sm border border-2 border-white" style="width: 40px; height: 40px; background: var(--stone);">
-                                        @if($queue->profile && $queue->profile->image_profile_path)
-                                            <img src="{{ asset('storage/' . $queue->profile->image_profile_path) }}" alt="{{ $driverName }}" class="w-100 h-100 object-fit-cover">
-                                        @else
-                                            <i class="bi bi-person-fill fs-5 text-secondary d-flex justify-content-center align-items-center w-100 h-100"></i>
-                                        @endif
-                                    </div>
-                                    <div>
-                                        <h6 class="mb-0 fw-bold text-dark">{{ $driverName }}</h6>
-                                        <span class="badge bg-secondary font-monospace" style="font-size: 0.65rem;">
-                                            <i class="bi bi-truck me-1"></i>{{ $queue->profile->plate_number ?? 'N/A' }}
-                                        </span>
-                                    </div>
-                                </div>
-                            </td>
-                            <td>
-                                <div class="small fw-bold text-dark">
-                                    {{ $queue->queued_at ? \Carbon\Carbon::parse($queue->queued_at)->format('h:i A') : 'N/A' }}
-                                </div>
-                                <div class="small text-muted font-monospace" style="font-size: 0.75rem;">
-                                    {{ $queue->queued_at ? \Carbon\Carbon::parse($queue->queued_at)->diffForHumans() : 'N/A' }}
-                                </div>
-                            </td>
-                            
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="3" class="text-center py-5 border-0">
-                                <i class="bi bi-cone-striped fs-1 text-secondary mb-3 d-block opacity-50"></i>
-                                <h6 class="text-muted fw-bold mb-0">No drivers in Naga queue</h6>
-                            </td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
+        <!-- Dispatchers List -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card border-0 shadow-sm rounded-4 overflow-hidden" style="background-color: var(--card);">
+                    <div class="card-header border-bottom py-3 d-flex justify-content-between align-items-center" style="background-color: var(--ink); border-color: var(--line);">
+                        <h6 class="mb-0 fw-bold d-flex align-items-center gap-2" style="color: var(--stone); font-family: var(--font-display);">
+                            <i class="bi bi-shield-lock-fill" style="color: var(--amber);"></i> Active Dispatchers
+                        </h6>
+                        <span class="badge bg-custom-tint text-dark px-3 py-2 rounded-pill shadow-sm" style="font-family: var(--font-mono); background-color: var(--stone); color: var(--ink);">
+                            {{ count($dispatchers) }} total
+                        </span>
+                    </div>
+
+                    <div class="p-0">
+                        @if (count($dispatchers) > 0)
+                            <div class="table-responsive">
+                                <table class="table table-hover mb-0 align-middle custom-table">
+                                    <thead style="background-color: var(--stone); border-bottom: 2px solid var(--line);">
+                                        <tr>
+                                            <th class="border-0 text-secondary fw-semibold py-3 ps-4" style="font-size: 0.85rem; border-top-left-radius: 6px;">DISPATCHER</th>
+                                            <th class="border-0 text-secondary fw-semibold py-3" style="font-size: 0.85rem;">EMAIL</th>
+                                            <th class="border-0 text-secondary fw-semibold py-3" style="font-size: 0.85rem;">DATE GRANTED</th>
+                                            <th class="border-0 text-secondary fw-semibold py-3 text-end pe-4" style="font-size: 0.85rem; border-top-right-radius: 6px;">ACTIONS</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="dispatchers-body">
+                                        @foreach ($dispatchers as $dispatcher)
+                                            <tr class="queue-row border-bottom" style="border-color: var(--line) !important; transition: background-color 0.2s ease;">
+                                                <td class="py-3 ps-4">
+                                                    <div class="d-flex align-items-center gap-3">
+                                                        <div class="avatar-circle verified" style="width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background-color: var(--stone); color: var(--ink); font-weight: 700; border: 2px solid var(--amber);">
+                                                            {{ strtoupper(substr($dispatcher->name, 0, 2)) }}
+                                                        </div>
+                                                        <div>
+                                                            <div class="fw-bold" style="color: var(--ink);">{{ $dispatcher->name }}</div>
+                                                            <div class="text-muted small" style="font-family: var(--font-mono);">ID: {{ $dispatcher->id }}</div>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td class="py-3">
+                                                    <span class="badge" style="background-color: var(--stone); color: var(--ink); border: 1px solid var(--line);">
+                                                        <i class="bi bi-envelope-fill me-1"></i>{{ $dispatcher->email }}
+                                                    </span>
+                                                </td>
+                                                <td class="py-3">
+                                                    <div class="text-muted small">
+                                                        <i class="bi bi-calendar-check me-1"></i> {{ $dispatcher->updated_at->format('M d, Y h:i A') }}
+                                                    </div>
+                                                </td>
+                                                <td class="py-3 text-end pe-4">
+                                                    <form method="POST" action="{{ route('admin.dispatchers.revoke', $dispatcher->id) }}" class="d-inline-block m-0" onsubmit="return confirm('Are you sure you want to revoke this dispatcher account? They will lose all access immediately.')">
+                                                        @csrf
+                                                        @method('DELETE')
+                                                        <button type="submit" class="btn btn-outline-danger btn-sm px-3 py-2 rounded-3 d-inline-flex align-items-center justify-content-center gap-1 shadow-sm" title="Revoke Account" style="border-width: 2px;">
+                                                            <i class="bi bi-trash3-fill"></i> <span class="d-none d-xl-inline">Revoke Account</span>
+                                                        </button>
+                                                    </form>
+                                                </td>
+                                            </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
+                        @else
+                            <div class="text-center py-5 empty-state">
+                                <i class="bi bi-person-x-fill text-muted mb-3" style="font-size: 3rem; opacity: 0.5;"></i>
+                                <h5 class="fw-bold text-dark mb-1">No Dispatchers Found</h5>
+                                <p class="text-muted mb-0">You have not assigned any users to the dispatcher role yet.</p>
+                            </div>
+                        @endif
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
-
-    <!-- ULING QUEUE -->
-    <div class="fleet-card mb-4" id="uling-queue-container">
-        <div class="fleet-card-header bg-success bg-opacity-10 d-flex justify-content-between align-items-center">
-            <div>
-                <span class="text-success"><i class="bi bi-geo-alt-fill me-2"></i>Uling Terminal Queue</span>
-                <span class="section-tag bg-success text-white border-success">Live</span>
-            </div>
-            <div class="d-flex gap-2">
-                <button class="btn btn-sm btn-outline-secondary d-none cancel-btn" onclick="cancelOrder('uling')">Cancel</button>
-                <button class="btn btn-sm btn-success d-none save-btn" onclick="saveOrder('uling')">Save Changes</button>
-            </div>
-        </div>
-
-        <div class="table-responsive m-0" style="max-height: 450px; overflow-y: auto;">
-            <table class="table table-hover align-middle m-0" style="background: var(--card);">
-                <thead class="table-dark font-monospace" style="font-size: 0.75rem; background-color: var(--ink); position: sticky; top: 0; z-index: 10;">
-                    <tr>
-                        <th class="border-0 px-4 py-3" style="border-top-left-radius: 6px; width: 80px;">POS</th>
-                        <th class="border-0 py-3">DRIVER & JEEPNEY</th>
-                        <th class="border-0 py-3">QUEUED TIME</th>
-                        
-                    </tr>
-                </thead>
-                <tbody id="uling-queue-body">
-                    @forelse($ulingQueues as $index => $queue)
-                        @php 
-                            $driverName = $fullNameOf($queue->profile); 
-                            $displayPos = $index + 1;
-                        @endphp
-                        <tr data-id="{{ $queue->id }}">
-                            <td class="px-4">
-                                <div class="d-flex align-items-center gap-2">
-                                    <i class="bi bi-grip-vertical text-muted drag-handle fs-5" style="cursor: grab;"></i>
-                                    <div class="queue-pos-badge d-inline-flex align-items-center justify-content-center fw-bold text-white rounded-circle shadow-sm" style="width: 32px; height: 32px; background: {{ $displayPos === 1 ? 'var(--amber-ink)' : '#64748b' }};">
-                                        {{ $displayPos }}
-                                    </div>
-                                </div>
-                            </td>
-                            <td>
-                                <div class="d-flex align-items-center gap-3">
-                                    <div class="rounded-circle overflow-hidden shadow-sm border border-2 border-white" style="width: 40px; height: 40px; background: var(--stone);">
-                                        @if($queue->profile && $queue->profile->image_profile_path)
-                                            <img src="{{ asset('storage/' . $queue->profile->image_profile_path) }}" alt="{{ $driverName }}" class="w-100 h-100 object-fit-cover">
-                                        @else
-                                            <i class="bi bi-person-fill fs-5 text-secondary d-flex justify-content-center align-items-center w-100 h-100"></i>
-                                        @endif
-                                    </div>
-                                    <div>
-                                        <h6 class="mb-0 fw-bold text-dark">{{ $driverName }}</h6>
-                                        <span class="badge bg-secondary font-monospace" style="font-size: 0.65rem;">
-                                            <i class="bi bi-truck me-1"></i>{{ $queue->profile->plate_number ?? 'N/A' }}
-                                        </span>
-                                    </div>
-                                </div>
-                            </td>
-                            <td>
-                                <div class="small fw-bold text-dark">
-                                    {{ $queue->queued_at ? \Carbon\Carbon::parse($queue->queued_at)->format('h:i A') : 'N/A' }}
-                                </div>
-                                <div class="small text-muted font-monospace" style="font-size: 0.75rem;">
-                                    {{ $queue->queued_at ? \Carbon\Carbon::parse($queue->queued_at)->diffForHumans() : 'N/A' }}
-                                </div>
-                            </td>
-                            
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="3" class="text-center py-5 border-0">
-                                <i class="bi bi-cone-striped fs-1 text-secondary mb-3 d-block opacity-50"></i>
-                                <h6 class="text-muted fw-bold mb-0">No drivers in Uling queue</h6>
-                            </td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
-    </div>
-
-</div>
-
-<script>
-    let isEditing = { naga: false, uling: false };
-    let sortables = {};
-
-    function initSortable(id, key) {
-        const el = document.getElementById(id);
-        if(!el) return;
-        sortables[key] = new Sortable(el, {
-            handle: '.drag-handle',
-            animation: 150,
-            onStart: function (evt) {
-                isEditing[key] = true;
-                const container = document.getElementById(key + '-queue-container');
-                container.querySelector('.save-btn').classList.remove('d-none');
-                container.querySelector('.cancel-btn').classList.remove('d-none');
-                container.querySelector('.section-tag').textContent = 'Editing...';
-                container.querySelector('.section-tag').classList.replace('bg-primary', 'bg-warning');
-                container.querySelector('.section-tag').classList.replace('bg-success', 'bg-warning');
-            },
-            onEnd: function() {
-                // Update badges dynamically after drag drop
-                const rows = el.querySelectorAll('tr[data-id]');
-                rows.forEach((row, i) => {
-                    const posBadge = row.querySelector('.queue-pos-badge');
-                    if(posBadge) {
-                        posBadge.textContent = i + 1;
-                        if(i === 0) {
-                            posBadge.style.background = 'var(--amber-ink)';
-                        } else {
-                            posBadge.style.background = '#64748b';
-                        }
-                    }
-                });
-            }
-        });
-    }
-
-    // Initialize drag-and-drop
-    initSortable('naga-queue-body', 'naga');
-    initSortable('uling-queue-body', 'uling');
-
-    window.cancelOrder = function(key) {
-        // Just reload the page to undo changes
-        window.location.reload();
-    };
-
-    window.saveOrder = function(key) {
-        const el = document.getElementById(key + '-queue-body');
-        const rows = el.querySelectorAll('tr[data-id]');
-        const orderIds = Array.from(rows).map(row => row.getAttribute('data-id'));
-
-        fetch("{{ route('dispatcher.queues.reorder') }}", {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-            },
-            body: JSON.stringify({ orders: orderIds })
-        })
-        .then(res => res.json())
-        .then(data => {
-            if(data.success) {
-                window.location.reload();
-            }
-        })
-        .catch(err => {
-            console.error(err);
-            alert('Failed to save order.');
-        });
-    };
-
-    // Auto-refresh logic (Polling)
-    setInterval(function() {
-        // Pause live updates if admin is currently dragging or has unsaved changes
-        if(isEditing.naga || isEditing.uling) return;
-
-        fetch(window.location.href)
-            .then(response => response.text())
-            .then(html => {
-                const parser = new DOMParser();
-                const doc = parser.parseFromString(html, 'text/html');
-                
-                const newNagaBody = doc.getElementById('naga-queue-body');
-                if(newNagaBody && !isEditing.naga) {
-                    document.getElementById('naga-queue-body').innerHTML = newNagaBody.innerHTML;
-                }
-
-                const newUlingBody = doc.getElementById('uling-queue-body');
-                if(newUlingBody && !isEditing.uling) {
-                    document.getElementById('uling-queue-body').innerHTML = newUlingBody.innerHTML;
-                }
-            })
-            .catch(error => console.error('Error fetching live queue:', error));
-    }, 5000); // Polling every 5 seconds
-</script>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
-
-
-
-

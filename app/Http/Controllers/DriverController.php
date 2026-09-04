@@ -17,6 +17,10 @@ class DriverController extends Controller
      */
     public function index()
     {
+        if (Auth::user()->role === 'dispatcher') {
+            return redirect()->route('dispatcher.queue');
+        }
+
         $driver = DriverStatus::where('user_id', Auth::id())->first();
         $driverProfiles = DriverProfile::all();
         return view('driver.map', compact('driver', 'driverProfiles'));

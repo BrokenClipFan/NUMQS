@@ -18,11 +18,33 @@ use Laravel\Socialite\Facades\Socialite;
 Route::get('/driver/profile', function () {
     return view('driver.profile');
 });
-Route::get('/dispatcher/queue', function () {
-    return view('dispatcher.queue-board');
-});
+
 
 Route::middleware('auth')->group(function () {
+    
+    Route::get('/check-status', function() {
+        $user = auth()->user();
+        if (!$user->is_verified) {
+            return redirect()->route('pending.approval');
+        }
+        
+        if ($user->role === 'dispatcher') {
+            return redirect()->route('dispatcher.queue');
+        }
+        
+        return redirect()->route('driver.map');
+    })->name('check.status');
+    
+    Route::get('/dispatcher/queue', function () {
+        if(auth()->user()->role !== 'dispatcher') abort(403);
+        $activeQueues = \App\Models\DriverQueue::with(['profile.user', 'terminal'])->orderBy('terminal_id')->orderBy('position')->get();
+        return view('dispatcher.queue-board', compact('activeQueues'));
+    })->name('dispatcher.queue');
+
+    Route::post('/dispatcher/queues/reorder', function(\Illuminate\Http\Request $request) {
+        if(auth()->user()->role !== 'dispatcher') abort(403);
+        return app(\App\Http\Controllers\DriverFleet::class)->reorder($request);
+    })->name('dispatcher.queues.reorder');
     
     Route::get('/pending-approval', function() {
         return view('auth.pending-approval');
@@ -53,8 +75,11 @@ Route::middleware('auth')->group(function () {
         Route::get('/admin/violations/resolved', [DriverFleet::class, 'resolved'])->name('admin.violations.resolved');
         Route::get('/admin/queues', [DriverFleet::class, 'queues'])->name('admin.queues');
         Route::post('/admin/queues/reorder', [DriverFleet::class, 'reorder'])->name('admin.queues.reorder');
+        Route::get('/admin/dispatchers', [DriverFleet::class, 'dispatchers'])->name('admin.dispatchers');
+        Route::delete('/admin/dispatchers/{id}', [DriverFleet::class, 'revokeDispatcher'])->name('admin.dispatchers.revoke');
 
         Route::get('/verify/driver/{id}', [DriverVerificationController::class, 'index'])->name('verify.driver');
+        Route::post('/verify/dispatcher/{id}', [DriverVerificationController::class, 'setDispatcher'])->name('admin.verify.dispatcher');
 
         Route::get('admin/dashboard', [DriverFleet::class, 'index'])->name('fleet.management');
 
@@ -101,3 +126,4 @@ Route::get('/auth/callback', function () {
     return redirect('/profile');
 });
 require __DIR__.'/auth.php';
+

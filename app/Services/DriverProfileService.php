@@ -12,19 +12,19 @@ class DriverProfileService {
   }
   
   public function getUnverifiedCount() {
-    return $this->user->where('is_verified', false)->count();
+    return $this->user->where('is_verified', false)->where('role', 'driver')->count();
   }
   
   public function getVerifiedCount() {
-    return $this->user->where('is_verified', true)->count();
+    return $this->user->where('is_verified', true)->where('role', 'driver')->count();
   }
 
   public function getUnverifiedUsers() {
-    return $this->user->where('is_verified', false)->get();
+    return $this->user->where('is_verified', false)->where('role', 'driver')->get();
   }
 
   public function getVerifiedUsersWithProfile() {
-    return $this->user->where('is_verified', true)->with('profile')->get();
+    return $this->user->where('is_verified', true)->where('role', 'driver')->with('profile')->get();
   }
 
 }

@@ -30,6 +30,10 @@ class AuthenticatedSessionController extends Controller
 
         $role = $request->user()->role;
         
+        if ($role === 'dispatcher') {
+            return redirect()->route('dispatcher.queue');
+        }
+        
         return redirect()->route('driver.map');
     }
 

@@ -561,7 +561,6 @@
     </style>
 </head>
 <body>
-
     @php
         $initialsOf = function (string $text): string {
             $parts = array_filter(preg_split('/\s+/', trim($text)));
@@ -570,9 +569,8 @@
         };
         $totalRegistered = ($unverifiedCount ?? count($unVerifiedUsers)) + ($verifiedCount ?? count($verifiedUsers));
     @endphp
-
     @include('partials.admin-nav')
-    @include('partials.notifications');
+    @include('partials.notifications')
 
     <div class="container-fluid px-3 px-md-4 py-4">
 
@@ -637,7 +635,7 @@
                 <div class="search-bar">
                     <i class="bi bi-search"></i>
                     <label for="pendingSearch" class="visually-hidden">Search pending applications</label>
-                    <input type="search" id="pendingSearch" placeholder="Search by name or email…" autocomplete="off">
+                    <input type="search" id="pendingSearch" placeholder="Search by name or emailâ€¦" autocomplete="off">
                 </div>
                 <span class="results-count" id="pendingResultsCount"></span>
             </div>
@@ -704,7 +702,7 @@
                 <div class="search-bar">
                     <i class="bi bi-search"></i>
                     <label for="verifiedSearch" class="visually-hidden">Search verified drivers</label>
-                    <input type="search" id="verifiedSearch" placeholder="Search by name or plate number…" autocomplete="off">
+                    <input type="search" id="verifiedSearch" placeholder="Search by name or plate numberâ€¦" autocomplete="off">
                 </div>
                 <span class="results-count" id="verifiedResultsCount"></span>
             </div>
@@ -729,13 +727,13 @@
                                 <!-- Driver Info (4 columns) -->
                                 <div class="col-12 col-md-4">
                                     <h6 class="account-name mb-0">{{ $fullName }}</h6>
-                                    <span class="account-meta">ID: {{ $user->profile->id }}</span>
+                                    <span class="account-meta">ID: {{ $user->profile->id ?? 'N/A' }}</span>
                                 </div>
                                 
                                 <!-- Plate Number (3 columns) -->
                                 <div class="col-12 col-md-3">
                                     <span class="plate-pill">
-                                        <i class="bi bi-truck-front-fill"></i>{{ $user->profile->plate_number }}
+                                        <i class="bi bi-truck-front-fill"></i>{{ $user->profile->plate_number ?? 'N/A' }}
                                     </span>
                                 </div>
                                 
@@ -789,7 +787,7 @@
                 <div class="search-bar">
                     <i class="bi bi-search"></i>
                     <label for="violationSearch" class="visually-hidden">Search cheating warnings</label>
-                    <input type="search" id="violationSearch" placeholder="Search by driver name or warning type…" autocomplete="off">
+                    <input type="search" id="violationSearch" placeholder="Search by driver name or warning typeâ€¦" autocomplete="off">
                 </div>
                 <span class="results-count" id="violationResultsCount"></span>
             </div>
@@ -1273,4 +1271,5 @@
     </script>
 </body>
 </html>
+
 

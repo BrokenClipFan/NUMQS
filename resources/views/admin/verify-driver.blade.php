@@ -594,12 +594,19 @@
                     </button>
                 </form>
 
-                <!-- Reject / Delete trigger -->
-                <div class="d-flex flex-column flex-md-row mt-3">
+                <!-- Reject / Dispatcher actions -->
+                <div class="d-flex flex-column flex-md-row mt-3 gap-3">
+                    <form action="{{ route('admin.verify.dispatcher', $user->id) }}" method="POST" class="w-100 m-0">
+                        @csrf
+                        <button type="submit" class="btn btn-outline-primary w-100 py-3 fw-bold rounded-3 shadow-sm d-flex align-items-center justify-content-center" style="border-width: 2px;">
+                            <i class="bi bi-person-badge-fill fs-5 me-2"></i> Set as Dispatcher
+                        </button>
+                    </form>
+
                     <button type="button"
                         class="btn btn-reject w-100 py-3 fw-bold rounded-3 shadow-sm d-flex align-items-center justify-content-center"
                         data-bs-toggle="modal" data-bs-target="#rejectModal">
-                        <i class="bi bi-trash3-fill me-2"></i> Reject & Delete
+                        <i class="bi bi-trash3-fill fs-5 me-2"></i> Reject & Delete
                     </button>
                 </div>
             </div>

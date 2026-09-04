@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -133,7 +133,7 @@
         </div>
 
         <div class="d-grid gap-2">
-            <a href="{{ route('profile.index') }}" class="btn btn-main py-3 fw-bold rounded-3 shadow-sm d-flex justify-content-center align-items-center">
+            <a href="{{ route('check.status') }}" class="btn btn-main py-3 fw-bold rounded-3 shadow-sm d-flex justify-content-center align-items-center">
                 <i class="bi bi-arrow-clockwise me-2 fs-5"></i> Check Approval Status
             </a>
 
