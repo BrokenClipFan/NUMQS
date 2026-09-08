@@ -430,7 +430,7 @@
                             @error('first_name')
                                 <small class="field-error">{{ $message }}</small>
                             @enderror
-                            <input type="text" name="first_name" value="{{ old('first_name') }}" class="form-control"
+                            <input type="text" name="first_name" value="{{ old('first_name') }}" class="form-control" style="text-transform: uppercase;"
                                 placeholder="Pedro" required>
                         </div>
                         <div class="col-12 col-md-6">
@@ -438,7 +438,7 @@
                             @error('last_name')
                                 <small class="field-error">{{ $message }}</small>
                             @enderror
-                            <input type="text" name="last_name" value="{{ old('last_name') }}" class="form-control"
+                            <input type="text" name="last_name" value="{{ old('last_name') }}" class="form-control" style="text-transform: uppercase;"
                                 placeholder="Pendoko" required>
                         </div>
                     </div>
@@ -450,7 +450,7 @@
                                 <small class="field-error">{{ $message }}</small>
                             @enderror
                             <input type="text" name="middle_name" value="{{ old('middle_name') }}"
-                                class="form-control" placeholder="Lopez">
+                                class="form-control" placeholder="Lopez" style="text-transform: uppercase;">
                         </div>
                         <div class="col-12 col-md-6">
                             <label class="field-label">Birth Date</label>
@@ -488,7 +488,7 @@
                                 <small class="field-error">{{ $message }}</small>
                             @enderror
                             <input type="text" name="emergency_name" value="{{ old('emergency_name') }}"
-                                class="form-control" placeholder="Full Name">
+                                class="form-control" placeholder="Full Name" style="text-transform: uppercase;">
                         </div>
                         <div class="col-12 col-md-6">
                             <label class="field-label">Emergency Contact No.</label>
@@ -510,7 +510,7 @@
                         <div class="input-group">
                             <span class="input-group-text"><i class="bi bi-card-heading"></i></span>
                             <input type="text" name="license_number" value="{{ old('license_number') }}"
-                                class="form-control font-monospace" placeholder="e.g. N01-23-456789" required>
+                                class="form-control font-monospace" placeholder="e.g. N01-23-456789" required style="text-transform: uppercase;">
                         </div>
                     </div>
 
@@ -706,3 +706,6 @@
 </body>
 
 </html>
+
+
+

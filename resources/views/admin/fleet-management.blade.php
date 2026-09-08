@@ -751,13 +751,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="account-item-actions">
-                            <button type="button" 
-                                    class="btn btn-delete-account px-3 py-2 rounded-3 btn-sm shadow-sm d-inline-flex align-items-center justify-content-center gap-1"
-                                    onclick="modalOpen('{{ route('admin.drivers.destroy', $user->id) }}', '{{ $fullName }}')">
-                                <i class="bi bi-trash3"></i> Delete Account
-                            </button>
-                        </div>
+
                     </div>
                 @empty
                     <div class="empty-state">
@@ -889,36 +883,6 @@
             @endif
         </div>
 
-    </div>
-
-    <!-- GLOBAL CRITICAL REMOVAL MODAL (DRIVERS) -->
-    <div class="modal fade" id="deleteConfirmationModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content modal-content-custom shadow-lg">
-                <div class="modal-header modal-header-custom p-3">
-                    <h5 class="modal-title fw-bold d-flex align-items-center gap-2" id="deleteModalLabel">
-                        <i class="bi bi-exclamation-triangle-fill"></i> Critical Security Warning
-                    </h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body p-4">
-                    <p class="fs-6 mb-2">Are you completely sure you want to permanently delete the driver account for <strong id="deleteTargetName" class="text-dark"></strong>?</p>
-                    <p class="text-muted small mb-0 font-monospace bg-light p-2 rounded border">
-                        <i class="bi bi-info-circle me-1 text-danger"></i> This action removes all historical log coordinates, plate links, and queue metrics from the live ecosystem database.
-                    </p>
-                </div>
-                <div class="modal-footer p-3 bg-light border-top">
-                    <button type="button" class="btn btn-sm btn-secondary px-3 py-2 rounded-3 fw-bold" data-bs-dismiss="modal">Cancel</button>
-                    <form id="globalDeleteForm" method="POST" class="m-0">
-                        @csrf
-                        @method('DELETE')
-                        <button type="submit" class="btn btn-sm btn-danger px-3 py-2 rounded-3 fw-bold shadow-sm">
-                            <i class="bi bi-trash3 me-1"></i> Permanently Delete Account
-                        </button>
-                    </form>
-                </div>
-            </div>
-        </div>
     </div>
 
     <!-- VIOLATION REMOVAL MODAL -->
@@ -1107,14 +1071,6 @@
             });
         }
     });
-        // Global Modal trigger function for Account deletion
-        function modalOpen(deleteUrl, driverName) {
-            document.getElementById('globalDeleteForm').setAttribute('action', deleteUrl);
-            document.getElementById('deleteTargetName').textContent = driverName;
-            const deleteModal = new bootstrap.Modal(document.getElementById('deleteConfirmationModal'));
-            deleteModal.show();
-        }
-
         // Dedicated trigger function for Violation log erasure
         function violationModalOpen(deleteUrl, violationName, driverName) {
             document.getElementById('violationDeleteForm').setAttribute('action', deleteUrl);
@@ -1271,5 +1227,6 @@
     </script>
 </body>
 </html>
+
 
 

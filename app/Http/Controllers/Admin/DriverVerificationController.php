@@ -35,6 +35,15 @@ class DriverVerificationController extends Controller
 
     public function store(Request $request, int $id)
     {
+        // Capitalize names and license before validation (FULL UPPERCASE)
+        $request->merge([
+            'first_name' => $request->first_name ? strtoupper($request->first_name) : null,
+            'middle_name' => $request->middle_name ? strtoupper($request->middle_name) : null,
+            'last_name' => $request->last_name ? strtoupper($request->last_name) : null,
+            'emergency_name' => $request->emergency_name ? strtoupper($request->emergency_name) : null,
+            'license_number' => $request->license_number ? strtoupper($request->license_number) : null,
+        ]);
+
         $validated = $request->validate([
             'first_name' => 'required|string|max:255',
             'middle_name' => 'nullable|string|max:255',

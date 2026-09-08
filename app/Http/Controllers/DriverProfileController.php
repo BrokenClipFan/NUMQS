@@ -66,6 +66,10 @@ class DriverProfileController extends Controller
         $id = Auth::id();
         $profile = DriverProfile::where('user_id', $id)->first();
 
+        $request->merge([
+            'emergency_name' => $request->emergency_name ? strtoupper($request->emergency_name) : null,
+        ]);
+
         $validated = $request->validate([
             'phone' => 'nullable|string|max:20',
             'email' => 'nullable|string|max:50',

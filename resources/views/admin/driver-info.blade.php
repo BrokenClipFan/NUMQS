@@ -650,8 +650,7 @@
 
                             <div class="mb-3">
                                 <label class="field-label">First Name</label>
-                                <input type="text" name="first_name"
-                                    class="form-control @error('first_name') is-invalid @enderror"
+                                <input type="text" name="first_name" style="text-transform: uppercase;" class="form-control @error('first_name') is-invalid @enderror"
                                     value="{{ old('first_name', $user->profile->first_name) }}" required>
                                 @error('first_name')
                                     <div class="invalid-feedback">{{ $message }}</div>
@@ -659,8 +658,7 @@
                             </div>
                             <div class="mb-3">
                                 <label class="field-label">Middle Name</label>
-                                <input type="text" name="middle_name"
-                                    class="form-control @error('middle_name') is-invalid @enderror"
+                                <input type="text" name="middle_name" style="text-transform: uppercase;" class="form-control @error('middle_name') is-invalid @enderror"
                                     value="{{ old('middle_name', $user->profile->middle_name) }}">
                                 @error('middle_name')
                                     <div class="invalid-feedback">{{ $message }}</div>
@@ -668,8 +666,7 @@
                             </div>
                             <div class="mb-3">
                                 <label class="field-label">Last Name</label>
-                                <input type="text" name="last_name"
-                                    class="form-control @error('last_name') is-invalid @enderror"
+                                <input type="text" name="last_name" style="text-transform: uppercase;" class="form-control @error('last_name') is-invalid @enderror"
                                     value="{{ old('last_name', $user->profile->last_name) }}" required>
                                 @error('last_name')
                                     <div class="invalid-feedback">{{ $message }}</div>
@@ -725,8 +722,7 @@
 
                             <div class="mb-3">
                                 <label class="field-label">Driver's License No.</label>
-                                <input type="text" name="license_number"
-                                    class="form-control font-monospace @error('license_number') is-invalid @enderror"
+                                <input type="text" name="license_number" style="text-transform: uppercase;" class="form-control font-monospace @error('license_number') is-invalid @enderror"
                                     value="{{ old('license_number', $user->profile->license_number) }}" required>
                                 @error('license_number')
                                     <div class="invalid-feedback">{{ $message }}</div>
@@ -743,8 +739,7 @@
                             </div>
                             <div class="mb-3 mt-4">
                                 <label class="field-label">Emergency Contact Name</label>
-                                <input type="text" name="emergency_name"
-                                    class="form-control @error('emergency_name') is-invalid @enderror"
+                                <input type="text" name="emergency_name" style="text-transform: uppercase;" class="form-control @error('emergency_name') is-invalid @enderror"
                                     value="{{ old('emergency_name', $user->profile->emergency_name) }}">
                                 @error('emergency_name')
                                     <div class="invalid-feedback">{{ $message }}</div>
@@ -1043,3 +1038,4 @@
 </body>
 
 </html>
+
