@@ -57,6 +57,9 @@ Route::middleware('auth')->group(function () {
         // Route::post('/add/queue',[NagaQueueController::class, 'store'])->name('add.to.queue');
         
         Route::get('/', [DriverController::class, 'index'])->name('driver.map');
+        // Route::get('/', function () {
+        //     return view('debug-gps');
+        // })->name('driver.map');
         Route::get('/drivers', [DriverController::class, 'getDrivers']);
         Route::post('/driver/location/update', [DriverController::class, 'updateLocation'])->name('location.update');
         Route::post('/driver/online/update', [DriverController::class, 'changeOnlineStatus'])->name('online.update');
@@ -127,3 +130,7 @@ Route::get('/auth/callback', function () {
 });
 require __DIR__.'/auth.php';
 
+
+// Route::get('/debug-gps', function () {
+    // return view('debug-gps');
+// });

@@ -17,7 +17,7 @@
         rel="stylesheet">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    @vite(['resources/js/app.js', 'resources/sass/app.scss'])
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
 
     <style>
         :root {
@@ -797,7 +797,8 @@
     <nav class="navbar navbar-expand-lg nav-sticky-top px-2 py-2">
         <div class="container-fluid d-flex justify-content-between align-items-center p-0">
             <a class="navbar-brand brand-mark m-0" href="#">
-                <img src="{{ asset('Logo.png') }}" alt="Logo" style="height: 28px; width: auto; object-fit: contain;">
+                <img src="{{ asset('Logo.png') }}" alt="Logo"
+                    style="height: 28px; width: auto; object-fit: contain;">
                 <span class="live-dot ms-1" title="Live"></span>
             </a>
 
@@ -819,9 +820,10 @@
                     <span id="navPositionBadge">—</span>
                 </span>
 
-                @if(auth()->check() && auth()->user()->role === 'admin')
+                @if (auth()->check() && auth()->user()->role === 'admin')
                     <a href="{{ route('fleet.management') }}"
-                        class="btn btn-sm btn-dashboard d-flex align-items-center gap-1 px-2 rounded-2" title="Admin Dashboard">
+                        class="btn btn-sm btn-dashboard d-flex align-items-center gap-1 px-2 rounded-2"
+                        title="Admin Dashboard">
                         <i class="bi bi-shield-lock-fill text-amber"></i> <span class="d-none d-md-inline">Admin</span>
                     </a>
                 @endif
@@ -926,8 +928,8 @@
         integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-    <script>
-        (function() {
+    <script type="module">
+        document.addEventListener("DOMContentLoaded", () => {
             'use strict';
 
             // ---------------------------------------------------------------
@@ -1027,8 +1029,9 @@
                     const driverLng = driver.status.longitude;
 
                     if (jeepneyMarkers[driver.id]) {
-                        smoothMoveWithRotation(jeepneyMarkers[driver.id], driverLat, driverLng,
-                            POLL_INTERVAL_MS);
+                        if (String(driver.id) !== String(CURRENT_DRIVER_ID)) {
+                            smoothMoveWithRotation(jeepneyMarkers[driver.id], driverLat, driverLng, POLL_INTERVAL_MS);
+                        }
                         return;
                     }
 
@@ -1106,7 +1109,8 @@
                 if (container) {
                     const sprite = container.querySelector('.jeepney-sprite');
                     if (sprite) {
-                        sprite.style.transform = `rotate(${finalAngle}deg) scale(var(--jeep-scale, 1)) translateZ(0)`;
+                        sprite.style.transform =
+                            `rotate(${finalAngle}deg) scale(var(--jeep-scale, 1)) translateZ(0)`;
                     }
                 }
 
@@ -1135,21 +1139,21 @@
                 // ---------------------------------------------------------------
                 const searchInput = document.getElementById('driverSearch');
                 const searchResultsEl = document.getElementById('searchResults');
-                
+
                 let searchDebounceTimer;
 
                 searchInput.addEventListener('input', function() {
                     clearTimeout(searchDebounceTimer);
-                    
+
                     searchDebounceTimer = setTimeout(() => {
                         const query = this.value.toLowerCase().trim();
                         searchResultsEl.innerHTML = ''; // Clear previous results
-    
+
                         if (query.length === 0) {
                             searchResultsEl.classList.add('d-none');
                             return;
                         }
-    
+
                         // Filter drivers by name or plate number
                         const matches = allDriversData.filter(driver => {
                             const fullName = fullNameOf(driver.profile).toLowerCase();
@@ -1157,21 +1161,21 @@
                             return fullName.includes(query) || plate.includes(query);
                         });
 
-                    if (matches.length === 0) {
-                        searchResultsEl.innerHTML =
-                            '<div class="p-3 text-muted text-center" style="background: var(--card); font-size: 0.85rem;">No drivers found</div>';
-                        searchResultsEl.classList.remove('d-none');
-                        return;
-                    }
+                        if (matches.length === 0) {
+                            searchResultsEl.innerHTML =
+                                '<div class="p-3 text-muted text-center" style="background: var(--card); font-size: 0.85rem;">No drivers found</div>';
+                            searchResultsEl.classList.remove('d-none');
+                            return;
+                        }
 
-                    // Render matches
-                    matches.forEach(driver => {
-                        const item = document.createElement('button');
-                        item.type = 'button';
-                        item.className =
-                            'list-group-item border-0 search-result-item d-flex justify-content-between align-items-center p-2 px-3';
+                        // Render matches
+                        matches.forEach(driver => {
+                            const item = document.createElement('button');
+                            item.type = 'button';
+                            item.className =
+                                'list-group-item border-0 search-result-item d-flex justify-content-between align-items-center p-2 px-3';
 
-                        item.innerHTML = `
+                            item.innerHTML = `
                             <div class="d-flex flex-column text-start">
                                 <span class="fw-bold" style="font-size: 0.9rem;">${escapeHtml(fullNameOf(driver.profile))}</span>
                                 <small class="text-muted font-monospace" style="font-size: 0.75rem;">${escapeHtml(driver.profile.plate_number)}</small>
@@ -1179,36 +1183,37 @@
                             <i class="bi bi-crosshair text-amber ms-2"></i>
                         `;
 
-                        // Handle click event: Zoom map and open popup
-                        item.addEventListener('click', () => {
-                            const lat = driver.status.latitude;
-                            const lng = driver.status.longitude;
+                            // Handle click event: Zoom map and open popup
+                            item.addEventListener('click', () => {
+                                const lat = driver.status.latitude;
+                                const lng = driver.status.longitude;
 
-                            if (lat && lng) {
-                                // Zoom in close to the driver
-                                map.flyTo([lat, lng], 17, {
-                                    animate: true,
-                                    duration: 1.5
-                                });
+                                if (lat && lng) {
+                                    // Zoom in close to the driver
+                                    map.flyTo([lat, lng], 17, {
+                                        animate: true,
+                                        duration: 1.5
+                                    });
 
-                                // Open the marker's popup after the zoom animation completes
-                                if (jeepneyMarkers[driver.id]) {
-                                    setTimeout(() => {
-                                        jeepneyMarkers[driver.id].openPopup();
-                                    }, 1500);
+                                    // Open the marker's popup after the zoom animation completes
+                                    if (jeepneyMarkers[driver.id]) {
+                                        setTimeout(() => {
+                                            jeepneyMarkers[driver.id]
+                                                .openPopup();
+                                        }, 1500);
+                                    }
                                 }
-                            }
 
-                            // Clean up UI after selection
-                            searchInput.value = '';
-                            searchResultsEl.classList.add('d-none');
-                            searchInput.blur();
+                                // Clean up UI after selection
+                                searchInput.value = '';
+                                searchResultsEl.classList.add('d-none');
+                                searchInput.blur();
+                            });
+
+                            searchResultsEl.appendChild(item);
                         });
 
-                        searchResultsEl.appendChild(item);
-                    });
-
-                    searchResultsEl.classList.remove('d-none');
+                        searchResultsEl.classList.remove('d-none');
                     }, 300); // 300ms debounce
                 });
 
@@ -1402,7 +1407,8 @@
                     });
                 }
 
-                navPositionBadge.textContent = myPosition ? `${myQueueLabel}-${String(myPosition).padStart(2, '0')}` :
+                navPositionBadge.textContent = myPosition ?
+                    `${myQueueLabel}-${String(myPosition).padStart(2, '0')}` :
                     '—';
             }
 
@@ -1439,9 +1445,11 @@
                             if (targetDriverId) {
                                 const targetDriver = drivers.find(d => String(d.id) === targetDriverId);
 
-                                if (targetDriver && targetDriver.status.latitude && targetDriver.status.longitude) {
+                                if (targetDriver && targetDriver.status.latitude && targetDriver.status
+                                    .longitude) {
                                     // Zoom in close to the target driver
-                                    map.flyTo([targetDriver.status.latitude, targetDriver.status.longitude], 17, {
+                                    map.flyTo([targetDriver.status.latitude, targetDriver.status.longitude],
+                                    17, {
                                         animate: true,
                                         duration: 1.5
                                     });
@@ -1461,7 +1469,22 @@
                     .catch(err => console.error('getDriversCoord:', err));
             }
 
-            function saveLocationToDatabase(lat, lng) {
+            async function saveLocationToDatabase(lat, lng) {
+                let wifi_bssid = null;
+                let wifi_ssid = null;
+
+                if (window.CapacitorWifiNetwork) {
+                    try {
+                        const info = await window.CapacitorWifiNetwork.getWifiInfo();
+                        if (info && info.bssid) {
+                            wifi_bssid = info.bssid;
+                            wifi_ssid = info.ssid;
+                        }
+                    } catch (e) {
+                        // Wi-Fi not available or error
+                    }
+                }
+
                 return fetch('/driver/location/update', {
                     method: 'POST',
                     headers: {
@@ -1470,7 +1493,9 @@
                     },
                     body: JSON.stringify({
                         latitude: lat,
-                        longitude: lng
+                        longitude: lng,
+                        wifi_bssid: wifi_bssid,
+                        wifi_ssid: wifi_ssid
                     }),
                 }).catch(err => console.error('saveLocationToDatabase:', err));
             }
@@ -1509,35 +1534,71 @@
             // ---------------------------------------------------------------
             const isOnline = document.body.dataset.isOnline === '1';
 
-            function startLocationTracking() {
-                if (!navigator.geolocation) {
+            async function startLocationTracking() {
+                const onLocationUpdate = (pos) => {
+                    targetLat = pos.coords.latitude;
+                    targetLng = pos.coords.longitude;
+                    geoWarningEl.classList.add('hidden');
+
+                    // Automatically center the map on the driver continuously if we have a lock
+                    if (!window.hasInitiallyZoomed) {
+                        map.setView([targetLat, targetLng], 17);
+                        window.hasInitiallyZoomed = true;
+                    }
+                    
+                    // Instantly move and rotate the current driver's jeepney icon based on Live GPS hardware
+                    if (jeepneyMarkers && jeepneyMarkers[CURRENT_DRIVER_ID]) {
+                        smoothMoveWithRotation(jeepneyMarkers[CURRENT_DRIVER_ID], targetLat, targetLng, 2000);
+                    }
+                };
+
+                const onLocationError = (err) => {
+                    console.error('Geolocation error:', err);
                     geoWarningEl.classList.remove('hidden');
                     geoWarningEl.innerHTML =
-                        '<i class="bi bi-exclamation-triangle-fill"></i> This browser doesn\'t support location sharing.';
-                    return;
-                }
+                        '<i class="bi bi-exclamation-triangle-fill"></i> Location permission needed to update the map.';
+                };
 
-                navigator.geolocation.watchPosition(
-                    (pos) => {
-                        targetLat = pos.coords.latitude;
-                        targetLng = pos.coords.longitude;
-                        geoWarningEl.classList.add('hidden');
-                    },
-                    (err) => {
-                        console.error('Geolocation error:', err);
-                        geoWarningEl.classList.remove('hidden');
-                        geoWarningEl.innerHTML =
-                            '<i class="bi bi-exclamation-triangle-fill"></i> Location permission needed to update the map.';
-                    }, {
+                // Capacitor Native Geolocation Support
+                if (window.Capacitor && window.CapacitorGeolocation) {
+                    try {
+                        const status = await window.CapacitorGeolocation.checkPermissions();
+                        if (status.location !== 'granted') {
+                            const requestStatus = await window.CapacitorGeolocation.requestPermissions();
+                            if (requestStatus.location !== 'granted') throw new Error('Permission denied');
+                        }
+
+                        await window.CapacitorGeolocation.watchPosition({
+                                enableHighAccuracy: true
+                            },
+                            (pos, err) => {
+                                if (err) onLocationError(err);
+                                else if (pos) onLocationUpdate(pos);
+                            }
+                        );
+                    } catch (err) {
+                        onLocationError(err);
+                    }
+                }
+                // Fallback to HTML5 Geolocation (Browser)
+                else if (navigator.geolocation) {
+                    navigator.geolocation.watchPosition(onLocationUpdate, onLocationError, {
                         enableHighAccuracy: true,
                         maximumAge: 5000,
                         timeout: 10000
-                    }
-                );
+                    });
+                } else {
+                    geoWarningEl.classList.remove('hidden');
+                    geoWarningEl.innerHTML =
+                        '<i class="bi bi-exclamation-triangle-fill"></i> This browser doesn\'t support location sharing.';
+                }
             }
 
             if (isOnline) {
                 startLocationTracking();
+
+                                // Listen for compass heading to rotate the marker securely via Native Capacitor Motion
+                                
             }
 
             // ---------------------------------------------------------------
@@ -1557,9 +1618,18 @@
             // Boot
             // ---------------------------------------------------------------
             startPolling();
-        })();
+        });
     </script>
     @include('partials.notifications')
 </body>
 
 </html>
+
+
+
+
+
+
+
+
+
