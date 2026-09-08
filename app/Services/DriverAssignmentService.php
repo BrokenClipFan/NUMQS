@@ -8,14 +8,21 @@ class DriverAssignmentService {
   public function setDriving($driver, $status) {
     $driver->update(['is_online' => $status]);
     
-    if($status) 
+    if($status) {
       $this->checkLastUpdated($driver);
+    } else {
+      // If going offline, clean up queue and state
+      $driver->update([
+        'state' => 'idle',
+      ]);
+      app(\App\Services\QueueService::class)->removeFromQueue($driver);
+    }
 
     return "Success";
   }
 
   public function checkLastUpdated($driver) {
-    if($driver->last_updated->isToday()) {
+    if($driver->last_updated && $driver->last_updated->isToday()) {
       return;
     }
 

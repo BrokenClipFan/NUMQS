@@ -54,7 +54,24 @@ class QueueService {
     return abs($minutes);
   }
 
+  public function pruneDisconnectedDrivers() {
+    $threshold = now()->subMinutes(5);
+    $disconnectedDrivers = DriverStatus::where('is_online', true)
+                            ->where('last_updated', '<', $threshold)
+                            ->get();
+
+    foreach ($disconnectedDrivers as $driver) {
+        $driver->update([
+            'is_online' => false,
+            'state' => 'idle'
+        ]);
+        $this->removeFromQueue($driver);
+    }
+  }
+
   public function getQueueWithProfiles() {
+    $this->pruneDisconnectedDrivers();
+
     $queues = DriverQueue::with('profile')
     ->orderBy('position', 'asc')
     ->get();

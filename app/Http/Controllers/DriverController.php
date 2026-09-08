@@ -26,9 +26,12 @@ class DriverController extends Controller
         return view('driver.map', compact('driver', 'driverProfiles'));
     }
 
-    public function getDrivers() {
+    public function getDrivers(\App\Services\QueueService $queueService) {
+        // Lazily clean up drivers who haven't updated in 5 minutes
+        $queueService->pruneDisconnectedDrivers();
+
         $drivers = User::whereHas('status', function ($query) {
-        $query->where('is_online', true);
+            $query->where('is_online', true);
         })
         ->with(['profile', 'status'])
         ->get();
@@ -129,7 +132,7 @@ class DriverController extends Controller
         
         $service->setDriving($driver, $request->is_online);
         
-        $message = $request->boolean('is_online') ? "You are now online" : "Your are now offline";
+        $message = $request->boolean('is_online') ? "You are now online" : "You are now offline";
         return back()->with('success', $message);
     }
 

@@ -61,14 +61,14 @@ class DriverVerificationController extends Controller
             DB::transaction(function() use ($request, $validated, $id, $user) {
 
                 if ($request->hasFile('image_front')) {
-                    $validated['image_front_path'] = $request->file('image_front')->store('jeepneys/vehicleFront', 'public/jeepney');
+                    $validated['image_front_path'] = $request->file('image_front')->store('jeepneys/vehicleFront', 'public');
                 }
 
                 if ($request->hasFile('image_side')) {
-                    $validated['image_side_path'] = $request->file('image_side')->store('jeepneys/vehicleSide', 'public/jeepney');
+                    $validated['image_side_path'] = $request->file('image_side')->store('jeepneys/vehicleSide', 'public');
                 }
 
-                if ($request->hasFile('image_back')) {
+                if ($request->hasFile('image_plate')) {
                     $validated['image_plate_path'] = $request->file('image_plate')->store('jeepneys/vehiclePlate', 'public');
                 }
 
