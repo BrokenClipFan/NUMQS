@@ -283,7 +283,13 @@
             }
 
             #map-container {
-                flex: 0 0 60%;
+                flex: 1 1 auto;
+            }
+
+            .scrollable-panel {
+                flex: 0 0 380px;
+                max-width: 380px;
+                border-left: 1px solid var(--line);
             }
         }
 
@@ -802,35 +808,38 @@
                 <span class="live-dot ms-1" title="Live"></span>
             </a>
 
-            <div class="d-flex align-items-center gap-2">
-                <div class="search-bar position-relative">
+                        <div class="d-flex align-items-center gap-3 pe-1">
+                <!-- Search Button -->
+                <button type="button" class="btn p-0 border-0 text-amber d-flex align-items-center justify-content-center" data-bs-toggle="modal" data-bs-target="#searchModal" title="Search Drivers" style="background: transparent; font-size: 1.25rem;">
                     <i class="bi bi-search"></i>
-                    <input type="search" id="driverSearch" placeholder="Search by driver name or plate number"
-                        autocomplete="off">
+                </button>
 
-                    <!-- NEW: Search Results Dropdown -->
-                    <div id="searchResults" class="list-group position-absolute w-100 d-none shadow-sm"
-                        style="top: 110%; z-index: 1050; max-height: 250px; overflow-y: auto; border-radius: 12px; border: 1px solid var(--line);">
-                    </div>
-                </div>
-
-                <span class="position-readout">
-                    <i class="bi bi-signpost-split-fill"></i>
-                    <span class="hide-on-mobile-xs">POS</span>
-                    <span id="navPositionBadge">—</span>
-                </span>
-
+                <!-- Admin Button -->
                 @if (auth()->check() && auth()->user()->role === 'admin')
                     <a href="{{ route('fleet.management') }}"
-                        class="btn btn-sm btn-dashboard d-flex align-items-center gap-1 px-2 rounded-2"
-                        title="Admin Dashboard">
-                        <i class="bi bi-shield-lock-fill text-amber"></i> <span class="d-none d-md-inline">Admin</span>
+                        class="btn p-0 border-0 text-amber d-flex align-items-center justify-content-center"
+                        title="Admin Dashboard" style="background: transparent; font-size: 1.25rem;">
+                        <i class="bi bi-shield-lock-fill"></i>
                     </a>
                 @endif
 
+                
+                <!-- Queue Button -->
+                <a href="{{ route('driver.queue') }}"
+                    class="btn p-0 border-0 text-amber d-flex align-items-center justify-content-center"
+                    title="Queue Lineup" style="background: transparent; font-size: 1.25rem;">
+                    <i class="bi bi-list-ol"></i>
+                </a>
+
+                <!-- Profile Button -->
                 <a href="{{ route('profile.index') }}"
-                    class="btn btn-sm btn-dashboard d-flex align-items-center gap-1 px-2 rounded-2" title="Dashboard">
-                    <i class="bi bi-speedometer2"></i> <span class="d-none d-md-inline">Dashboard</span>
+                    class="btn p-0 rounded-circle overflow-hidden d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; border: 2px solid var(--amber) !important;" title="My Profile">
+                    @php
+                        $avatar = auth()->user()->profile && auth()->user()->profile->image_profile_path 
+                            ? '/storage/' . auth()->user()->profile->image_profile_path 
+                            : '/images/default-avatar.png';
+                    @endphp
+                    <img src="{{ $avatar }}" alt="Profile" style="width: 100%; height: 100%; object-fit: cover;">
                 </a>
             </div>
         </div>
@@ -852,15 +861,13 @@
             <div class="control-deck">
                 <h6><i class="bi bi-sliders me-1"></i>DRIVER CONTROLS</h6>
                 <div class="row g-2">
-                    <form class="col-6 drive-form" action="{{ route('online.update') }}" method="POST">
-                        @csrf
-                        <input type="hidden" name="is_online" value="1">
-                        <button type="submit" id="btnStartDrive" class="btn btn-deck btn-deck-start w-100"
+                                        <div class="col-6">
+                        <button type="button" class="btn btn-deck btn-deck-start w-100" data-bs-toggle="modal" data-bs-target="#startDriveModal"
                             @if ($driver->is_online) disabled @endif>
                             <i class="bi bi-play-circle-fill fs-4"></i>
                             <span>Start Drive</span>
                         </button>
-                    </form>
+                    </div>
                     <form class="col-6 drive-form" action="{{ route('online.update') }}" method="POST">
                         @csrf
                         <input type="hidden" name="is_online" value="0">
@@ -877,56 +884,15 @@
                 </div>
             </div>
 
-            <ul class="nav nav-fill" id="queueTabs" role="tablist">
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link route-chip active" id="naga-uling-tab" data-bs-toggle="tab"
-                        data-bs-target="#naga-uling" type="button" role="tab">
-                        <span class="route-dot naga"></span> Naga → Uling
-                    </button>
-                </li>
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link route-chip" id="uling-naga-tab" data-bs-toggle="tab"
-                        data-bs-target="#uling-naga" type="button" role="tab">
-                        <span class="route-dot uling"></span> Uling → Naga
-                    </button>
-                </li>
-            </ul>
-
-            <div class="tab-content" id="queueTabsContent">
-                <div class="tab-pane fade show active" id="naga-uling" role="tabpanel"
-                    aria-labelledby="naga-uling-tab">
-                    <div class="d-flex justify-content-between align-items-center mb-2 px-1">
-                        <span class="queue-section-label">Queue Lineup · FIFO</span>
-                        <span class="badge queue-count-badge" id="nagaToUlingQueueCount">0 Active</span>
-                    </div>
-
-                    <div class="d-flex flex-column gap-2" id="nagaToUlingQueue">
-                        <div class="empty-state">Loading queue…</div>
-                    </div>
-                </div>
-
-                <div class="tab-pane fade" id="uling-naga" role="tabpanel" aria-labelledby="uling-naga-tab">
-                    <div class="alert strict-window-note py-2 px-2 rounded-3 mb-2 d-flex align-items-start gap-2">
-                        <i class="bi bi-exclamation-triangle-fill mt-1"></i>
-                        <div><strong>Strict Window:</strong> Max 10 mins to clear dispatch.</div>
-                    </div>
-                    <div class="d-flex justify-content-between align-items-center mb-2 px-1">
-                        <span class="queue-section-label">Dispatch Order</span>
-                        <span class="badge queue-count-badge" id="ulingToNagaQueueCount">0 Active</span>
-                    </div>
-
-                    <div class="d-flex flex-column gap-2" id="ulingToNagaQueue">
-                        <div class="empty-state">Loading queue…</div>
-                    </div>
-                </div>
-
             </div>
+    </div>
         </div>
     </div>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
         integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/js/leaflet.polylineDecorator.js"></script>
 
     <script type="module">
         document.addEventListener("DOMContentLoaded", () => {
@@ -935,14 +901,15 @@
             // ---------------------------------------------------------------
             // Setup / constants
             // ---------------------------------------------------------------
-            const CURRENT_DRIVER_ID = "{{ $driver->id }}";
+            const CURRENT_DRIVER_ID = "{{ Auth::id() }}";
+            const DRIVER_DESTINATION = "{{ $driver->going_to ?? 'none' }}";
+            let rawPoints = {!! isset($routePath) ? $routePath->path : '[]' !!};
+            const FULL_ROUTE_POINTS = typeof rawPoints === 'string' ? JSON.parse(rawPoints) : rawPoints;
+            const routeLatLngs = FULL_ROUTE_POINTS.map(coord => [coord.lat, coord.lng]);
+            
             const POLL_INTERVAL_MS = 2000;
             const FILL_WINDOW_MS = 15 * 60 * 1000; // 15 minute strict window
 
-            const nagaToUlingQueueEl = document.getElementById('nagaToUlingQueue');
-            const ulingToNagaQueueEl = document.getElementById('ulingToNagaQueue');
-            const nagaToUlingCountEl = document.getElementById('nagaToUlingQueueCount');
-            const ulingToNagaCountEl = document.getElementById('ulingToNagaQueueCount');
             const navPositionBadge = document.getElementById('navPositionBadge');
             const geoWarningEl = document.getElementById('geoWarning');
             const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
@@ -999,10 +966,75 @@
 
             setTimeout(() => map.invalidateSize(), 300);
             window.addEventListener('resize', () => map.invalidateSize());
+            map.on('popupclose', () => {
+                window.viewingOtherDriverId = null;
+                if(typeof updateRouteLine === 'function' && typeof targetLat !== 'undefined' && typeof targetLng !== 'undefined') {
+                    updateRouteLine(targetLat, targetLng, DRIVER_DESTINATION);
+                }
+            });
+
+            window.routeCasing = L.polyline([], {color: '#172554', weight: 9, opacity: 0.9, lineCap: 'round', lineJoin: 'round', interactive: false}).addTo(map);
+            window.routePolyline = L.polyline([], {color: '#3b82f6', weight: 5, opacity: 1.0, lineCap: 'round', lineJoin: 'round', interactive: false}).addTo(map);
+            window.routeConnectionLine = L.polyline([], {color: '#64748b', dashArray: '5, 5', weight: 3, opacity: 0.8, interactive: false}).addTo(map);
+            
+            if (DRIVER_DESTINATION && DRIVER_DESTINATION !== 'none' && routeLatLngs && routeLatLngs.length > 0) {
+                let initPath = [];
+                if (DRIVER_DESTINATION.toLowerCase() === 'uling') {
+                    initPath = routeLatLngs;
+                } else if (DRIVER_DESTINATION.toLowerCase() === 'naga') {
+                    initPath = [...routeLatLngs].reverse();
+                }
+                window.routeCasing.setLatLngs(initPath);
+                window.routePolyline.setLatLngs(initPath);
+            }
+            
+            if (typeof L.polylineDecorator === 'function') {
+                window.routeArrows = L.polylineDecorator(window.routePolyline, {
+                    patterns: [
+                        { offset: 50, repeat: 100, symbol: L.Symbol.arrowHead({pixelSize: 12, polygon: false, pathOptions: {stroke: true, color: '#ffffff', weight: 3, opacity: 0.9, lineCap: 'round'}}) }
+                    ]
+                }).addTo(map);
+            }
+
 
             // ---------------------------------------------------------------
             // Dynamic Icon Scaling
             // ---------------------------------------------------------------
+            
+            function updateRouteLine(lat, lng, destination) {
+                if (!routeLatLngs || routeLatLngs.length === 0 || !destination || destination === 'none') {
+                    if(window.routeCasing) window.routeCasing.setLatLngs([]);
+                    if(window.routePolyline) window.routePolyline.setLatLngs([]);
+                    return;
+                }
+                
+                let minDistance = Infinity;
+                let closestIdx = 0;
+                const currentPos = L.latLng(lat, lng);
+
+                for (let i = 0; i < routeLatLngs.length; i++) {
+                    const d = currentPos.distanceTo(L.latLng(routeLatLngs[i][0], routeLatLngs[i][1]));
+                    if (d < minDistance) {
+                        minDistance = d;
+                        closestIdx = i;
+                    }
+                }
+
+                let newPath = [];
+                const dest = destination.toLowerCase().trim();
+                if (dest === 'uling') {
+                    newPath = routeLatLngs.slice(closestIdx);
+                } else if (dest === 'naga') {
+                    newPath = routeLatLngs.slice(0, closestIdx + 1).reverse();
+                } else {
+                    newPath = routeLatLngs;
+                }
+
+                if(window.routeCasing) window.routeCasing.setLatLngs(newPath);
+                if(window.routePolyline) window.routePolyline.setLatLngs(newPath);
+                if(window.routeArrows) window.routeArrows.setPaths(newPath);
+            }
+
             function updateIconScale() {
                 const zoom = map.getZoom();
                 let scale = 1; // Default base scale for zoom level 13
@@ -1027,10 +1059,17 @@
                 drivers.forEach((driver) => {
                     const driverLat = driver.status.latitude;
                     const driverLng = driver.status.longitude;
+                    
+                    if (!driverLat || !driverLng) return;
 
                     if (jeepneyMarkers[driver.id]) {
                         if (String(driver.id) !== String(CURRENT_DRIVER_ID)) {
                             smoothMoveWithRotation(jeepneyMarkers[driver.id], driverLat, driverLng, POLL_INTERVAL_MS);
+                            if (window.viewingOtherDriverId === driver.id) {
+                                if(typeof updateRouteLine === 'function') updateRouteLine(driverLat, driverLng, driver.status.going_to);
+                            }
+                        } else {
+                            if(typeof updateRouteLine === 'function' && !window.viewingOtherDriverId) updateRouteLine(driverLat, driverLng, DRIVER_DESTINATION);
                         }
                         return;
                     }
@@ -1072,7 +1111,18 @@
             </div>`;
 
                     marker.bindPopup(popupContent);
+                    
+                    marker.on('popupopen', () => {
+                        window.viewingOtherDriverId = driver.id;
+                        if(typeof updateRouteLine === 'function') updateRouteLine(driverLat, driverLng, driver.status.going_to);
+                    });
+
                     jeepneyMarkers[driver.id] = marker;
+                    if (String(driver.id) === String(CURRENT_DRIVER_ID)) {
+                        if(typeof updateRouteLine === 'function' && !window.viewingOtherDriverId) updateRouteLine(driverLat, driverLng, DRIVER_DESTINATION);
+                    } else if (window.viewingOtherDriverId === driver.id) {
+                        if(typeof updateRouteLine === 'function') updateRouteLine(driverLat, driverLng, driver.status.going_to);
+                    }
                 });
             }
 
@@ -1172,8 +1222,8 @@
                         matches.forEach(driver => {
                             const item = document.createElement('button');
                             item.type = 'button';
-                            item.className =
-                                'list-group-item border-0 search-result-item d-flex justify-content-between align-items-center p-2 px-3';
+                                                        item.className = 'list-group-item search-result-item d-flex justify-content-between align-items-center p-3 rounded-3 mb-2';
+                            item.style.border = '1px solid var(--line)';
 
                             item.innerHTML = `
                             <div class="d-flex flex-column text-start">
@@ -1204,10 +1254,13 @@
                                     }
                                 }
 
-                                // Clean up UI after selection
+                                                                // Clean up UI after selection
                                 searchInput.value = '';
                                 searchResultsEl.classList.add('d-none');
                                 searchInput.blur();
+                                
+                                const modalInst = bootstrap.Modal.getInstance(document.getElementById('searchModal'));
+                                if(modalInst) modalInst.hide();
                             });
 
                             searchResultsEl.appendChild(item);
@@ -1407,24 +1460,17 @@
                     });
                 }
 
-                navPositionBadge.textContent = myPosition ?
-                    `${myQueueLabel}-${String(myPosition).padStart(2, '0')}` :
-                    '—';
+                if (navPositionBadge) {
+                    navPositionBadge.innerHTML = myPosition ?
+                        `${myQueueLabel}-${String(myPosition).padStart(2, '0')}` :
+                        '&mdash;';
+                }
             }
 
             // ---------------------------------------------------------------
             // Network polling
             // ---------------------------------------------------------------
-            function getAllQueues() {
-                return fetch('/queue')
-                    .then(response => {
-                        if (!response.ok) throw new Error('Failed to load queue data');
-                        return response.json();
-                    })
-                    .then(updateQueue)
-                    .catch(err => console.error('getAllQueues:', err));
-            }
-
+            
             let hasAutoZoomed = false; // Add this near your other let declarations
 
             function getDriversCoord() {
@@ -1505,8 +1551,7 @@
                     saveLocationToDatabase(targetLat, targetLng);
                 }
                 getDriversCoord();
-                getAllQueues();
-            }
+                            }
 
             function startPolling() {
                 if (pollTimer) return;
@@ -1621,14 +1666,100 @@
         });
     </script>
     @include('partials.notifications')
+    
+    <!-- Destination Selection Modal -->
+    <div class="modal fade" id="destinationModal" tabindex="-1" aria-labelledby="destinationModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content" style="background: var(--card); border: 1px solid var(--line); border-radius: 16px;">
+                <div class="modal-header border-bottom-0 pb-2">
+                    <h5 class="modal-title" id="destinationModalLabel" style="color: var(--ink); font-weight: 700;">Select Destination</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body pt-0 pb-4">
+                    <p style="color: var(--text-muted); font-size: 0.95rem;">Please select where you are heading. This sets your route for the current drive session.</p>
+                    <form action="{{ route('online.update') }}" method="POST">
+                        @csrf
+                        <input type="hidden" name="is_online" value="1">
+                        <div class="d-grid gap-3">
+                            <button type="submit" name="first_destination" value="Uling" class="btn btn-lg d-flex align-items-center justify-content-between px-4 py-3" style="background: var(--card); border: 2px solid var(--route-uling); border-radius: 12px; color: var(--ink); font-weight: 600; text-align: left;">
+                                <div>
+                                    <span class="route-dot uling me-2"></span>
+                                    Naga &rarr; Uling
+                                </div>
+                                <i class="bi bi-chevron-right text-muted"></i>
+                            </button>
+                            
+                            <button type="submit" name="first_destination" value="Naga" class="btn btn-lg d-flex align-items-center justify-content-between px-4 py-3" style="background: var(--card); border: 2px solid var(--route-naga); border-radius: 12px; color: var(--ink); font-weight: 600; text-align: left;">
+                                <div>
+                                    <span class="route-dot naga me-2"></span>
+                                    Uling &rarr; Naga
+                                </div>
+                                <i class="bi bi-chevron-right text-muted"></i>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Search Modal -->
+    <div class="modal fade" id="searchModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content" style="background: var(--card); border: 1px solid var(--line); border-radius: 16px;">
+                <div class="modal-header border-bottom-0 pb-2 pt-3 px-3">
+                    <div class="search-bar w-100 position-relative m-0">
+                        <i class="bi bi-search"></i>
+                        <input type="search" id="driverSearch" class="form-control w-100" placeholder="Search by driver name or plate number" autocomplete="off" autofocus style="border-radius: 12px; padding: 0.75rem 1rem 0.75rem 2.8rem; background: var(--ink); color: #F4F5F1; border: 1px solid var(--line); box-shadow: none !important; outline: none !important;">
+                    </div>
+                </div>
+                <div class="modal-body pt-0 px-3 pb-3">
+                    <div id="searchResults" class="list-group w-100 shadow-none border-0 gap-2" style="overflow-y: auto; max-height: 60vh;">
+                        <!-- Results injected here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        document.getElementById('searchModal').addEventListener('shown.bs.modal', function () {
+            document.getElementById('driverSearch').focus();
+        });
+    </script>
+
+    
+
+    <!-- Start Drive Modal -->
+    <div class="modal fade dark-modal" id="startDriveModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Select Initial Destination</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body text-center">
+                    <p class="mb-4">Where are you heading first?</p>
+                    <div class="d-grid gap-3">
+                        <form class="drive-form" action="{{ route('online.update') }}" method="POST">
+                            @csrf
+                            <input type="hidden" name="is_online" value="1">
+                            <input type="hidden" name="first_destination" value="Uling">
+                            <button type="submit" class="btn btn-primary w-100 py-3">Heading to Uling</button>
+                        </form>
+                        <form class="drive-form" action="{{ route('online.update') }}" method="POST">
+                            @csrf
+                            <input type="hidden" name="is_online" value="1">
+                            <input type="hidden" name="first_destination" value="Naga">
+                            <button type="submit" class="btn btn-success w-100 py-3">Heading to Naga</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </body>
 
 </html>
-
-
-
-
-
 
 
 

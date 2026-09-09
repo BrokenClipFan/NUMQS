@@ -17,3 +17,5 @@ window.CapacitorMotion = Motion;
 import { CapgoCompass } from '@capgo/capacitor-compass';
 window.CapacitorCompass = CapgoCompass;
 
+
+

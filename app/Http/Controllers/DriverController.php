@@ -23,7 +23,8 @@ class DriverController extends Controller
 
         $driver = DriverStatus::where('user_id', Auth::id())->first();
         $driverProfiles = DriverProfile::all();
-        return view('driver.map', compact('driver', 'driverProfiles'));
+        $routePath = \App\Models\Route::first();
+        return view('driver.map', compact('driver', 'driverProfiles', 'routePath'));
     }
 
     public function getDrivers(\App\Services\QueueService $queueService) {
@@ -125,12 +126,13 @@ class DriverController extends Controller
 
     public function changeOnlineStatus(Request $request, DriverAssignmentService $service) {
         $request->validate([
-            'is_online' => 'required|boolean'
+            'is_online' => 'required|boolean',
+            'first_destination' => 'nullable|string'
         ]);
 
         $driver = DriverStatus::where('user_id', Auth::id())->firstOrFail();
         
-        $service->setDriving($driver, $request->is_online);
+        $service->setDriving($driver, $request->boolean('is_online'), $request->input('first_destination'));
         
         $message = $request->boolean('is_online') ? "You are now online" : "You are now offline";
         return back()->with('success', $message);
@@ -156,3 +158,5 @@ class DriverController extends Controller
         return $violationService->resolve($id);
     }
 }
+
+

@@ -57,6 +57,11 @@ Route::middleware('auth')->group(function () {
         // Route::post('/add/queue',[NagaQueueController::class, 'store'])->name('add.to.queue');
         
         Route::get('/', [DriverController::class, 'index'])->name('driver.map');
+
+        Route::get('/queue-lineup', function() {
+            return view('driver.queue');
+        })->name('driver.queue');
+
         // Route::get('/', function () {
         //     return view('debug-gps');
         // })->name('driver.map');
