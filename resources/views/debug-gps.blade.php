@@ -8,7 +8,14 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 </head>
 <body class="bg-gray-900 text-white p-6 font-mono">
-    <h1 class="text-2xl font-bold mb-4 text-blue-400">Capacitor GPS Debugger</h1>
+    <div class="flex items-center mb-5">
+        <a href="{{ route('driver.map') }}" class="bg-gray-800 hover:bg-gray-700 text-gray-300 p-2 rounded-lg border border-gray-700 transition-colors mr-3 inline-flex items-center justify-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+        </a>
+        <h1 class="text-xl md:text-2xl font-bold text-blue-400 m-0">Capacitor GPS Debugger</h1>
+    </div>
     
     <div class="space-y-4">
         <div class="bg-gray-800 p-4 rounded-lg border border-gray-700">
@@ -60,6 +67,39 @@
             </button>
         </div>
 
+        
+        <div class="bg-gray-800 p-4 rounded-lg border border-gray-700">
+            <h2 class="text-gray-400 text-sm font-semibold mb-2">Fake Wi-Fi Settings (Dev)</h2>
+            <label class="flex items-center space-x-3 mb-3 cursor-pointer">
+                <input type="checkbox" id="fakeBssidToggle" class="form-checkbox h-5 w-5 text-indigo-600 rounded bg-gray-900 border-gray-700">
+                <span class="text-white font-medium text-sm">Force Fake Terminal BSSID</span>
+            </label>
+            <div id="fakeBssidContainer" style="display: none;">
+                @if(isset($terminals) && $terminals->count() > 0)
+                    <div class="mb-3">
+                        <span class="text-gray-400 text-xs uppercase font-bold mb-2 d-block">Quick Select Terminal</span>
+                        <div class="flex flex-col space-y-2 mt-1">
+                            @foreach($terminals as $terminal)
+                                <button type="button" class="preset-bssid-btn bg-gray-700 hover:bg-gray-600 text-white text-xs font-bold py-2 px-3 rounded flex justify-between items-center transition-colors border border-gray-600" data-bssid="{{ $terminal->bssid }}">
+                                    <span>{{ $terminal->name }}</span>
+                                    <span class="text-green-400 font-mono text-[10px]">{{ $terminal->bssid }}</span>
+                                </button>
+                            @endforeach
+                        </div>
+                    </div>
+                @endif
+                <input type="text" id="fakeBssidInput" class="w-full bg-gray-900 text-green-400 border border-gray-700 rounded-lg px-3 py-2 mb-2 focus:outline-none focus:border-indigo-500" placeholder="Manual BSSID (e.g. 00:11:22:33:44:55)">
+                <div class="flex gap-2">
+                    <button id="btnSaveFakeWifi" class="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg transition-colors">
+                        Save BSSID
+                    </button>
+                    <button id="btnRandomBssid" class="flex-1 bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-lg transition-colors">
+                        Random BSSID
+                    </button>
+                </div>
+            </div>
+        </div>
+
         <div class="bg-gray-800 p-4 rounded-lg border border-gray-700">
             <h2 class="text-gray-400 text-sm font-semibold mb-1">System Logs</h2>
             <div id="logs" class="text-xs text-gray-300 h-48 overflow-y-auto font-mono space-y-1"></div>
@@ -83,6 +123,7 @@
             };
 
             log('DOM Loaded. Waiting for Capacitor...');
+            setTimeout(() => { log(window.APP_JS_LOADED ? 'app.js loaded successfully!' : 'ERROR: app.js failed to load!', window.APP_JS_LOADED ? 'text-green-400' : 'text-red-400'); }, 500);
 
             const capStatus = document.getElementById('capStatus');
             const permStatus = document.getElementById('permStatus');
@@ -108,7 +149,7 @@
                     window.CapacitorCompass.addListener('heading', (event) => {
                         let heading = event.heading; // 0-360 true/magnetic heading
                         if (heading !== null && heading !== undefined) {
-                            document.getElementById('heading').textContent = heading.toFixed(1) + '°';
+                            document.getElementById('heading').textContent = heading.toFixed(1) + '';
                         }
                     });
                 } else {
@@ -116,7 +157,7 @@
                     window.addEventListener('deviceorientationabsolute', (e) => {
                         if (e.alpha !== null) {
                             let heading = e.webkitCompassHeading || (360 - e.alpha);
-                            document.getElementById('heading').textContent = heading.toFixed(1) + '°';
+                            document.getElementById('heading').textContent = heading.toFixed(1) + '';
                         }
                     }, true);
                 }
@@ -165,8 +206,60 @@
                 }
             });
 
+
+            const toggle = document.getElementById('fakeBssidToggle');
+            const container = document.getElementById('fakeBssidContainer');
+            const input = document.getElementById('fakeBssidInput');
+            const btnSave = document.getElementById('btnSaveFakeWifi');
+
+            toggle.checked = localStorage.getItem('fakeBssidEnabled') === 'true';
+            input.value = localStorage.getItem('fakeBssidValue') || '';
+            if(container) container.style.display = toggle.checked ? 'block' : 'none';
+
+            if(toggle) toggle.addEventListener('change', (e) => {
+                container.style.display = e.target.checked ? 'block' : 'none';
+                localStorage.setItem('fakeBssidEnabled', e.target.checked);
+                log(e.target.checked ? 'Fake BSSID Enabled' : 'Fake BSSID Disabled', 'text-yellow-400');
+            });
+
+            if(btnSave) btnSave.addEventListener('click', () => {
+                localStorage.setItem('fakeBssidValue', input.value.trim());
+                log('Fake BSSID saved: ' + input.value.trim(), 'text-green-400');
+            });
+
+            document.getElementById('btnRandomBssid').addEventListener('click', () => {
+                const randomHex = () => Math.floor(Math.random() * 256).toString(16).padStart(2, '0');
+                const randomBssid = Array.from({length: 6}, randomHex).join(':');
+                input.value = randomBssid;
+                localStorage.setItem('fakeBssidValue', randomBssid);
+                log('Random unknown BSSID generated: ' + randomBssid, 'text-purple-400');
+            });
+
+            document.querySelectorAll('.preset-bssid-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const btnEl = e.currentTarget;
+                    const bssid = btnEl.getAttribute('data-bssid');
+                    input.value = bssid;
+                    localStorage.setItem('fakeBssidValue', bssid);
+                    log('Preset terminal selected: ' + bssid, 'text-green-400');
+                });
+            });
+
             document.getElementById('btnWifi').addEventListener('click', async () => {
                 log('Wi-Fi button clicked.');
+                
+                const fakeBssidEnabled = localStorage.getItem('fakeBssidEnabled') === 'true';
+                const fakeBssidValue = localStorage.getItem('fakeBssidValue');
+
+                if (fakeBssidEnabled && fakeBssidValue) {
+                    log('Using FAKE BSSID Override...', 'text-yellow-400');
+                    document.getElementById('wifiSsid').textContent = 'Fake Terminal WiFi';
+                    document.getElementById('wifiBssid').textContent = fakeBssidValue;
+                    log('SSID: Fake Terminal WiFi');
+                    log('BSSID: ' + fakeBssidValue);
+                    return;
+                }
+
                 if (window.CapacitorWifiNetwork) {
                     try {
                         const info = await window.CapacitorWifiNetwork.getWifiInfo();
@@ -186,5 +279,6 @@
     </script>
 </body>
 </html>
+
 
 

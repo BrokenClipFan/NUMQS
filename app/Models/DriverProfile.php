@@ -38,6 +38,6 @@ class DriverProfile extends Model
     }
 
     public function violations() {
-        return $this->hasMany(Violation::class, 'driver_profile_id');
+        return $this->hasMany(Violation::class, 'driver_profile_id', 'user_id');
     }
 }

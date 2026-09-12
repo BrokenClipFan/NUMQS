@@ -1,3 +1,4 @@
+window.APP_JS_LOADED = true;
 import "bootstrap";
 import "leaflet-rotatedmarker";
 
@@ -16,6 +17,7 @@ window.CapacitorMotion = Motion;
 
 import { CapgoCompass } from '@capgo/capacitor-compass';
 window.CapacitorCompass = CapgoCompass;
+
 
 
 

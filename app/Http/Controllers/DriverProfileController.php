@@ -18,7 +18,7 @@ class DriverProfileController extends Controller
         // Fetch unresolved violations for this driver's profile
         $violations = collect();
         if ($driver) {
-            $violations = \App\Models\Violation::where('driver_profile_id', $driver->id)
+            $violations = \App\Models\Violation::where('driver_profile_id', $driver->user_id)
                             ->whereNull('resolved_at')
                             ->orderBy('created_at', 'desc')
                             ->get();

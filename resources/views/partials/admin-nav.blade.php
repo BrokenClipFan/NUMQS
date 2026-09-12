@@ -18,6 +18,12 @@
             <a href="{{ route('admin.violations.resolved') }}" class="btn {{ request()->routeIs('admin.violations.resolved') ? 'btn-light text-primary' : 'btn-primary text-white' }} btn-sm d-inline-flex align-items-center gap-2 rounded-3 shadow-sm px-3 fw-bold border-0" style="{{ request()->routeIs('admin.violations.resolved') ? '' : 'background-color: var(--primary); border: none;' }}">
                 <i class="bi bi-check-all"></i> <span class="d-none d-md-inline">Resolved Warnings</span>
             </a>
+            <a href="{{ route('admin.landmarks.index') }}" class="btn {{ request()->routeIs('admin.landmarks.index') ? 'btn-light text-primary' : 'btn-primary text-white' }} btn-sm d-inline-flex align-items-center gap-2 rounded-3 shadow-sm px-3 fw-bold border-0" style="{{ request()->routeIs('admin.landmarks.index') ? '' : 'background-color: var(--primary); border: none;' }}">
+                <i class="bi bi-geo-alt-fill"></i> <span class="d-none d-md-inline">Landmarks</span>
+            </a>
+            <a href="{{ route('admin.settings') }}" class="btn {{ request()->routeIs('admin.settings') ? 'btn-light text-primary' : 'btn-primary text-white' }} btn-sm d-inline-flex align-items-center gap-2 rounded-3 shadow-sm px-3 fw-bold border-0" style="{{ request()->routeIs('admin.settings') ? '' : 'background-color: var(--primary); border: none;' }}">
+                <i class="bi bi-gear-fill"></i> <span class="d-none d-md-inline">Settings</span>
+            </a>
         </div>
         <a class="navbar-brand m-0 d-none d-sm-flex" href="{{ route('fleet.management') }}">
             <img src="{{ asset('Logo.png') }}" alt="Logo" style="height: 38px; width: auto;">

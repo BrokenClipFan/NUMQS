@@ -57,15 +57,17 @@ Route::middleware('auth')->group(function () {
         // Route::post('/add/queue',[NagaQueueController::class, 'store'])->name('add.to.queue');
         
         Route::get('/', [DriverController::class, 'index'])->name('driver.map');
-
-        Route::get('/queue-lineup', function() {
-            return view('driver.queue');
-        })->name('driver.queue');
-
-        // Route::get('/', function () {
+        // Route::get('/', function() {
         //     return view('debug-gps');
         // })->name('driver.map');
+
+        Route::get('/queue-lineup', function() {
+            $driver = \App\Models\DriverStatus::where('user_id', auth()->id())->first();
+            return view('driver.queue', compact('driver'));
+        })->name('driver.queue');
+
         Route::get('/drivers', [DriverController::class, 'getDrivers']);
+        Route::get('/landmarks', [\App\Http\Controllers\MapLandmarkController::class, 'getLandmarks']);
         Route::post('/driver/location/update', [DriverController::class, 'updateLocation'])->name('location.update');
         Route::post('/driver/online/update', [DriverController::class, 'changeOnlineStatus'])->name('online.update');
 
@@ -75,6 +77,13 @@ Route::middleware('auth')->group(function () {
         
     Route::middleware('is_admin')->group(function() {
             
+        
+        Route::get('/admin/landmarks', [\App\Http\Controllers\MapLandmarkController::class, 'index'])->name('admin.landmarks.index');
+        Route::post('/admin/landmarks', [\App\Http\Controllers\MapLandmarkController::class, 'store'])->name('admin.landmarks.store');
+        Route::put('/admin/landmarks/{id}', [\App\Http\Controllers\MapLandmarkController::class, 'update'])->name('admin.landmarks.update');
+        Route::put('/admin/landmarks/{id}', [\App\Http\Controllers\MapLandmarkController::class, 'update'])->name('admin.landmarks.update');
+        Route::delete('/admin/landmarks/{id}', [\App\Http\Controllers\MapLandmarkController::class, 'destroy'])->name('admin.landmarks.destroy');
+
         Route::delete('/admin/delete/{id}', [DriverController::class, 'destroy'])->name('admin.drivers.destroy');
         
         Route::delete('/admin/reject/{id}', [DriverController::class, 'rejected'])->name('admin.verify.reject');
@@ -90,6 +99,10 @@ Route::middleware('auth')->group(function () {
         Route::post('/verify/dispatcher/{id}', [DriverVerificationController::class, 'setDispatcher'])->name('admin.verify.dispatcher');
 
         Route::get('admin/dashboard', [DriverFleet::class, 'index'])->name('fleet.management');
+        Route::get('/admin/settings', [\App\Http\Controllers\Admin\SettingsController::class, 'index'])->name('admin.settings');
+        Route::post('/admin/settings', [\App\Http\Controllers\Admin\SettingsController::class, 'update'])->name('admin.settings.update');
+        Route::post('/admin/terminals/{id}', [\App\Http\Controllers\Admin\SettingsController::class, 'updateTerminal'])->name('admin.terminals.update');
+        Route::post('/admin/terminals/{id}', [\App\Http\Controllers\Admin\SettingsController::class, 'updateTerminal'])->name('admin.terminals.update');
 
         Route::get('/admin/view/{user}', [AdminProfileController::class, 'index'])->name('view.driver');
 
@@ -136,6 +149,9 @@ Route::get('/auth/callback', function () {
 require __DIR__.'/auth.php';
 
 
-// Route::get('/debug-gps', function () {
-    // return view('debug-gps');
-// });
+Route::get('/debug-gps', function () {
+    $terminals = \App\Models\Terminal::all();
+    return view('debug-gps', compact('terminals'));
+});
+
+

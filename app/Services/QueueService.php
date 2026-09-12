@@ -7,6 +7,11 @@ use App\Models\DriverStatus;
 class QueueService {
 
   public function addToQueue($driver, $terminal) {
+    // Prevent duplicate entries for the same driver!
+    if (DriverQueue::where('driver_profile_id', $driver->user_id)->exists()) {
+        return; 
+    }
+
     $position = (DriverQueue::where('terminal_id', $terminal->id)->max('position') ?? 0) + 1;
 
     DriverQueue::create([

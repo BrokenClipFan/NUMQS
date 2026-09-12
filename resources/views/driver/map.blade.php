@@ -178,7 +178,8 @@
         }
 
         #map-container {
-            flex: 0 0 45dvh;
+            flex: 1 1 auto;
+            min-height: 40dvh;
             z-index: 1;
             position: relative;
             background: var(--ink);
@@ -271,10 +272,13 @@
         }
 
         .scrollable-panel {
-            flex-grow: 1;
+            flex: 0 0 auto;
+            max-height: 60dvh;
             overflow-y: auto;
             -webkit-overflow-scrolling: touch;
             background-color: var(--stone);
+            z-index: 2;
+            box-shadow: 0 -4px 24px rgba(23, 27, 33, 0.15);
         }
 
         @media (min-width: 768px) {
@@ -289,7 +293,9 @@
             .scrollable-panel {
                 flex: 0 0 380px;
                 max-width: 380px;
+                max-height: none;
                 border-left: 1px solid var(--line);
+                box-shadow: -4px 0 24px rgba(23, 27, 33, 0.08);
             }
         }
 
@@ -796,13 +802,32 @@
         .text-amber {
             color: var(--amber);
         }
+        .landmark-label {
+            background: transparent !important;
+            border: none !important;
+            box-shadow: none !important;
+            font-weight: 700 !important;
+            color: #f8fafc !important; /* light text for dark mode map */
+            font-family: var(--font-body) !important;
+            font-size: 11px !important;
+            text-align: center;
+            text-shadow: 2px 2px 0 #0f172a, -2px -2px 0 #0f172a, 2px -2px 0 #0f172a, -2px 2px 0 #0f172a, 0 2px 0 #0f172a, 2px 0 0 #0f172a, 0 -2px 0 #0f172a, -2px 0 0 #0f172a !important;
+        }
     </style>
 </head>
 
 <body data-driver-id="{{ $driver->id }}" data-is-online="{{ $driver->is_online ? '1' : '0' }}">
+    <!-- Full Screen Loading Overlay -->
+    <div id="mapLoadingScreen" class="d-flex flex-column justify-content-center align-items-center" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-color: #111827; z-index: 99999; transition: opacity 0.5s ease; opacity: 1;">
+        <div class="spinner-border mb-3" style="width: 3rem; height: 3rem; color: #fbbf24 !important;" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+        <h4 class="text-white fw-bold mb-1">NUMQS Tracking</h4>
+        <p class="text-secondary small">Acquiring GPS Signal...</p>
+    </div>
     <nav class="navbar navbar-expand-lg nav-sticky-top px-2 py-2">
         <div class="container-fluid d-flex justify-content-between align-items-center p-0">
-            <a class="navbar-brand brand-mark m-0" href="#">
+            <a class="navbar-brand brand-mark m-0" href="javascript:void(0);" onclick="window.location.reload();" style="cursor: pointer;">
                 <img src="{{ asset('Logo.png') }}" alt="Logo"
                     style="height: 28px; width: auto; object-fit: contain;">
                 <span class="live-dot ms-1" title="Live"></span>
@@ -823,6 +848,13 @@
                     </a>
                 @endif
 
+                
+                <!-- Debug GPS Button -->
+                <a href="/debug-gps"
+                    class="btn p-0 border-0 text-danger d-flex align-items-center justify-content-center"
+                    title="Debug GPS" style="background: transparent; font-size: 1.25rem;">
+                    <i class="bi bi-bug-fill"></i>
+                </a>
                 
                 <!-- Queue Button -->
                 <a href="{{ route('driver.queue') }}"
@@ -908,7 +940,7 @@
             const routeLatLngs = FULL_ROUTE_POINTS.map(coord => [coord.lat, coord.lng]);
             
             const POLL_INTERVAL_MS = 2000;
-            const FILL_WINDOW_MS = 15 * 60 * 1000; // 15 minute strict window
+            const FILL_WINDOW_MS = {{ \App\Models\Setting::getValue('queue_timer_minutes', 15) }} * 60 * 1000; // Configurable window
 
             const navPositionBadge = document.getElementById('navPositionBadge');
             const geoWarningEl = document.getElementById('geoWarning');
@@ -916,6 +948,8 @@
 
             let targetLat = null;
             let targetLng = null;
+            let dbTargetLat = null;
+            let dbTargetLng = null;
             let jeepneyMarkers = {};
             let pollTimer = null;
             let allDriversData = [];
@@ -954,6 +988,105 @@
             }).setView([10.2350, 123.7350], 13);
 
             // Use standard, clean OSM map tiles (most reliable, no ORB issues)
+            
+            // Add static Terminal Markers
+            if (routeLatLngs.length > 0) {
+                const nagaCoords = routeLatLngs[0];
+                const ulingCoords = routeLatLngs[routeLatLngs.length - 1];
+                
+                const terminalIconHtml = `
+                    <div style="position: relative; width: 36px; height: 36px; display: flex; justify-content: center;">
+                        <i class="bi bi-geo-alt-fill" style="font-size: 36px; line-height: 1; color: var(--amber); filter: drop-shadow(0px 4px 4px rgba(0,0,0,0.5));"></i>
+                        <div style="position: absolute; top: 4px; left: 50%; transform: translateX(-50%); width: 16px; height: 16px; background: transparent; display: flex; align-items: center; justify-content: center;">
+                            <i class="bi bi-building" style="font-size: 9px; color: var(--amber);"></i>
+                        </div>
+                    </div>
+                `;
+                
+                L.marker(nagaCoords, {
+                    icon: L.divIcon({
+                        className: 'terminal-marker',
+                        html: terminalIconHtml,
+                        iconSize: [36, 36],
+                        iconAnchor: [18, 36]
+                    }),
+                    zIndexOffset: 100
+                }).addTo(map).bindPopup('<div style="font-weight: 700; color: #111827;">Naga Terminal</div>');
+
+                L.marker(ulingCoords, {
+                    icon: L.divIcon({
+                        className: 'terminal-marker',
+                        html: terminalIconHtml,
+                        iconSize: [36, 36],
+                        iconAnchor: [18, 36]
+                    }),
+                    zIndexOffset: 100
+                }).addTo(map).bindPopup('<div style="font-weight: 700; color: #111827;">Uling Terminal</div>');
+            }
+
+            
+            // Fetch and Add Dynamic Landmarks
+            fetch('/landmarks')
+                .then(res => res.json())
+                .then(landmarks => {
+                    landmarks.forEach(landmark => {
+                        let color = '#f97316'; // default orange
+                        let innerIcon = 'bi-geo-fill';
+                        
+                        if (landmark.type === 'gas_station') { color = '#f97316'; innerIcon = 'bi-fuel-pump-fill'; }
+                        else if (landmark.type === 'school') { color = '#3b82f6'; innerIcon = 'bi-book-fill'; }
+                        else if (landmark.type === 'market') { color = '#22c55e'; innerIcon = 'bi-shop'; }
+                        else if (landmark.type === 'mini_stop') { color = '#a855f7'; innerIcon = 'bi-signpost-2-fill'; }
+
+                        const iconHtml = `
+                                                <div style="position: relative; width: 32px; height: 32px; display: flex; justify-content: center;">
+                        <i class="bi bi-geo-alt-fill" style="font-size: 32px; line-height: 1; color: ${color}; filter: drop-shadow(0px 3px 3px rgba(0,0,0,0.4)); -webkit-text-stroke: 1px #171B21;"></i>
+                        <!-- Solid white circle to cover the messy inner stroke of the hole -->
+                        <div style="position: absolute; top: 4.5px; left: 50%; transform: translateX(-50%); width: 13px; height: 13px; background: #ffffff; border-radius: 50%; display: flex; align-items: center; justify-content: center; z-index: 2;">
+                            <i class="bi ${innerIcon}" style="font-size: 9px; color: #171B21;"></i>
+                        </div>
+                    </div>
+                        `;
+                        
+                        const popupHtml = `
+                            <div class="lm-popup-container">
+                                <div class="lm-header">
+                                    <div class="lm-icon-circle" style="color: ${color}">
+                                        <i class="bi ${innerIcon}" style="filter: drop-shadow(0px 2px 2px rgba(0,0,0,0.3)); -webkit-text-stroke: 0.5px #171B21;"></i>
+                                    </div>
+
+                                    <div class="lm-name" title="${escapeHtml(landmark.name)}">
+                                        ${escapeHtml(landmark.name)}
+                                    </div>
+                                </div>
+                                
+                                ${landmark.image_path 
+                                    ? `<img src="/storage/${landmark.image_path}" class="lm-image">`
+                                    : `<div class="lm-image"><i class="bi bi-image fs-2"></i></div>`
+                                }
+                            </div>
+                        `;
+
+                        L.marker([landmark.latitude, landmark.longitude], {
+                            icon: L.divIcon({
+                                className: 'landmark-marker',
+                                html: iconHtml,
+                                iconSize: [32, 32],
+                                iconAnchor: [16, 32]
+                            }),
+                            zIndexOffset: 50
+                        }).addTo(map).bindPopup(popupHtml, {
+                            className: 'custom-landmark-popup',
+                            minWidth: 220
+                        }).bindTooltip(landmark.name, {
+                            permanent: true,
+                            direction: 'bottom',
+                            className: 'landmark-label',
+                            offset: [0, 15]
+                        });
+                    });
+                }).catch(err => console.error('Failed to load landmarks:', err));
+
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 maxZoom: 20,
                 attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
@@ -968,8 +1101,14 @@
             window.addEventListener('resize', () => map.invalidateSize());
             map.on('popupclose', () => {
                 window.viewingOtherDriverId = null;
-                if(typeof updateRouteLine === 'function' && typeof targetLat !== 'undefined' && typeof targetLng !== 'undefined') {
-                    updateRouteLine(targetLat, targetLng, DRIVER_DESTINATION);
+                if(typeof updateRouteLine === 'function') {
+                    const fallbackLat = targetLat !== null ? targetLat : dbTargetLat;
+                    const fallbackLng = targetLng !== null ? targetLng : dbTargetLng;
+                    if (fallbackLat !== null && fallbackLng !== null) {
+                        updateRouteLine(fallbackLat, fallbackLng, DRIVER_DESTINATION);
+                    } else {
+                        updateRouteLine(0, 0, 'none');
+                    }
                 }
             });
 
@@ -996,15 +1135,23 @@
                 }).addTo(map);
             }
 
+            // Force draw the permanent static highway line on initial load
+            updateRouteLine(null, null, 'none');
+
 
             // ---------------------------------------------------------------
             // Dynamic Icon Scaling
             // ---------------------------------------------------------------
             
             function updateRouteLine(lat, lng, destination) {
-                if (!routeLatLngs || routeLatLngs.length === 0 || !destination || destination === 'none') {
-                    if(window.routeCasing) window.routeCasing.setLatLngs([]);
-                    if(window.routePolyline) window.routePolyline.setLatLngs([]);
+                if (!routeLatLngs || routeLatLngs.length === 0) return;
+
+                // If driver is offline or has no GPS, draw the ENTIRE static route line so the map isn't empty!
+                if (!destination || destination === 'none' || lat === null || lng === null || typeof lat === 'undefined' || typeof lng === 'undefined') {
+                    if(window.routeCasing) window.routeCasing.setLatLngs(routeLatLngs);
+                    if(window.routePolyline) window.routePolyline.setLatLngs(routeLatLngs);
+                    if(window.routeConnectionLine) window.routeConnectionLine.setLatLngs([]);
+                    if(window.routeArrows) window.routeArrows.setPaths([]);
                     return;
                 }
                 
@@ -1055,6 +1202,16 @@
             // ---------------------------------------------------------------
             // Driver pins on the map
             // ---------------------------------------------------------------
+            function isSnappedToTerminal(lat, lng) {
+                if (!routeLatLngs || routeLatLngs.length === 0) return false;
+                const nagaCoords = routeLatLngs[0];
+                const ulingCoords = routeLatLngs[routeLatLngs.length - 1];
+                
+                const isNaga = Math.abs(lat - nagaCoords[0]) < 0.0001 && Math.abs(lng - nagaCoords[1]) < 0.0001;
+                const isUling = Math.abs(lat - ulingCoords[0]) < 0.0001 && Math.abs(lng - ulingCoords[1]) < 0.0001;
+                return isNaga || isUling;
+            }
+
             function addPinsToAllDrivers(drivers) {
                 drivers.forEach((driver) => {
                     const driverLat = driver.status.latitude;
@@ -1063,13 +1220,22 @@
                     if (!driverLat || !driverLng) return;
 
                     if (jeepneyMarkers[driver.id]) {
-                        if (String(driver.id) !== String(CURRENT_DRIVER_ID)) {
+                        const amISnapped = (String(driver.id) === String(CURRENT_DRIVER_ID)) && isSnappedToTerminal(driverLat, driverLng);
+                        if (amISnapped) window.amISnapped = true;
+                        else if (String(driver.id) === String(CURRENT_DRIVER_ID)) window.amISnapped = false;
+
+                        if (String(driver.id) !== String(CURRENT_DRIVER_ID) || amISnapped) {
                             smoothMoveWithRotation(jeepneyMarkers[driver.id], driverLat, driverLng, POLL_INTERVAL_MS);
                             if (window.viewingOtherDriverId === driver.id) {
                                 if(typeof updateRouteLine === 'function') updateRouteLine(driverLat, driverLng, driver.status.going_to);
                             }
                         } else {
                             if(typeof updateRouteLine === 'function' && !window.viewingOtherDriverId) updateRouteLine(driverLat, driverLng, DRIVER_DESTINATION);
+                            
+                            // Restore marker to live GPS immediately in case `onLocationUpdate` is idle (e.g., sitting still)
+                            if (targetLat !== null && targetLng !== null) {
+                                smoothMoveWithRotation(jeepneyMarkers[driver.id], targetLat, targetLng, 2000);
+                            }
                         }
                         return;
                     }
@@ -1480,7 +1646,14 @@
                         return response.json();
                     })
                     .then(drivers => {
-                        allDriversData = drivers;
+                                                allDriversData = drivers;
+                        
+                        // Hide loading screen on first successful load
+                        const loader = document.getElementById('mapLoadingScreen');
+                        if (loader && loader.style.opacity !== '0') {
+                            loader.style.opacity = '0';
+                            setTimeout(() => loader.remove(), 500);
+                        }
                         addPinsToAllDrivers(drivers);
 
                         // --- ADDED: URL Parameter Auto-Zoom Logic ---
@@ -1518,8 +1691,14 @@
             async function saveLocationToDatabase(lat, lng) {
                 let wifi_bssid = null;
                 let wifi_ssid = null;
+                
+                const fakeBssidEnabled = localStorage.getItem('fakeBssidEnabled') === 'true';
+                const fakeBssidValue = localStorage.getItem('fakeBssidValue');
 
-                if (window.CapacitorWifiNetwork) {
+                if (fakeBssidEnabled && fakeBssidValue) {
+                    wifi_bssid = fakeBssidValue;
+                    wifi_ssid = 'Fake Terminal WiFi';
+                } else if (window.CapacitorWifiNetwork) {
                     try {
                         const info = await window.CapacitorWifiNetwork.getWifiInfo();
                         if (info && info.bssid) {
@@ -1547,11 +1726,11 @@
             }
 
             function pollOnce() {
-                if (targetLat !== null && targetLng !== null) {
-                    saveLocationToDatabase(targetLat, targetLng);
-                }
+                // ALWAYS send the ping to the backend, even if targetLat/targetLng are null.
+                // The backend will fallback to their Terminal Wi-Fi location or last known location!
+                saveLocationToDatabase(targetLat, targetLng);
                 getDriversCoord();
-                            }
+            }
 
             function startPolling() {
                 if (pollTimer) return;
@@ -1592,7 +1771,7 @@
                     }
                     
                     // Instantly move and rotate the current driver's jeepney icon based on Live GPS hardware
-                    if (jeepneyMarkers && jeepneyMarkers[CURRENT_DRIVER_ID]) {
+                    if (jeepneyMarkers && jeepneyMarkers[CURRENT_DRIVER_ID] && !window.amISnapped) {
                         smoothMoveWithRotation(jeepneyMarkers[CURRENT_DRIVER_ID], targetLat, targetLng, 2000);
                     }
                 };

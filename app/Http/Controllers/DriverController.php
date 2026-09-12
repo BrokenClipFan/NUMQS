@@ -85,11 +85,11 @@ class DriverController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function updateLocation(Request $request, \App\Services\QueueService $queueService, \App\Services\TerminalService $terminalService)
+    public function updateLocation(Request $request, \App\Services\QueueService $queueService, \App\Services\TerminalService $terminalService, \App\Services\ViolationService $violationService)
     {
         $request->validate([
-            'latitude' => 'required|numeric',
-            'longitude' => 'required|numeric',
+            'latitude' => 'nullable|numeric',
+            'longitude' => 'nullable|numeric',
             'wifi_bssid' => 'nullable|string'
         ]);
 
@@ -97,27 +97,77 @@ class DriverController extends Controller
         
         $oldBssid = $user->wifi_bssid;
         $newBssid = $request->input('wifi_bssid', $oldBssid);
+        
+        $latitude = $request->latitude;
+        $longitude = $request->longitude;
+
+        // If they connected to a terminal, snap their location to the terminal coords! (Offline GPS fallback)
+        $snappedTerminal = null;
+        if ($newBssid) {
+            $snappedTerminal = $terminalService->getTerminalByBssid($newBssid);
+            if ($snappedTerminal) {
+                $route = \App\Models\Route::first();
+                if ($route && $route->path) {
+                    $coords = json_decode($route->path, true);
+                    if (!empty($coords)) {
+                        if (strtolower($snappedTerminal->name) === 'naga') {
+                            $latitude = $coords[0]['lat'];
+                            $longitude = $coords[0]['lng'];
+                        } elseif (strtolower($snappedTerminal->name) === 'uling') {
+                            $last = end($coords);
+                            $latitude = $last['lat'];
+                            $longitude = $last['lng'];
+                        }
+                    }
+                }
+            }
+        }
+        
+        if (is_null($latitude) || is_null($longitude)) {
+            $latitude = $user->latitude;
+            $longitude = $user->longitude;
+        }
 
         $user->update([
-            'latitude' => $request->latitude,
-            'longitude' => $request->longitude,
+            'latitude' => $latitude,
+            'longitude' => $longitude,
             'wifi_bssid' => $newBssid,
             'last_updated' => now()
         ]);
 
-        // If driver was queued and they leave the terminal's WiFi, automatically dispatch them
-        if ($user->state === 'queued' && $oldBssid && $oldBssid !== $newBssid) {
-            $currentTerminal = $terminalService->getTerminalByBssid($oldBssid);
-            if ($currentTerminal) {
-                $nextTerminal = $currentTerminal->name == "Uling" ? "Naga" : "Uling";
-                
+                // 1. Process LEAVING a terminal queue (Only if BSSID actually changes)
+        if ($oldBssid !== $newBssid && $oldBssid && $user->state === 'queued') {
+            $oldTerminal = $terminalService->getTerminalByBssid($oldBssid);
+            if ($oldTerminal) {
+                $nextTerminal = $oldTerminal->name == "Uling" ? "Naga" : "Uling";
                 $user->update([
                     'dispatched_to' => $nextTerminal,
                     'going_to' => $nextTerminal,
                     'state' => 'in_route'
                 ]);
-
                 $queueService->removeFromQueue($user);
+            }
+        }
+
+        // 2. Process ENTERING a terminal queue (Extremely Performant)
+        // Only run the database query if they have a Wi-Fi connection AND are NOT in a queue yet!
+        if ($newBssid && $user->state !== 'queued') {
+            $newTerminal = $terminalService->getTerminalByBssid($newBssid);
+            if ($newTerminal) {
+                // VIOLATION CHECK: Did they enter a terminal they weren't supposed to?
+                if ($user->dispatched_to && $user->dispatched_to !== $newTerminal->name) {
+                    $violationService->createViolation(
+                        $user->user_id, // The migration foreign key explicitly points to users(id)
+                        \App\Services\ViolationService::TYPE_UNAUTHORIZED_TERMINAL,
+                        'Bypassed Route / Wrong Terminal',
+                        $newTerminal->name,
+                        ['expected_terminal' => $user->dispatched_to, 'actual_terminal' => $newTerminal->name],
+                        'high'
+                    );
+                }
+                
+                $user->update(['state' => 'queued', 'queued_in' => $newTerminal->name]);
+                $queueService->addToQueue($user, $newTerminal);
             }
         }
 
@@ -135,7 +185,7 @@ class DriverController extends Controller
         $service->setDriving($driver, $request->boolean('is_online'), $request->input('first_destination'));
         
         $message = $request->boolean('is_online') ? "You are now online" : "You are now offline";
-        return back()->with('success', $message);
+        return redirect()->route('driver.map')->with('success', $message);
     }
 
     /**
@@ -158,5 +208,6 @@ class DriverController extends Controller
         return $violationService->resolve($id);
     }
 }
+
 
 

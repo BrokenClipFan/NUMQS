@@ -9,7 +9,10 @@
       "*.facebook.com",
       "*.facebook.net",
       "*.google.com",
-      "*.googleapis.com"
+      "*.googleapis.com",
+      "*.ngrok-free.dev",
+      "*.ngrok.app",
+      "*.ngrok-free.app"
     ]
   }
 }
