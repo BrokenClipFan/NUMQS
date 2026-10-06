@@ -24,7 +24,8 @@ class DriverController extends Controller
         $driver = DriverStatus::where('user_id', Auth::id())->first();
         $driverProfiles = DriverProfile::all();
         $routePath = \App\Models\Route::first();
-        return view('driver.map', compact('driver', 'driverProfiles', 'routePath'));
+        $terminals = \App\Models\Terminal::all();
+        return view('driver.map', compact('driver', 'driverProfiles', 'routePath', 'terminals'));
     }
 
     public function getDrivers(\App\Services\QueueService $queueService) {
@@ -155,8 +156,9 @@ class DriverController extends Controller
             $newTerminal = $terminalService->getTerminalByBssid($newBssid);
             if ($newTerminal) {
                 // VIOLATION CHECK: Did they enter a terminal they weren't supposed to?
+                $violation = null;
                 if ($user->dispatched_to && $user->dispatched_to !== $newTerminal->name) {
-                    $violationService->createViolation(
+                    $violation = $violationService->createViolation(
                         $user->user_id, // The migration foreign key explicitly points to users(id)
                         \App\Services\ViolationService::TYPE_UNAUTHORIZED_TERMINAL,
                         'Bypassed Route / Wrong Terminal',
@@ -169,6 +171,16 @@ class DriverController extends Controller
                 $user->update(['state' => 'queued', 'queued_in' => $newTerminal->name]);
                 $queueService->addToQueue($user, $newTerminal);
             }
+        }
+
+        if ($request->expectsJson() || $request->isJson() || $request->ajax()) {
+            // Prevent toast spam: only notify the frontend if this is a brand new violation
+            $shouldNotify = $violation && $violation->wasRecentlyCreated;
+            
+            return response()->json([
+                'success' => true,
+                'violation' => $shouldNotify ? $violation : null
+            ]);
         }
 
         return back()->with('success', 'Location is Updated');

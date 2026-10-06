@@ -151,7 +151,8 @@ require __DIR__.'/auth.php';
 
 Route::get('/debug-gps', function () {
     $terminals = \App\Models\Terminal::all();
-    return view('debug-gps', compact('terminals'));
+    $routePath = \App\Models\Route::first();
+    return view('debug-gps', compact('terminals', 'routePath'));
 });
 
 

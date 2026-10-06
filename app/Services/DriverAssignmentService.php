@@ -22,18 +22,18 @@ class DriverAssignmentService {
   }
 
   public function checkLastUpdated($driver, $firstDestination = null) {
-    $destination = $firstDestination ?: 'none';
-
     if($driver->last_updated && $driver->last_updated->isToday()) {
-      // Even if already updated today, if they are starting a new drive we should apply their chosen destination.
+      // If resuming a drive on the same day, PREVENT cheating by restoring them
+      // to their existing route. Ignore the new destination selection entirely.
       $driver->update([
         'state' => 'in_route',
-        'dispatched_to' => $destination,
-        'going_to' => $destination,
+        // Preserve their existing dispatched_to and going_to!
         'last_updated' => now()
       ]);
       return;
     }
+
+    $destination = $firstDestination ?: 'none';
 
     $driver->update([
       'state' => 'in_route',

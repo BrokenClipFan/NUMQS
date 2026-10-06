@@ -68,6 +68,43 @@
         </div>
 
         
+        <!-- FAKE GPS CONTROLLER -->
+        <div class="bg-gray-800 p-4 rounded-lg border border-gray-700 mb-4">
+            <div class="flex items-center justify-between mb-2">
+                <h2 class="text-gray-400 text-sm font-semibold mb-2">Fake GPS Override (Dev)</h2>
+                <label class="flex items-center space-x-3 cursor-pointer">
+                    <input type="checkbox" id="fakeGpsToggle" class="form-checkbox h-5 w-5 text-indigo-600 rounded bg-gray-900 border-gray-700">
+                </label>
+            </div>
+            
+            <div id="fakeGpsContainer" style="display: none;" class="mt-2">
+                <div class="flex space-x-2 mb-2">
+                    <div class="flex-1">
+                        <label class="block text-xs text-gray-400 mb-1">Latitude</label>
+                        <input type="number" step="0.0001" id="fakeGpsLat" class="w-full bg-gray-900 text-white border border-gray-700 rounded px-2 py-2 text-sm" placeholder="10.2134">
+                    </div>
+                    <div class="flex-1">
+                        <label class="block text-xs text-gray-400 mb-1">Longitude</label>
+                        <input type="number" step="0.0001" id="fakeGpsLng" class="w-full bg-gray-900 text-white border border-gray-700 rounded px-2 py-2 text-sm" placeholder="123.7543">
+                    </div>
+                </div>
+                
+                <label class="block text-xs text-gray-400 mb-1 mt-3 text-center">D-Pad Controller (Moves 11 meters)</label>
+                <div class="grid grid-cols-3 gap-1 mb-3 max-w-[150px] mx-auto">
+                    <div></div>
+                    <button id="btnGpsUp" class="bg-gray-700 hover:bg-gray-600 text-white py-2 rounded shadow"><i class="bi bi-caret-up-fill"></i></button>
+                    <div></div>
+                    <button id="btnGpsLeft" class="bg-gray-700 hover:bg-gray-600 text-white py-2 rounded shadow"><i class="bi bi-caret-left-fill"></i></button>
+                    <button id="btnGpsDown" class="bg-gray-700 hover:bg-gray-600 text-white py-2 rounded shadow"><i class="bi bi-caret-down-fill"></i></button>
+                    <button id="btnGpsRight" class="bg-gray-700 hover:bg-gray-600 text-white py-2 rounded shadow"><i class="bi bi-caret-right-fill"></i></button>
+                </div>
+
+                <button id="btnSaveFakeGps" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg transition-colors text-sm">
+                    Apply & Save
+                </button>
+            </div>
+        </div>
+
         <div class="bg-gray-800 p-4 rounded-lg border border-gray-700">
             <h2 class="text-gray-400 text-sm font-semibold mb-2">Fake Wi-Fi Settings (Dev)</h2>
             <label class="flex items-center space-x-3 mb-3 cursor-pointer">
@@ -98,6 +135,32 @@
                     </button>
                 </div>
             </div>
+        </div>
+
+        <div class="bg-gray-800 p-4 rounded-lg border border-gray-700 mb-4">
+            <h2 class="text-gray-400 text-sm font-semibold mb-2">Demo Mode Simulation (Auto-Drive)</h2>
+            <p class="text-xs text-gray-500 mb-3">Continuously moves the GPS to simulate a driving vehicle.</p>
+            
+            <div class="flex items-center justify-between mb-3">
+                <span class="text-xs text-gray-400">Speed (skip points):</span>
+                <div class="flex items-center space-x-2">
+                    <button id="btnSpeedDown" class="bg-gray-700 hover:bg-gray-600 text-white w-7 h-7 rounded text-xs flex items-center justify-center">-</button>
+                    <input type="number" id="demoSpeedInput" value="4" class="w-10 bg-gray-900 text-white text-center border border-gray-700 rounded py-1 text-xs" readonly>
+                    <button id="btnSpeedUp" class="bg-gray-700 hover:bg-gray-600 text-white w-7 h-7 rounded text-xs flex items-center justify-center">+</button>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-2 mb-2">
+                <button id="btnDemoUling" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 rounded-lg text-sm transition-colors">
+                    Drive towards Uling
+                </button>
+                <button id="btnDemoNaga" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded-lg text-sm transition-colors">
+                    Drive towards Naga
+                </button>
+            </div>
+            <button id="btnStopDemo" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-2 rounded-lg text-sm transition-colors" style="display: none;">
+                Stop Simulation
+            </button>
         </div>
 
         <div class="bg-gray-800 p-4 rounded-lg border border-gray-700">
@@ -207,6 +270,48 @@
             });
 
 
+            // --- FAKE GPS LOGIC ---
+            const gpsToggle = document.getElementById('fakeGpsToggle');
+            const gpsContainer = document.getElementById('fakeGpsContainer');
+            const gpsLat = document.getElementById('fakeGpsLat');
+            const gpsLng = document.getElementById('fakeGpsLng');
+            const btnSaveGps = document.getElementById('btnSaveFakeGps');
+
+            gpsToggle.checked = localStorage.getItem('fakeGpsEnabled') === 'true';
+            gpsLat.value = localStorage.getItem('fakeGpsLat') || '10.2134';
+            gpsLng.value = localStorage.getItem('fakeGpsLng') || '123.7543';
+            if(gpsContainer) gpsContainer.style.display = gpsToggle.checked ? 'block' : 'none';
+
+            if(gpsToggle) gpsToggle.addEventListener('change', (e) => {
+                gpsContainer.style.display = e.target.checked ? 'block' : 'none';
+                localStorage.setItem('fakeGpsEnabled', e.target.checked);
+                log(e.target.checked ? 'Fake GPS Enabled' : 'Fake GPS Disabled', 'text-yellow-400');
+            });
+
+            if(btnSaveGps) btnSaveGps.addEventListener('click', () => {
+                localStorage.setItem('fakeGpsLat', gpsLat.value);
+                localStorage.setItem('fakeGpsLng', gpsLng.value);
+                log('Fake GPS saved: ' + gpsLat.value + ', ' + gpsLng.value, 'text-green-400');
+            });
+
+            const moveGps = (latOffset, lngOffset) => {
+                let lat = parseFloat(gpsLat.value) || 10.2134;
+                let lng = parseFloat(gpsLng.value) || 123.7543;
+                lat += latOffset;
+                lng += lngOffset;
+                gpsLat.value = lat.toFixed(5);
+                gpsLng.value = lng.toFixed(5);
+                localStorage.setItem('fakeGpsLat', gpsLat.value);
+                localStorage.setItem('fakeGpsLng', gpsLng.value);
+                log('Moved to: ' + gpsLat.value + ', ' + gpsLng.value, 'text-blue-400');
+            };
+
+            const STEP = 0.0001; // Approx 11 meters
+            document.getElementById('btnGpsUp').addEventListener('click', () => moveGps(STEP, 0));
+            document.getElementById('btnGpsDown').addEventListener('click', () => moveGps(-STEP, 0));
+            document.getElementById('btnGpsLeft').addEventListener('click', () => moveGps(0, -STEP));
+            document.getElementById('btnGpsRight').addEventListener('click', () => moveGps(0, STEP));
+
             const toggle = document.getElementById('fakeBssidToggle');
             const container = document.getElementById('fakeBssidContainer');
             const input = document.getElementById('fakeBssidInput');
@@ -274,6 +379,133 @@
                 } else {
                     log('CapacitorWifiNetwork plugin not found!', 'text-red-400');
                 }
+            });
+            // --- DEMO MODE LOGIC ---
+            let rawPoints = {!! isset($routePath) ? $routePath->path : '[]' !!};
+            const routeLatLngs = (typeof rawPoints === 'string' ? JSON.parse(rawPoints) : rawPoints).map(c => [c.lat, c.lng]);
+            
+            let demoInterval = null;
+            let currentDemoIndex = 0;
+            let currentDemoDirection = 1;
+            
+            const btnDemoUling = document.getElementById('btnDemoUling');
+            const btnDemoNaga = document.getElementById('btnDemoNaga');
+            const btnStopDemo = document.getElementById('btnStopDemo');
+            const btnSpeedUp = document.getElementById('btnSpeedUp');
+            const btnSpeedDown = document.getElementById('btnSpeedDown');
+            const demoSpeedInput = document.getElementById('demoSpeedInput');
+
+            if(btnSpeedUp) {
+                btnSpeedUp.addEventListener('click', () => {
+                    let speed = parseInt(demoSpeedInput.value) || 4;
+                    speed++;
+                    demoSpeedInput.value = speed;
+                });
+            }
+            if(btnSpeedDown) {
+                btnSpeedDown.addEventListener('click', () => {
+                    let speed = parseInt(demoSpeedInput.value) || 4;
+                    if (speed > 1) {
+                        speed--;
+                        demoSpeedInput.value = speed;
+                    }
+                });
+            }
+
+            const startDemo = (destination) => {
+                if (demoInterval) clearInterval(demoInterval);
+                
+                if (routeLatLngs.length === 0) {
+                    log('No route path available in DB.', 'text-red-400');
+                    return;
+                }
+                
+                if (gpsToggle && !gpsToggle.checked) {
+                    gpsToggle.click();
+                }
+                
+                btnDemoUling.style.display = 'none';
+                btnDemoNaga.style.display = 'none';
+                btnStopDemo.style.display = 'block';
+                
+                log(`Demo Mode Started: Driving towards ${destination}`, 'text-green-400');
+                
+                if (destination === 'Uling') {
+                    currentDemoDirection = 1;
+                } else {
+                    currentDemoDirection = -1;
+                }
+                
+                // Find closest point to current fake GPS coordinates to resume from there
+                const fakeGpsLat = document.getElementById('fakeGpsLat');
+                const fakeGpsLng = document.getElementById('fakeGpsLng');
+                
+                let startIndex = (destination === 'Uling') ? 0 : routeLatLngs.length - 1;
+                
+                if (fakeGpsLat && fakeGpsLng && fakeGpsLat.value && fakeGpsLng.value) {
+                    let currentLat = parseFloat(fakeGpsLat.value);
+                    let currentLng = parseFloat(fakeGpsLng.value);
+                    if (!isNaN(currentLat) && !isNaN(currentLng)) {
+                        let minDistance = Infinity;
+                        for (let i = 0; i < routeLatLngs.length; i++) {
+                            let dLat = routeLatLngs[i][0] - currentLat;
+                            let dLng = routeLatLngs[i][1] - currentLng;
+                            let dist = dLat * dLat + dLng * dLng;
+                            if (dist < minDistance) {
+                                minDistance = dist;
+                                startIndex = i;
+                            }
+                        }
+                    }
+                }
+                
+                currentDemoIndex = startIndex;
+                
+                demoInterval = setInterval(() => {
+                    if (currentDemoIndex >= 0 && currentDemoIndex < routeLatLngs.length) {
+                        const coords = routeLatLngs[currentDemoIndex];
+                        const fakeGpsLat = document.getElementById('fakeGpsLat');
+                        const fakeGpsLng = document.getElementById('fakeGpsLng');
+                        if (fakeGpsLat && fakeGpsLng) {
+                            fakeGpsLat.value = coords[0];
+                            fakeGpsLng.value = coords[1];
+                            localStorage.setItem('fakeGpsLat', coords[0]);
+                            localStorage.setItem('fakeGpsLng', coords[1]);
+                            log(`Demo moved to path index ${currentDemoIndex}`, 'text-blue-400');
+                        }
+                        
+                        if (currentDemoIndex === 0 && currentDemoDirection < 0) {
+                            currentDemoIndex = -1; // Force stop next tick
+                        } else if (currentDemoIndex === routeLatLngs.length - 1 && currentDemoDirection > 0) {
+                            currentDemoIndex = routeLatLngs.length; // Force stop next tick
+                        } else {
+                            let speed = parseInt(demoSpeedInput.value) || 4;
+                            currentDemoIndex += (speed * currentDemoDirection);
+                            
+                            // Clamp to bounds so we don't overshoot without visiting the terminal
+                            if (currentDemoIndex < 0) currentDemoIndex = 0;
+                            if (currentDemoIndex >= routeLatLngs.length) currentDemoIndex = routeLatLngs.length - 1;
+                        }
+                    } else {
+                        clearInterval(demoInterval);
+                        log(`Arrived at ${destination}`, 'text-green-400');
+                        btnStopDemo.click();
+                    }
+                }, 1000); 
+            };
+
+            if(btnDemoUling) btnDemoUling.addEventListener('click', () => {
+                startDemo('Uling');
+            });
+            if(btnDemoNaga) btnDemoNaga.addEventListener('click', () => {
+                startDemo('Naga');
+            });
+            if(btnStopDemo) btnStopDemo.addEventListener('click', () => {
+                if (demoInterval) clearInterval(demoInterval);
+                btnDemoUling.style.display = 'block';
+                btnDemoNaga.style.display = 'block';
+                btnStopDemo.style.display = 'none';
+                log('Demo Mode Stopped', 'text-red-400');
             });
         });
     </script>

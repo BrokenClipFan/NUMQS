@@ -31,6 +31,16 @@ class ViolationService
         string $severity = 'medium'
     ): Violation {
         
+        // Small 30-second debounce to prevent double-submit bugs on the same request
+        $recentViolation = Violation::where('driver_profile_id', $driverProfileId)
+            ->where('type', $type)
+            ->where('created_at', '>=', now()->subSeconds(30))
+            ->first();
+            
+        if ($recentViolation) {
+            return $recentViolation;
+        }
+
         return Violation::create([
             'driver_profile_id' => $driverProfileId,
             'type'              => $type,

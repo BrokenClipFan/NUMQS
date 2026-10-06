@@ -894,11 +894,22 @@
                 <h6><i class="bi bi-sliders me-1"></i>DRIVER CONTROLS</h6>
                 <div class="row g-2">
                                         <div class="col-6">
-                        <button type="button" class="btn btn-deck btn-deck-start w-100" data-bs-toggle="modal" data-bs-target="#startDriveModal"
-                            @if ($driver->is_online) disabled @endif>
-                            <i class="bi bi-play-circle-fill fs-4"></i>
-                            <span>Start Drive</span>
-                        </button>
+                        @if ($driver->last_updated && $driver->last_updated->isToday() && $driver->dispatched_to && $driver->dispatched_to !== 'none')
+                            <form class="drive-form m-0" action="{{ route('online.update') }}" method="POST">
+                                @csrf
+                                <input type="hidden" name="is_online" value="1">
+                                <button type="submit" class="btn btn-deck btn-deck-start w-100" @if ($driver->is_online) disabled @endif>
+                                    <i class="bi bi-play-circle-fill fs-4"></i>
+                                    <span>Resume Drive</span>
+                                </button>
+                            </form>
+                        @else
+                            <button type="button" class="btn btn-deck btn-deck-start w-100" data-bs-toggle="modal" data-bs-target="#destinationModal"
+                                @if ($driver->is_online) disabled @endif>
+                                <i class="bi bi-play-circle-fill fs-4"></i>
+                                <span>Start Drive</span>
+                            </button>
+                        @endif
                     </div>
                     <form class="col-6 drive-form" action="{{ route('online.update') }}" method="POST">
                         @csrf
@@ -989,10 +1000,31 @@
 
             // Use standard, clean OSM map tiles (most reliable, no ORB issues)
             
+            const terminalData = {!! isset($terminals) ? $terminals->toJson() : '[]' !!};
+            
             // Add static Terminal Markers
             if (routeLatLngs.length > 0) {
                 const nagaCoords = routeLatLngs[0];
                 const ulingCoords = routeLatLngs[routeLatLngs.length - 1];
+                
+                // Add WiFi range circles
+                L.circle(nagaCoords, {
+                    color: '#3b82f6',
+                    fillColor: '#3b82f6',
+                    fillOpacity: 0.15,
+                    radius: 30, // 30 meters
+                    weight: 2,
+                    dashArray: '4, 4'
+                }).addTo(map);
+
+                L.circle(ulingCoords, {
+                    color: '#3b82f6',
+                    fillColor: '#3b82f6',
+                    fillOpacity: 0.15,
+                    radius: 30, // 30 meters
+                    weight: 2,
+                    dashArray: '4, 4'
+                }).addTo(map);
                 
                 const terminalIconHtml = `
                     <div style="position: relative; width: 36px; height: 36px; display: flex; justify-content: center;">
@@ -1102,10 +1134,19 @@
             map.on('popupclose', () => {
                 window.viewingOtherDriverId = null;
                 if(typeof updateRouteLine === 'function') {
+                    // Try to find the current driver's latest status from the allDriversData
+                    let currentDest = 'none';
+                    if (allDriversData && allDriversData.length) {
+                        const me = allDriversData.find(d => String(d.id) === String(CURRENT_DRIVER_ID));
+                        if (me) {
+                            currentDest = (me.status.state === 'queued') ? 'none' : (me.status.going_to || 'none');
+                        }
+                    }
+                    
                     const fallbackLat = targetLat !== null ? targetLat : dbTargetLat;
                     const fallbackLng = targetLng !== null ? targetLng : dbTargetLng;
                     if (fallbackLat !== null && fallbackLng !== null) {
-                        updateRouteLine(fallbackLat, fallbackLng, DRIVER_DESTINATION);
+                        updateRouteLine(fallbackLat, fallbackLng, currentDest);
                     } else {
                         updateRouteLine(0, 0, 'none');
                     }
@@ -1226,17 +1267,19 @@
 
                         if (String(driver.id) !== String(CURRENT_DRIVER_ID) || amISnapped) {
                             smoothMoveWithRotation(jeepneyMarkers[driver.id], driverLat, driverLng, POLL_INTERVAL_MS);
-                            if (window.viewingOtherDriverId === driver.id) {
-                                if(typeof updateRouteLine === 'function') updateRouteLine(driverLat, driverLng, driver.status.going_to);
-                            }
                         } else {
-                            if(typeof updateRouteLine === 'function' && !window.viewingOtherDriverId) updateRouteLine(driverLat, driverLng, DRIVER_DESTINATION);
-                            
                             // Restore marker to live GPS immediately in case `onLocationUpdate` is idle (e.g., sitting still)
                             if (targetLat !== null && targetLng !== null) {
                                 smoothMoveWithRotation(jeepneyMarkers[driver.id], targetLat, targetLng, 2000);
                             }
                         }
+
+                        // Always update the route line if we are focusing on this driver (or ourselves by default)
+                        if (window.viewingOtherDriverId === driver.id || (String(driver.id) === String(CURRENT_DRIVER_ID) && !window.viewingOtherDriverId)) {
+                            let activeDest = (driver.status.state === 'queued') ? 'none' : (driver.status.going_to || 'none');
+                            if(typeof updateRouteLine === 'function') updateRouteLine(driverLat, driverLng, activeDest);
+                        }
+                        
                         return;
                     }
 
@@ -1285,9 +1328,11 @@
 
                     jeepneyMarkers[driver.id] = marker;
                     if (String(driver.id) === String(CURRENT_DRIVER_ID)) {
-                        if(typeof updateRouteLine === 'function' && !window.viewingOtherDriverId) updateRouteLine(driverLat, driverLng, DRIVER_DESTINATION);
+                        let activeDest = (driver.status.state === 'queued') ? 'none' : (driver.status.going_to || 'none');
+                        if(typeof updateRouteLine === 'function' && !window.viewingOtherDriverId) updateRouteLine(driverLat, driverLng, activeDest);
                     } else if (window.viewingOtherDriverId === driver.id) {
-                        if(typeof updateRouteLine === 'function') updateRouteLine(driverLat, driverLng, driver.status.going_to);
+                        let activeDest = (driver.status.state === 'queued') ? 'none' : (driver.status.going_to || 'none');
+                        if(typeof updateRouteLine === 'function') updateRouteLine(driverLat, driverLng, activeDest);
                     }
                 });
             }
@@ -1692,21 +1737,54 @@
                 let wifi_bssid = null;
                 let wifi_ssid = null;
                 
-                const fakeBssidEnabled = localStorage.getItem('fakeBssidEnabled') === 'true';
-                const fakeBssidValue = localStorage.getItem('fakeBssidValue');
+                let autoBssid = null;
+                let autoSsid = null;
+                
+                if (lat !== null && lng !== null && routeLatLngs.length > 0) {
+                    const currentPos = L.latLng(lat, lng);
+                    const nagaPos = L.latLng(routeLatLngs[0][0], routeLatLngs[0][1]);
+                    const ulingPos = L.latLng(routeLatLngs[routeLatLngs.length - 1][0], routeLatLngs[routeLatLngs.length - 1][1]);
+                    
+                    if (currentPos.distanceTo(nagaPos) <= 30) {
+                        const t = terminalData.find(t => t.name.toLowerCase().includes('naga'));
+                        if (t) { autoBssid = t.bssid; autoSsid = 'Naga Terminal WiFi'; }
+                    } else if (currentPos.distanceTo(ulingPos) <= 30) {
+                        const t = terminalData.find(t => t.name.toLowerCase().includes('uling'));
+                        if (t) { autoBssid = t.bssid; autoSsid = 'Uling Terminal WiFi'; }
+                    }
+                }
+                
+                const fakeGpsEnabled = localStorage.getItem('fakeGpsEnabled') === 'true';
 
-                if (fakeBssidEnabled && fakeBssidValue) {
-                    wifi_bssid = fakeBssidValue;
-                    wifi_ssid = 'Fake Terminal WiFi';
-                } else if (window.CapacitorWifiNetwork) {
-                    try {
-                        const info = await window.CapacitorWifiNetwork.getWifiInfo();
-                        if (info && info.bssid) {
-                            wifi_bssid = info.bssid;
-                            wifi_ssid = info.ssid;
+                if (autoBssid) {
+                    wifi_bssid = autoBssid;
+                    wifi_ssid = autoSsid;
+                    // Provide feedback in debug mode
+                    localStorage.setItem('fakeBssidEnabled', 'true');
+                    localStorage.setItem('fakeBssidValue', autoBssid);
+                } else {
+                    // Automatically disconnect fake WiFi if we drive out of the terminal range
+                    if (fakeGpsEnabled) {
+                        localStorage.setItem('fakeBssidEnabled', 'false');
+                        localStorage.removeItem('fakeBssidValue');
+                    }
+                    
+                    const fakeBssidEnabled = localStorage.getItem('fakeBssidEnabled') === 'true';
+                    const fakeBssidValue = localStorage.getItem('fakeBssidValue');
+                    
+                    if (fakeBssidEnabled && fakeBssidValue) {
+                        wifi_bssid = fakeBssidValue;
+                        wifi_ssid = 'Fake Terminal WiFi';
+                    } else if (window.CapacitorWifiNetwork) {
+                        try {
+                            const info = await window.CapacitorWifiNetwork.getWifiInfo();
+                            if (info && info.bssid) {
+                                wifi_bssid = info.bssid;
+                                wifi_ssid = info.ssid;
+                            }
+                        } catch (e) {
+                            // Wi-Fi not available or error
                         }
-                    } catch (e) {
-                        // Wi-Fi not available or error
                     }
                 }
 
@@ -1714,6 +1792,7 @@
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
+                        'Accept': 'application/json',
                         'X-CSRF-TOKEN': csrfToken,
                     },
                     body: JSON.stringify({
@@ -1722,7 +1801,22 @@
                         wifi_bssid: wifi_bssid,
                         wifi_ssid: wifi_ssid
                     }),
-                }).catch(err => console.error('saveLocationToDatabase:', err));
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data && data.violation) {
+                        const props = data.violation.properties || {};
+                        const expected = props.expected_terminal || 'your designated terminal';
+                        const message = `VIOLATION: ${data.violation.name}! You entered ${data.violation.location} but were dispatched to ${expected}.`;
+                        
+                        if (typeof showNotification === 'function') {
+                            showNotification('danger', message, 10000);
+                        } else {
+                            alert(message);
+                        }
+                    }
+                })
+                .catch(err => console.error('saveLocationToDatabase:', err));
             }
 
             function pollOnce() {
@@ -1782,6 +1876,18 @@
                     geoWarningEl.innerHTML =
                         '<i class="bi bi-exclamation-triangle-fill"></i> Location permission needed to update the map.';
                 };
+
+                // Check for Fake GPS Override first
+                const fakeGpsEnabled = localStorage.getItem('fakeGpsEnabled') === 'true';
+                if (fakeGpsEnabled) {
+                    console.log('Fake GPS Enabled. Intercepting location tracking...');
+                    setInterval(() => {
+                        const lat = parseFloat(localStorage.getItem('fakeGpsLat')) || 10.2134;
+                        const lng = parseFloat(localStorage.getItem('fakeGpsLng')) || 123.7543;
+                        onLocationUpdate({ coords: { latitude: lat, longitude: lng } });
+                    }, 2000);
+                    return; // DO NOT start real hardware GPS
+                }
 
                 // Capacitor Native Geolocation Support
                 if (window.Capacitor && window.CapacitorGeolocation) {
@@ -1856,27 +1962,33 @@
                 </div>
                 <div class="modal-body pt-0 pb-4">
                     <p style="color: var(--text-muted); font-size: 0.95rem;">Please select where you are heading. This sets your route for the current drive session.</p>
-                    <form action="{{ route('online.update') }}" method="POST">
-                        @csrf
-                        <input type="hidden" name="is_online" value="1">
-                        <div class="d-grid gap-3">
-                            <button type="submit" name="first_destination" value="Uling" class="btn btn-lg d-flex align-items-center justify-content-between px-4 py-3" style="background: var(--card); border: 2px solid var(--route-uling); border-radius: 12px; color: var(--ink); font-weight: 600; text-align: left;">
+                    <div class="d-grid gap-3">
+                        <form class="drive-form m-0" action="{{ route('online.update') }}" method="POST">
+                            @csrf
+                            <input type="hidden" name="is_online" value="1">
+                            <input type="hidden" name="first_destination" value="Naga">
+                            <button type="submit" class="btn btn-lg d-flex align-items-center justify-content-between px-4 py-3 w-100" style="background: var(--card); border: 2px solid var(--route-uling); border-radius: 12px; color: var(--ink); font-weight: 600; text-align: left;">
                                 <div>
                                     <span class="route-dot uling me-2"></span>
                                     Naga &rarr; Uling
                                 </div>
                                 <i class="bi bi-chevron-right text-muted"></i>
                             </button>
-                            
-                            <button type="submit" name="first_destination" value="Naga" class="btn btn-lg d-flex align-items-center justify-content-between px-4 py-3" style="background: var(--card); border: 2px solid var(--route-naga); border-radius: 12px; color: var(--ink); font-weight: 600; text-align: left;">
+                        </form>
+                        
+                        <form class="drive-form m-0" action="{{ route('online.update') }}" method="POST">
+                            @csrf
+                            <input type="hidden" name="is_online" value="1">
+                            <input type="hidden" name="first_destination" value="Uling">
+                            <button type="submit" class="btn btn-lg d-flex align-items-center justify-content-between px-4 py-3 w-100" style="background: var(--card); border: 2px solid var(--route-naga); border-radius: 12px; color: var(--ink); font-weight: 600; text-align: left;">
                                 <div>
                                     <span class="route-dot naga me-2"></span>
                                     Uling &rarr; Naga
                                 </div>
                                 <i class="bi bi-chevron-right text-muted"></i>
                             </button>
-                        </div>
-                    </form>
+                        </form>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1908,34 +2020,7 @@
 
     
 
-    <!-- Start Drive Modal -->
-    <div class="modal fade dark-modal" id="startDriveModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Select Initial Destination</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body text-center">
-                    <p class="mb-4">Where are you heading first?</p>
-                    <div class="d-grid gap-3">
-                        <form class="drive-form" action="{{ route('online.update') }}" method="POST">
-                            @csrf
-                            <input type="hidden" name="is_online" value="1">
-                            <input type="hidden" name="first_destination" value="Uling">
-                            <button type="submit" class="btn btn-primary w-100 py-3">Heading to Uling</button>
-                        </form>
-                        <form class="drive-form" action="{{ route('online.update') }}" method="POST">
-                            @csrf
-                            <input type="hidden" name="is_online" value="1">
-                            <input type="hidden" name="first_destination" value="Naga">
-                            <button type="submit" class="btn btn-success w-100 py-3">Heading to Naga</button>
-                        </form>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+
 </body>
 
 </html>
