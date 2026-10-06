@@ -155,4 +155,104 @@ Route::get('/debug-gps', function () {
     return view('debug-gps', compact('terminals', 'routePath'));
 });
 
+Route::post('/debug-gps/simulate', function (\Illuminate\Http\Request $request) {
+    $offlineBots = $request->input('offline_bots', []);
+    
+    $drivers = \App\Models\DriverStatus::where('user_id', '!=', auth()->id())
+        ->whereIn('user_id', [2, 3, 4, 5, 6, 7]) // Pick a few dummy drivers
+        ->get();
+        
+    $route = \App\Models\Route::first();
+    if (!$route || !$route->path) return response()->json(['success' => false]);
+    $coords = json_decode($route->path, true);
+    if (empty($coords)) return response()->json(['success' => false]);
+
+    foreach ($drivers as $driver) {
+        if (!$driver->is_online) {
+            $driver->update([
+                'is_online' => true,
+                'state' => 'in_route',
+                'dispatched_to' => rand(0, 1) ? 'Naga' : 'Uling',
+                'going_to' => rand(0, 1) ? 'Naga' : 'Uling',
+                'waypoint_index' => rand(0, count($coords) - 1)
+            ]);
+        } else if ($driver->state === 'queued') {
+            if (rand(1, 5) === 1) { 
+                app(\App\Services\QueueService::class)->removeFromQueue($driver);
+                $nextDest = $driver->queued_in === 'Naga' ? 'Uling' : 'Naga';
+                $driver->update([
+                    'state' => 'in_route',
+                    'dispatched_to' => $nextDest,
+                    'going_to' => $nextDest,
+                    'wifi_bssid' => null
+                ]);
+            }
+        } else {
+            $idx = (int)$driver->waypoint_index;
+            $speed = rand(2, 6);
+            if ($driver->dispatched_to === 'Uling') {
+                $idx += $speed;
+                if ($idx >= count($coords) - 1) {
+                    $idx = count($coords) - 1;
+                    $terminal = \App\Models\Terminal::where('name', 'Uling')->first();
+                    $driver->update(['state' => 'queued', 'queued_in' => 'Uling', 'wifi_bssid' => $terminal->bssid]);
+                    if ($terminal) app(\App\Services\QueueService::class)->addToQueue($driver, $terminal);
+                }
+            } else {
+                $idx -= $speed;
+                if ($idx <= 0) {
+                    $idx = 0;
+                    $terminal = \App\Models\Terminal::where('name', 'Naga')->first();
+                    $driver->update(['state' => 'queued', 'queued_in' => 'Naga', 'wifi_bssid' => $terminal->bssid]);
+                    if ($terminal) app(\App\Services\QueueService::class)->addToQueue($driver, $terminal);
+                }
+            }
+            
+            if (isset($coords[$idx])) {
+                $updateData = [
+                    'waypoint_index' => $idx,
+                    'latitude' => $coords[$idx]['lat'],
+                    'longitude' => $coords[$idx]['lng'],
+                ];
+                
+                $isJammed = in_array($driver->user_id, $offlineBots);
+                
+                // If the bot is completely jammed via UI, let their timestamp rot.
+                // Otherwise, check normal dead zone logic.
+                if (!$isJammed) {
+                    if ($idx < 217 || $idx >= count($coords) - 1) {
+                        $updateData['last_updated'] = now();
+                    }
+                }
+                
+                $driver->update($updateData);
+            }
+        }
+    }
+    return response()->json(['success' => true]);
+});
+
+Route::post('/debug-gps/bot-cheat', function (\Illuminate\Http\Request $request) {
+    $driverId = $request->input('driver_id');
+    $driver = \App\Models\DriverStatus::where('user_id', $driverId)->first();
+    if (!$driver) return response()->json(['success' => false]);
+    
+    $service = app(\App\Services\DriverAssignmentService::class);
+    
+    // Simulate the bot attempting to cheat:
+    // 1. Go offline to clear their queue state
+    $service->setDriving($driver, false);
+    
+    // 2. Go online immediately and try to choose the OPPOSITE of what they were doing
+    $cheatDest = $driver->dispatched_to === 'Naga' ? 'Uling' : 'Naga';
+    $service->setDriving($driver, true, $cheatDest);
+    
+    return response()->json([
+        'success' => true, 
+        'driver' => $driver->user_id,
+        'attempted_dest' => $cheatDest,
+        'actual_dest' => $driver->fresh()->dispatched_to // Should remain the original due to our patch!
+    ]);
+});
+
 

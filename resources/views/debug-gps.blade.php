@@ -161,6 +161,47 @@
             <button id="btnStopDemo" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-2 rounded-lg text-sm transition-colors" style="display: none;">
                 Stop Simulation
             </button>
+
+            <!-- Manual Signal Jammer -->
+            <div class="mt-4 p-3 border border-gray-700 rounded-lg bg-gray-800">
+                <h3 class="text-xs font-bold text-gray-400 uppercase mb-2">Signal Jammer</h3>
+                <div class="flex gap-2">
+                    <select id="jammerSelect" class="bg-gray-900 border border-gray-600 text-white text-sm rounded-lg p-2 w-1/2">
+                        <option value="myself">Myself</option>
+                        <option value="2">Bot #2</option>
+                        <option value="3">Bot #3</option>
+                        <option value="4">Bot #4</option>
+                        <option value="5">Bot #5</option>
+                        <option value="6">Bot #6</option>
+                        <option value="7">Bot #7</option>
+                    </select>
+                    <button id="btnToggleCellular" class="w-1/2 bg-green-600 hover:bg-green-700 text-white font-bold py-2 rounded-lg text-sm transition-colors">
+                        <span id="cellularText">Cellular: ON</span>
+                    </button>
+                </div>
+            </div>
+            
+            <button id="btnSpawnTraffic" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 rounded-lg text-sm transition-colors mt-2 mb-2">
+                Simulate Traffic (Bots)
+            </button>
+
+            <div class="mt-4 p-3 border border-gray-700 rounded-lg bg-gray-800">
+                <h3 class="text-xs font-bold text-gray-400 uppercase mb-2">Bot Cheat Tester</h3>
+                <div class="flex gap-2">
+                    <select id="botSelect" class="bg-gray-900 border border-gray-600 text-white text-sm rounded-lg p-2 w-1/3">
+                        <option value="2">Bot #2</option>
+                        <option value="3">Bot #3</option>
+                        <option value="4">Bot #4</option>
+                        <option value="5">Bot #5</option>
+                        <option value="6">Bot #6</option>
+                        <option value="7">Bot #7</option>
+                    </select>
+                    <button id="btnBotCheat" class="w-2/3 bg-orange-600 hover:bg-orange-700 text-white font-bold py-2 rounded-lg text-sm transition-colors">
+                        Simulate Cheat
+                    </button>
+                </div>
+                <p class="text-[10px] text-gray-500 mt-1 leading-tight">Simulates the bot going offline and coming back online with a different route to test the cheat patch.</p>
+            </div>
         </div>
 
         <div class="bg-gray-800 p-4 rounded-lg border border-gray-700">
@@ -324,12 +365,44 @@
             if(toggle) toggle.addEventListener('change', (e) => {
                 container.style.display = e.target.checked ? 'block' : 'none';
                 localStorage.setItem('fakeBssidEnabled', e.target.checked);
+                if (e.target.checked) {
+                    localStorage.setItem('manualBssidOverride', 'true');
+                } else {
+                    localStorage.removeItem('manualBssidOverride');
+                }
                 log(e.target.checked ? 'Fake BSSID Enabled' : 'Fake BSSID Disabled', 'text-yellow-400');
             });
 
+            async function pingFakeBssid(bssid) {
+                try {
+                    const res = await fetch('/driver/location/update', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                        },
+                        body: JSON.stringify({
+                            wifi_bssid: bssid,
+                            wifi_ssid: 'Fake Terminal WiFi'
+                        })
+                    });
+                    const data = await res.json();
+                    if (data.violation) {
+                        log('Violation Triggered: ' + data.violation.name, 'text-red-400 font-bold');
+                    } else {
+                        log('Fake BSSID successfully pinged to server!', 'text-green-400');
+                    }
+                } catch (e) {
+                    log('Error pinging server: ' + e.message, 'text-red-400');
+                }
+            }
+
             if(btnSave) btnSave.addEventListener('click', () => {
-                localStorage.setItem('fakeBssidValue', input.value.trim());
-                log('Fake BSSID saved: ' + input.value.trim(), 'text-green-400');
+                const bssid = input.value.trim();
+                localStorage.setItem('fakeBssidValue', bssid);
+                log('Fake BSSID saved: ' + bssid, 'text-green-400');
+                pingFakeBssid(bssid);
             });
 
             document.getElementById('btnRandomBssid').addEventListener('click', () => {
@@ -338,6 +411,7 @@
                 input.value = randomBssid;
                 localStorage.setItem('fakeBssidValue', randomBssid);
                 log('Random unknown BSSID generated: ' + randomBssid, 'text-purple-400');
+                pingFakeBssid(randomBssid);
             });
 
             document.querySelectorAll('.preset-bssid-btn').forEach(btn => {
@@ -346,7 +420,15 @@
                     const bssid = btnEl.getAttribute('data-bssid');
                     input.value = bssid;
                     localStorage.setItem('fakeBssidValue', bssid);
+                    
+                    // Automatically turn on the toggle so it stays enabled!
+                    toggle.checked = true;
+                    localStorage.setItem('fakeBssidEnabled', 'true');
+                    localStorage.setItem('manualBssidOverride', 'true');
+                    container.style.display = 'block';
+                    
                     log('Preset terminal selected: ' + bssid, 'text-green-400');
+                    pingFakeBssid(bssid);
                 });
             });
 
@@ -507,6 +589,132 @@
                 btnStopDemo.style.display = 'none';
                 log('Demo Mode Stopped', 'text-red-400');
             });
+            
+            // --- CELLULAR TOGGLE / JAMMER ---
+            const btnToggleCellular = document.getElementById('btnToggleCellular');
+            const cellularText = document.getElementById('cellularText');
+            const jammerSelect = document.getElementById('jammerSelect');
+            
+            function updateJammerUI() {
+                const target = jammerSelect.value;
+                let currentlyOff = false;
+                
+                if (target === 'myself') {
+                    currentlyOff = localStorage.getItem('cellularDisabled') === 'true';
+                } else {
+                    const jammedBots = JSON.parse(localStorage.getItem('jammedBots') || '[]');
+                    currentlyOff = jammedBots.includes(parseInt(target));
+                }
+                
+                if (currentlyOff) {
+                    btnToggleCellular.classList.replace('bg-green-600', 'bg-gray-600');
+                    btnToggleCellular.classList.replace('hover:bg-green-700', 'hover:bg-gray-700');
+                    cellularText.innerText = 'Cellular: OFF';
+                } else {
+                    btnToggleCellular.classList.replace('bg-gray-600', 'bg-green-600');
+                    btnToggleCellular.classList.replace('hover:bg-gray-700', 'hover:bg-green-700');
+                    cellularText.innerText = 'Cellular: ON';
+                }
+            }
+            
+            if (jammerSelect) {
+                jammerSelect.addEventListener('change', updateJammerUI);
+            }
+            
+            if(btnToggleCellular) {
+                updateJammerUI(); // Initial check
+                btnToggleCellular.addEventListener('click', () => {
+                    const target = jammerSelect.value;
+                    let currentlyOff = false;
+                    let label = target === 'myself' ? 'My App' : `Bot #${target}`;
+                    
+                    if (target === 'myself') {
+                        currentlyOff = localStorage.getItem('cellularDisabled') === 'true';
+                        localStorage.setItem('cellularDisabled', currentlyOff ? 'false' : 'true');
+                    } else {
+                        let jammedBots = JSON.parse(localStorage.getItem('jammedBots') || '[]');
+                        const botId = parseInt(target);
+                        currentlyOff = jammedBots.includes(botId);
+                        if (currentlyOff) {
+                            jammedBots = jammedBots.filter(id => id !== botId);
+                        } else {
+                            jammedBots.push(botId);
+                        }
+                        localStorage.setItem('jammedBots', JSON.stringify(jammedBots));
+                    }
+                    
+                    updateJammerUI();
+                    
+                    if (currentlyOff) {
+                        log(`${label} Cellular Signal Restored.`, 'text-green-400');
+                    } else {
+                        log(`${label} Cellular Signal Jammed (Offline).`, 'text-red-400');
+                    }
+                });
+            }
+            // -----------------------
+            
+            let trafficInterval = null;
+            const btnSpawnTraffic = document.getElementById('btnSpawnTraffic');
+            if(btnSpawnTraffic) {
+                btnSpawnTraffic.addEventListener('click', () => {
+                    if (trafficInterval) {
+                        clearInterval(trafficInterval);
+                        trafficInterval = null;
+                        btnSpawnTraffic.innerText = 'Simulate Traffic (Bots)';
+                        btnSpawnTraffic.classList.replace('bg-red-600', 'bg-purple-600');
+                        btnSpawnTraffic.classList.replace('hover:bg-red-700', 'hover:bg-purple-700');
+                        log('Traffic simulation stopped.', 'text-red-400');
+                    } else {
+                        btnSpawnTraffic.innerText = 'Stop Traffic (Bots)';
+                        btnSpawnTraffic.classList.replace('bg-purple-600', 'bg-red-600');
+                        btnSpawnTraffic.classList.replace('hover:bg-purple-700', 'hover:bg-red-700');
+                        log('Traffic simulation started...', 'text-purple-400');
+                        trafficInterval = setInterval(() => {
+                            const jammedBots = JSON.parse(localStorage.getItem('jammedBots') || '[]');
+                            fetch('/debug-gps/simulate', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                                },
+                                body: JSON.stringify({ offline_bots: jammedBots })
+                            }).catch(e => console.error(e));
+                        }, 2000);
+                    }
+                });
+            }
+
+            const btnBotCheat = document.getElementById('btnBotCheat');
+            const botSelect = document.getElementById('botSelect');
+            if (btnBotCheat && botSelect) {
+                btnBotCheat.addEventListener('click', () => {
+                    const driverId = botSelect.value;
+                    log(`Testing cheat prevention on Bot #${driverId}...`, 'text-orange-400');
+                    
+                    fetch('/debug-gps/bot-cheat', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                        },
+                        body: JSON.stringify({ driver_id: driverId })
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.success) {
+                            if (data.attempted_dest === data.actual_dest) {
+                                log(`Bot #${driverId} CHEAT SUCCESSFUL! Bypassed to ${data.actual_dest}`, 'text-red-500 font-bold');
+                            } else {
+                                log(`Bot #${driverId} CHEAT BLOCKED! Attempted ${data.attempted_dest}, forced back to ${data.actual_dest}`, 'text-green-400 font-bold');
+                            }
+                        } else {
+                            log(`Bot #${driverId} cheat test failed (bot not active).`, 'text-gray-500');
+                        }
+                    })
+                    .catch(e => console.error(e));
+                });
+            }
         });
     </script>
 </body>

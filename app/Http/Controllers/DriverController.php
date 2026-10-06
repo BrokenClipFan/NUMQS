@@ -29,7 +29,7 @@ class DriverController extends Controller
     }
 
     public function getDrivers(\App\Services\QueueService $queueService) {
-        // Lazily clean up drivers who haven't updated in 5 minutes
+        // Lazily clean up drivers who haven't updated in 5 minutes (or 1 hour if in_route for dead zones)
         $queueService->pruneDisconnectedDrivers();
 
         $drivers = User::whereHas('status', function ($query) {
@@ -37,6 +37,38 @@ class DriverController extends Controller
         })
         ->with(['profile', 'status'])
         ->get();
+        
+        $route = \App\Models\Route::first();
+        $coords = $route ? json_decode($route->path, true) : [];
+        $now = now();
+
+        foreach ($drivers as $driver) {
+            $status = $driver->status;
+            // Extrapolate and protect any in_route driver who loses connection anywhere on the route
+            if ($status && $status->state === 'in_route' && $status->last_updated) {
+                $secondsStale = $status->last_updated->diffInSeconds($now);
+                if ($secondsStale > 15) {
+                    $status->is_stale = true; // Frontend will show "Lost Connection" badge
+                    
+                    if (count($coords) > 0 && $status->waypoint_index !== null) {
+                        // Extrapolate conceptually: 1 waypoint per 5 seconds (very slow visual crawl)
+                        $pointsToMove = floor($secondsStale / 5);
+                        $idx = (int)$status->waypoint_index;
+                        
+                        if ($status->going_to === 'Uling') {
+                            $idx += $pointsToMove;
+                            if ($idx >= count($coords) - 1) $idx = count($coords) - 1;
+                        } else {
+                            $idx -= $pointsToMove;
+                            if ($idx <= 0) $idx = 0;
+                        }
+                        
+                        $status->latitude = $coords[$idx]['lat'] ?? $status->latitude;
+                        $status->longitude = $coords[$idx]['lng'] ?? $status->longitude;
+                    }
+                }
+            }
+        }
 
         return $drivers;
     }
@@ -129,12 +161,40 @@ class DriverController extends Controller
             $longitude = $user->longitude;
         }
 
-        $user->update([
+        $updateData = [
             'latitude' => $latitude,
             'longitude' => $longitude,
             'wifi_bssid' => $newBssid,
             'last_updated' => now()
-        ]);
+        ];
+
+        // Ensure waypoint_index stays accurate for extrapolation
+        $route = \App\Models\Route::first();
+        if ($route && $route->path) {
+            $coords = json_decode($route->path, true);
+            if (!empty($coords)) {
+                if ($snappedTerminal && strtolower($snappedTerminal->name) === 'naga') {
+                    $updateData['waypoint_index'] = 0;
+                } else if ($snappedTerminal && strtolower($snappedTerminal->name) === 'uling') {
+                    $updateData['waypoint_index'] = count($coords) - 1;
+                } else if ($latitude !== null && $longitude !== null) {
+                    $minDist = PHP_FLOAT_MAX;
+                    $bestIdx = null;
+                    foreach ($coords as $idx => $coord) {
+                        $dist = pow($coord['lat'] - $latitude, 2) + pow($coord['lng'] - $longitude, 2);
+                        if ($dist < $minDist) {
+                            $minDist = $dist;
+                            $bestIdx = $idx;
+                        }
+                    }
+                    if ($bestIdx !== null) {
+                        $updateData['waypoint_index'] = $bestIdx;
+                    }
+                }
+            }
+        }
+
+        $user->update($updateData);
 
                 // 1. Process LEAVING a terminal queue (Only if BSSID actually changes)
         if ($oldBssid !== $newBssid && $oldBssid && $user->state === 'queued') {
@@ -152,11 +212,11 @@ class DriverController extends Controller
 
         // 2. Process ENTERING a terminal queue (Extremely Performant)
         // Only run the database query if they have a Wi-Fi connection AND are NOT in a queue yet!
+        $violation = null;
         if ($newBssid && $user->state !== 'queued') {
             $newTerminal = $terminalService->getTerminalByBssid($newBssid);
             if ($newTerminal) {
                 // VIOLATION CHECK: Did they enter a terminal they weren't supposed to?
-                $violation = null;
                 if ($user->dispatched_to && $user->dispatched_to !== $newTerminal->name) {
                     $violation = $violationService->createViolation(
                         $user->user_id, // The migration foreign key explicitly points to users(id)

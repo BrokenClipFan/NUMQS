@@ -701,13 +701,34 @@
             width: 100%;
             height: 100%;
             transform-origin: center center;
-            transition: transform 0.25s ease-out;
+            transition: transform 0.25s ease-out, filter 0.3s;
             filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.35));
 
             /* NEW: Hardware acceleration to prevent blur */
             backface-visibility: hidden;
             -webkit-backface-visibility: hidden;
             will-change: transform;
+        }
+
+        .stale-marker .jeepney-sprite {
+            filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.35)) grayscale(100%) opacity(0.6);
+        }
+
+        .offline-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: var(--alert);
+            color: white;
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.5);
+            z-index: 100;
         }
 
         /* Search Result Dropdown Styles */
@@ -1274,6 +1295,22 @@
                             }
                         }
 
+                        // --- NEW: Stale Marker DOM Update ---
+                        const markerElem = jeepneyMarkers[driver.id].getElement();
+                        if (markerElem) {
+                            if (driver.status.is_stale) {
+                                markerElem.classList.add('stale-marker');
+                                if (!markerElem.querySelector('.offline-badge')) {
+                                    markerElem.insertAdjacentHTML('beforeend', '<div class="offline-badge"><i class="bi bi-wifi-off"></i></div>');
+                                }
+                            } else {
+                                markerElem.classList.remove('stale-marker');
+                                const badge = markerElem.querySelector('.offline-badge');
+                                if (badge) badge.remove();
+                            }
+                        }
+                        // ------------------------------------
+
                         // Always update the route line if we are focusing on this driver (or ourselves by default)
                         if (window.viewingOtherDriverId === driver.id || (String(driver.id) === String(CURRENT_DRIVER_ID) && !window.viewingOtherDriverId)) {
                             let activeDest = (driver.status.state === 'queued') ? 'none' : (driver.status.going_to || 'none');
@@ -1295,9 +1332,13 @@
                     const iconFilePath = driver.profile?.jeep_icon ?
                         `/storage/${driver.profile.jeep_icon}` :
                         '/Logo.png'; // Fallback to logo or default icon if null
+                        
+                    const isStale = driver.status.is_stale;
+                    const badgeHtml = isStale ? `<div class="offline-badge"><i class="bi bi-wifi-off"></i></div>` : '';
+                    
                     const jeepIcon = L.divIcon({
-                        className: 'jeepney-marker-container',
-                        html: `<img src="${escapeHtml(iconFilePath)}" class="jeepney-sprite" alt="jeepney">`,
+                        className: 'jeepney-marker-container' + (isStale ? ' stale-marker' : ''),
+                        html: `<img src="${escapeHtml(iconFilePath)}" class="jeepney-sprite" alt="jeepney">${badgeHtml}`,
                         iconSize: [30, 30],
                         iconAnchor: [15, 15],
                         popupAnchor: [0, -30],
@@ -1764,7 +1805,10 @@
                     localStorage.setItem('fakeBssidValue', autoBssid);
                 } else {
                     // Automatically disconnect fake WiFi if we drive out of the terminal range
-                    if (fakeGpsEnabled) {
+                    // BUT ignore this if the user manually toggled the BSSID from the debug menu!
+                    const manualBssidOverride = localStorage.getItem('manualBssidOverride') === 'true';
+                    
+                    if (fakeGpsEnabled && !manualBssidOverride) {
                         localStorage.setItem('fakeBssidEnabled', 'false');
                         localStorage.removeItem('fakeBssidValue');
                     }
@@ -1822,7 +1866,14 @@
             function pollOnce() {
                 // ALWAYS send the ping to the backend, even if targetLat/targetLng are null.
                 // The backend will fallback to their Terminal Wi-Fi location or last known location!
-                saveLocationToDatabase(targetLat, targetLng);
+                
+                const isCellularOff = localStorage.getItem('cellularDisabled') === 'true';
+                if (!isCellularOff) {
+                    saveLocationToDatabase(targetLat, targetLng);
+                } else {
+                    console.log("Simulating Dead Zone: Cellular is OFF. GPS ping dropped.");
+                }
+                
                 getDriversCoord();
             }
 

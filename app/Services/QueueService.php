@@ -61,8 +61,18 @@ class QueueService {
 
   public function pruneDisconnectedDrivers() {
     $threshold = now()->subMinutes(5);
+    $inRouteThreshold = now()->subMinutes(60); // 1 hour for offline in_route drivers
+
     $disconnectedDrivers = DriverStatus::where('is_online', true)
-                            ->where('last_updated', '<', $threshold)
+                            ->where(function($query) use ($threshold, $inRouteThreshold) {
+                                $query->where(function($q) use ($threshold) {
+                                    $q->where('state', '!=', 'in_route')
+                                      ->where('last_updated', '<', $threshold);
+                                })->orWhere(function($q) use ($inRouteThreshold) {
+                                    $q->where('state', 'in_route')
+                                      ->where('last_updated', '<', $inRouteThreshold);
+                                });
+                            })
                             ->get();
 
     foreach ($disconnectedDrivers as $driver) {

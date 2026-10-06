@@ -3,7 +3,7 @@
   "appName": "NUMQS",
   "webDir": "www",
   "server": {
-    "url": "https://numqs-dev.loca.lt",
+    "url": "https://hypnotic-survival-capital.ngrok-free.dev",
     "cleartext": true,
     "allowNavigation": [
       "*.facebook.com",
